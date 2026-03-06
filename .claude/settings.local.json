@@ -1,0 +1,20 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(pnpm --version)",
+      "Bash(npm view pnpm version)",
+      "Bash(npm view turbo version)",
+      "Bash(npm view typescript version)",
+      "Bash(corepack enable)",
+      "Bash(corepack use pnpm@latest)",
+      "Bash(pnpm install)",
+      "Bash(pnpm approve-builds --global @nestjs/core @parcel/watcher esbuild)",
+      "Bash(pnpm approve-builds @nestjs/core @parcel/watcher esbuild)",
+      "Bash(pnpm --filter @workout/api exec nest build)",
+      "Bash(pnpm --filter @workout/web exec nuxt prepare)",
+      "Bash(pnpm ls -r --depth 0)",
+      "Bash(timeout 20 pnpm dev)",
+      "Bash(gtimeout 20 pnpm dev)"
+    ]
+  }
+}

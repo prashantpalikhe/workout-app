@@ -1,0 +1,233 @@
+erDiagram
+    %% ============================================
+    %% WORKOUT APP — ENTITY RELATIONSHIP DIAGRAM
+    %% v2 — Simplified flat program structure
+    %% ============================================
+
+    %% ── USERS & PROFILES ──
+
+    User {
+        uuid id PK
+        string email UK
+        string password_hash
+        enum role "athlete | trainer"
+        string first_name
+        string last_name
+        string avatar_url
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    AthleteProfile {
+        uuid id PK
+        uuid user_id FK
+        float weight
+        float height
+        date date_of_birth
+        enum unit_preference "metric | imperial"
+        enum gender "male | female | other"
+        text bio
+        string link
+        timestamp updated_at
+    }
+
+    UserSettings {
+        uuid id PK
+        uuid user_id FK
+        enum theme "light | dark | system"
+        boolean rest_timer_enabled
+        int default_rest_sec
+        timestamp updated_at
+    }
+
+    Measurement {
+        uuid id PK
+        uuid athlete_profile_id FK
+        date measured_on
+        float body_weight
+        float chest
+        float waist
+        float hips
+        float left_arm
+        float right_arm
+        float left_thigh
+        float right_thigh
+        float left_calf
+        float right_calf
+        float neck
+        float shoulders
+        float body_fat_pct
+        text notes
+    }
+
+    %% ── TRAINER-ATHLETE RELATIONSHIP ──
+
+    TrainerAthlete {
+        uuid id PK
+        uuid trainer_id FK
+        uuid athlete_id FK
+        enum status "pending | active | inactive"
+        timestamp started_at
+        timestamp ended_at
+    }
+
+    %% ── EXERCISE LIBRARY ──
+
+    Exercise {
+        uuid id PK
+        uuid created_by FK
+        string name
+        enum tracking_type "weight_reps | reps_only | duration | weight_duration | distance_duration"
+        enum equipment "barbell | dumbbell | cable | machine | bodyweight | band | kettlebell | other"
+        enum movement_pattern "push | pull | squat | hinge | carry | rotation | isolation"
+        string image_url
+        text instructions
+        string video_url
+        boolean is_global
+        timestamp created_at
+    }
+
+    ExerciseMuscleGroup {
+        uuid id PK
+        uuid exercise_id FK
+        uuid muscle_group_id FK
+        enum role "primary | secondary"
+    }
+
+    MuscleGroup {
+        uuid id PK
+        string name
+        string body_region
+    }
+
+    %% ── PROGRAMS (flat structure) ──
+
+    ProgramFolder {
+        uuid id PK
+        uuid user_id FK
+        string name
+        int sort_order
+        timestamp created_at
+    }
+
+    Program {
+        uuid id PK
+        uuid created_by FK
+        uuid folder_id FK "nullable"
+        string name
+        text description
+        timestamp created_at
+        timestamp updated_at
+    }
+
+    ProgramExercise {
+        uuid id PK
+        uuid program_id FK
+        uuid exercise_id FK
+        int sort_order
+        int target_sets
+        string target_reps "e.g. 8-12 or 5"
+        float target_rpe
+        string target_tempo "e.g. 3-1-2-0"
+        int rest_sec
+        text notes
+    }
+
+    ProgramAssignment {
+        uuid id PK
+        uuid program_id FK
+        uuid athlete_id FK
+        uuid assigned_by FK
+        date start_date
+        enum status "active | completed | cancelled"
+        boolean allow_session_deviations
+        timestamp assigned_at
+    }
+
+    %% ── WORKOUT SESSIONS (execution) ──
+
+    WorkoutSession {
+        uuid id PK
+        uuid athlete_id FK
+        uuid program_assignment_id FK "nullable — null if freestyle"
+        string name "e.g. Push Day or freestyle name"
+        timestamp started_at
+        timestamp completed_at
+        enum status "in_progress | completed | abandoned"
+        int overall_rpe
+        text notes
+    }
+
+    SessionExercise {
+        uuid id PK
+        uuid workout_session_id FK
+        uuid exercise_id FK
+        uuid prescribed_exercise_id FK "nullable — links to ProgramExercise"
+        int sort_order
+        boolean is_substitution
+        text substitution_reason
+    }
+
+    SessionSet {
+        uuid id PK
+        uuid session_exercise_id FK
+        int set_number
+        enum set_type "warm_up | working | back_off | drop | failure | amrap"
+        float weight "nullable"
+        int reps "nullable"
+        int duration_sec "nullable"
+        float distance "nullable"
+        float rpe
+        string tempo "e.g. 3-1-2-0"
+        int rest_sec
+        boolean completed
+        text notes
+    }
+
+    %% ── PERSONAL RECORDS ──
+
+    PersonalRecord {
+        uuid id PK
+        uuid athlete_id FK
+        uuid exercise_id FK
+        enum pr_type "one_rep_max | max_reps | max_weight | max_volume"
+        float value
+        date achieved_on
+        uuid session_set_id FK
+    }
+
+    %% ════════════════════════════════════════════
+    %% RELATIONSHIPS
+    %% ════════════════════════════════════════════
+
+    User ||--o| AthleteProfile : "has"
+    User ||--o| UserSettings : "configures"
+    AthleteProfile ||--o{ Measurement : "tracks"
+
+    User ||--o{ TrainerAthlete : "as trainer"
+    User ||--o{ TrainerAthlete : "as athlete"
+
+    User ||--o{ Exercise : "creates"
+    Exercise ||--o{ ExerciseMuscleGroup : "targets"
+    MuscleGroup ||--o{ ExerciseMuscleGroup : "targeted by"
+
+    User ||--o{ Program : "creates"
+    User ||--o{ ProgramFolder : "organizes"
+    ProgramFolder ||--o{ Program : "contains"
+    Program ||--o{ ProgramExercise : "contains"
+    ProgramExercise }o--|| Exercise : "references"
+
+    Program ||--o{ ProgramAssignment : "assigned via"
+    User ||--o{ ProgramAssignment : "assigned to"
+
+    User ||--o{ WorkoutSession : "performs"
+    ProgramAssignment ||--o{ WorkoutSession : "executed as"
+
+    WorkoutSession ||--o{ SessionExercise : "includes"
+    SessionExercise }o--|| Exercise : "of"
+    SessionExercise }o--o| ProgramExercise : "prescribed as"
+    SessionExercise ||--o{ SessionSet : "tracked in"
+
+    User ||--o{ PersonalRecord : "achieves"
+    Exercise ||--o{ PersonalRecord : "for"
+    SessionSet ||--o| PersonalRecord : "set during"
