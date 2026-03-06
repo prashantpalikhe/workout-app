@@ -3,20 +3,31 @@ node_modules/
 
 # Build outputs
 dist/
+build/
 .output/
 .nuxt/
+.nitro/
+.cache/
+.data/
 
 # Environment
 .env
-.env.local
-.env.*.local
+.env.*
+!.env.example
 
 # IDE
 .idea/
 .vscode/
+.fleet/
 *.swp
 *.swo
 *~
+*.sublime-workspace
+.project
+.classpath
+.c9/
+*.launch
+.settings/
 
 # OS
 .DS_Store
@@ -26,7 +37,19 @@ Thumbs.db
 .turbo/
 
 # Logs
+logs/
 *.log
 
 # Test coverage
 coverage/
+.nyc_output/
+
+# Temp
+.temp/
+.tmp/
+
+# Runtime data
+pids/
+*.pid
+*.seed
+*.pid.lock

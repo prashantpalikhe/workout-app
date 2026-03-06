@@ -14,7 +14,11 @@
       "Bash(pnpm --filter @workout/web exec nuxt prepare)",
       "Bash(pnpm ls -r --depth 0)",
       "Bash(timeout 20 pnpm dev)",
-      "Bash(gtimeout 20 pnpm dev)"
+      "Bash(gtimeout 20 pnpm dev)",
+      "Bash(lsof -i :3001 -i :3000)",
+      "Bash(lsof -i :3001)",
+      "Bash(kill 32544 32599 24664)",
+      "Bash(lsof -i :3000 -i :3001)"
     ]
   }
 }

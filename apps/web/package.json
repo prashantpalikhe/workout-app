@@ -1,5 +1,5 @@
 {
-  "name": "web",
+  "name": "@workout/web",
   "private": true,
   "type": "module",
   "scripts": {
@@ -11,6 +11,7 @@
     "typecheck": "nuxt typecheck"
   },
   "dependencies": {
+    "@workout/shared": "workspace:*",
     "@iconify-json/lucide": "^1.2.95",
     "@iconify-json/simple-icons": "^1.2.72",
     "@nuxt/a11y": "1.0.0-alpha.1",
@@ -28,6 +29,5 @@
     "eslint": "^10.0.2",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.2.5"
-  },
-  "packageManager": "pnpm@10.30.3"
+  }
 }
