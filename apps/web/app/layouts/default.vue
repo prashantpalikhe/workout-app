@@ -67,15 +67,11 @@ const navItems = computed<NavigationMenuItem[]>(() => [
           orientation="vertical"
         />
 
-        <div class="mt-auto">
-          <UColorModeButton
-            :class="collapsed ? 'mx-auto' : ''"
-          />
-        </div>
+        <div class="mt-auto" />
       </template>
 
       <template #footer="{ collapsed }">
-        <div class="flex items-center w-full" :class="collapsed ? 'justify-center' : 'gap-2'">
+        <div v-if="authStore.user" class="flex items-center w-full" :class="collapsed ? 'justify-center' : 'gap-2'">
           <UAvatar
             :src="authStore.user?.avatarUrl || undefined"
             :alt="authStore.fullName"
@@ -92,6 +88,12 @@ const navItems = computed<NavigationMenuItem[]>(() => [
               aria-label="Logout"
               @click="authStore.logout()"
             />
+          </template>
+        </div>
+        <div v-else class="flex items-center w-full" :class="collapsed ? 'justify-center' : 'gap-2'">
+          <USkeleton class="size-8 rounded-full shrink-0" />
+          <template v-if="!collapsed">
+            <USkeleton class="h-4 flex-1 rounded" />
           </template>
         </div>
       </template>

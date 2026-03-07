@@ -43,7 +43,7 @@ watch(
 )
 
 // Auto-save on blur
-const { saving, error, schedule } = useAutoSave(
+const { saving, error, schedule, cancel } = useAutoSave(
   async () => {
     const payload: Record<string, unknown> = {}
     payload.setType = form.setType
@@ -71,14 +71,25 @@ const { saving, error, schedule } = useAutoSave(
 )
 
 // Completed checkbox — immediate save (no debounce)
+// Includes all current form data so a pending auto-save can't race with it
 async function toggleCompleted() {
   const wasCompleted = props.set.completed
+  // Cancel any pending debounced auto-save — we'll include all form data here
+  cancel()
   try {
     await sessionStore.updateSet(
       props.sessionId,
       props.exerciseId,
       props.set.id,
-      { completed: !wasCompleted }
+      {
+        setType: form.setType,
+        weight: form.weight || undefined,
+        reps: form.reps || undefined,
+        durationSec: form.durationSec || undefined,
+        distance: form.distance || undefined,
+        rpe: form.rpe || undefined,
+        completed: !wasCompleted,
+      }
     )
     // Emit only when marking a set as complete (not when uncompleting)
     if (!wasCompleted) {
@@ -90,6 +101,7 @@ async function toggleCompleted() {
 }
 
 async function deleteSet() {
+  cancel()
   try {
     await sessionStore.deleteSet(
       props.sessionId,

@@ -1,8 +1,9 @@
 <script setup lang="ts">
-definePageMeta({ layout: 'default' })
+definePageMeta({ layout: 'default', middleware: 'auth' })
 
 const { api } = useApiClient()
 const toast = useToast()
+const colorMode = useColorMode()
 
 interface UserSettings {
   restTimerEnabled: boolean
@@ -11,19 +12,45 @@ interface UserSettings {
 }
 
 const loading = ref(true)
-const saving = ref(false)
 const restTimerEnabled = ref(true)
 const restMinutes = ref(1)
 const restSeconds = ref(30)
 
+// Initialize theme from the current client-side color mode (source of truth)
+function colorModeToTheme(pref: string): string {
+  if (pref === 'light') return 'LIGHT'
+  if (pref === 'dark') return 'DARK'
+  return 'SYSTEM'
+}
+const theme = ref(colorModeToTheme(colorMode.preference))
+
+const themeOptions = [
+  { label: 'System', value: 'SYSTEM', icon: 'i-lucide-monitor' },
+  { label: 'Light', value: 'LIGHT', icon: 'i-lucide-sun' },
+  { label: 'Dark', value: 'DARK', icon: 'i-lucide-moon' },
+]
+
+const unitPreference = ref('METRIC')
+const unitOptions = [
+  { label: 'Metric (kg, cm)', value: 'METRIC' },
+  { label: 'Imperial (lbs, in)', value: 'IMPERIAL' },
+]
+
 // ── Fetch settings ──────────────────────────────
 onMounted(async () => {
   try {
-    const data = await api<UserSettings>('/users/me/settings')
-    restTimerEnabled.value = data.restTimerEnabled
-    const totalSec = data.defaultRestSec
+    const [settings, profile] = await Promise.all([
+      api<UserSettings>('/users/me/settings'),
+      api<{ unitPreference: string }>('/users/me/profile'),
+    ])
+
+    restTimerEnabled.value = settings.restTimerEnabled
+    const totalSec = settings.defaultRestSec
     restMinutes.value = Math.floor(totalSec / 60)
     restSeconds.value = totalSec % 60
+    // theme is initialized from colorMode.preference (client-side truth)
+    // Don't overwrite it from the backend to avoid resetting the user's preference
+    unitPreference.value = profile.unitPreference || 'METRIC'
   } catch {
     // Use defaults
   } finally {
@@ -31,45 +58,77 @@ onMounted(async () => {
   }
 })
 
-// ── Save settings ───────────────────────────────
-async function save() {
-  saving.value = true
+function applyTheme(val: string) {
+  switch (val) {
+    case 'LIGHT':
+      colorMode.preference = 'light'
+      break
+    case 'DARK':
+      colorMode.preference = 'dark'
+      break
+    default:
+      colorMode.preference = 'system'
+  }
+}
+
+// ── Save settings (debounced) ───────────────────
+let saveTimeout: ReturnType<typeof setTimeout> | null = null
+function debouncedSave() {
+  if (loading.value) return
+  if (saveTimeout) clearTimeout(saveTimeout)
+  saveTimeout = setTimeout(saveSettings, 600)
+}
+
+async function saveSettings() {
   try {
     const defaultRestSec = restMinutes.value * 60 + restSeconds.value
     await api('/users/me/settings', {
       method: 'PATCH',
       body: {
         restTimerEnabled: restTimerEnabled.value,
-        defaultRestSec
-      }
+        defaultRestSec,
+        theme: theme.value,
+      },
     })
     toast.add({ title: 'Settings saved', color: 'success' })
   } catch {
     toast.add({ title: 'Failed to save settings', color: 'error' })
-  } finally {
-    saving.value = false
   }
 }
 
-// Auto-save on changes (debounced)
-let saveTimeout: ReturnType<typeof setTimeout> | null = null
-function debouncedSave() {
-  if (loading.value) return
-  if (saveTimeout) clearTimeout(saveTimeout)
-  saveTimeout = setTimeout(save, 600)
+async function saveUnitPreference() {
+  try {
+    await api('/users/me/profile', {
+      method: 'PATCH',
+      body: { unitPreference: unitPreference.value },
+    })
+    toast.add({ title: 'Settings saved', color: 'success' })
+  } catch {
+    toast.add({ title: 'Failed to save settings', color: 'error' })
+  }
+}
+
+function onThemeChange(val: string) {
+  theme.value = val
+  applyTheme(val)
+  debouncedSave()
 }
 
 watch([restTimerEnabled, restMinutes, restSeconds], debouncedSave)
 
+watch(unitPreference, () => {
+  if (!loading.value) saveUnitPreference()
+})
+
 // ── Minute/second options ───────────────────────
 const minuteOptions = Array.from({ length: 11 }, (_, i) => ({
   label: `${i}`,
-  value: i
+  value: i,
 }))
 
 const secondOptions = Array.from({ length: 12 }, (_, i) => ({
   label: String(i * 5).padStart(2, '0'),
-  value: i * 5
+  value: i * 5,
 }))
 </script>
 
@@ -85,7 +144,47 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
     </div>
 
     <div v-else class="mt-6 space-y-6">
-      <!-- Rest Timer Section -->
+      <!-- Appearance -->
+      <UCard>
+        <div class="space-y-5">
+          <div>
+            <p class="font-medium">Appearance</p>
+            <p class="text-sm text-muted">Choose your preferred theme</p>
+          </div>
+          <div class="flex gap-2">
+            <UButton
+              v-for="opt in themeOptions"
+              :key="opt.value"
+              :icon="opt.icon"
+              :label="opt.label"
+              :variant="theme === opt.value ? 'solid' : 'outline'"
+              :color="theme === opt.value ? 'primary' : 'neutral'"
+              size="sm"
+              @click="onThemeChange(opt.value)"
+            />
+          </div>
+        </div>
+      </UCard>
+
+      <!-- Units -->
+      <UCard>
+        <div class="space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-medium">Units</p>
+              <p class="text-sm text-muted">Weight and measurement units</p>
+            </div>
+            <USelect
+              v-model="unitPreference"
+              :items="unitOptions"
+              value-key="value"
+              class="w-48"
+            />
+          </div>
+        </div>
+      </UCard>
+
+      <!-- Rest Timer -->
       <UCard>
         <div class="space-y-5">
           <div class="flex items-center justify-between">
