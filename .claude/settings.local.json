@@ -87,7 +87,30 @@
       "Bash(pnpm exec prisma migrate dev --name add-refresh-tokens)",
       "Bash(pnpm prisma:generate)",
       "Bash(pnpm --filter @workout/api add @nestjs/jwt @nestjs/passport passport passport-jwt argon2)",
-      "Bash(pnpm --filter @workout/api add -D @types/passport-jwt)"
+      "Bash(pnpm --filter @workout/api add -D @types/passport-jwt)",
+      "Bash(node -e \"const z = require\\(''zod''\\); console.log\\(typeof z.toJSONSchema\\)\")",
+      "Bash(pnpm --filter @workout/api build)",
+      "Bash(pnpm --filter @workout/api test)",
+      "Bash(docker compose up -d postgres redis)",
+      "Bash(pnpm exec prisma migrate deploy)",
+      "Bash(curl -s http://localhost:3000/api/health)",
+      "Bash(curl -s http://localhost:3001/api/health)",
+      "Bash(curl -s http://localhost:3001/health)",
+      "Bash(__NEW_LINE_2e34d3e6274e23b5__ echo -e \"\\\\n=== 3. PATCH /api/users/me ===\")",
+      "Bash(curl -s -X PATCH http://localhost:3001/api/users/me -H \"Authorization: Bearer $ACCESS\" -H \"Content-Type: application/json\" -d '{\"\"firstName\"\":\"\"Updated\"\"}')",
+      "Bash(__NEW_LINE_fabf544087a69941__ echo -e \"\\\\n=== 4. GET /api/users/me/profile ===\")",
+      "Bash(curl -s http://localhost:3001/api/users/me/profile -H \"Authorization: Bearer $ACCESS\")",
+      "Bash(__NEW_LINE_315343303cee2003__ echo -e \"\\\\n=== 5. PATCH /api/users/me/profile ===\")",
+      "Bash(curl -s -X PATCH http://localhost:3001/api/users/me/profile -H \"Authorization: Bearer $ACCESS\" -H \"Content-Type: application/json\" -d '{\"\"weight\"\":75.5,\"\"bio\"\":\"\"Hello world\"\",\"\"unitPreference\"\":\"\"METRIC\"\",\"\"gender\"\":\"\"MALE\"\"}')",
+      "Bash(__NEW_LINE_32e209f7c73e1867__ echo -e \"\\\\n=== 6. GET /api/users/me/settings ===\")",
+      "Bash(curl -s http://localhost:3001/api/users/me/settings -H \"Authorization: Bearer $ACCESS\")",
+      "Bash(__NEW_LINE_4ecf07a3740c3fc0__ echo -e \"\\\\n=== 7. PATCH /api/users/me/settings ===\")",
+      "Bash(curl -s -X PATCH http://localhost:3001/api/users/me/settings -H \"Authorization: Bearer $ACCESS\" -H \"Content-Type: application/json\" -d '{\"\"theme\"\":\"\"DARK\"\",\"\"defaultRestSec\"\":120}')",
+      "Bash(__NEW_LINE_7c4514ddb424fc19__ echo -e \"\\\\n=== 8. No auth → 401 ===\")",
+      "Bash(curl -s http://localhost:3001/api/users/me)",
+      "Bash(head -50 /Users/prashantpalikhe/Projects/OpenSource/workout-app/apps/web/.github/workflows/*.yml)",
+      "Bash(pnpm --filter @workout/web build)",
+      "mcp__Claude_Preview__preview_start"
     ]
   }
 }
