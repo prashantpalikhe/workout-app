@@ -33,6 +33,9 @@ build/
 .DS_Store
 Thumbs.db
 
+# Prisma generated client
+apps/api/src/generated/
+
 # Turbo
 .turbo/
 

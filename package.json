@@ -22,7 +22,9 @@
       "esbuild",
       "sharp",
       "unrs-resolver",
-      "vue-demi"
+      "vue-demi",
+      "@prisma/engines",
+      "prisma"
     ]
   }
 }

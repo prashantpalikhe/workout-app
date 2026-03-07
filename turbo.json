@@ -5,8 +5,13 @@
       "persistent": true,
       "cache": false
     },
+    "prisma:generate": {
+      "cache": true,
+      "inputs": ["prisma/schema.prisma", "prisma.config.ts"],
+      "outputs": ["src/generated/**"]
+    },
     "build": {
-      "dependsOn": ["^build"],
+      "dependsOn": ["^build", "prisma:generate"],
       "outputs": [".output/**", "dist/**", ".nuxt/**"]
     },
     "lint": {
