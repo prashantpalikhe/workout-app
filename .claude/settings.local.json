@@ -110,7 +110,10 @@
       "Bash(curl -s http://localhost:3001/api/users/me)",
       "Bash(head -50 /Users/prashantpalikhe/Projects/OpenSource/workout-app/apps/web/.github/workflows/*.yml)",
       "Bash(pnpm --filter @workout/web build)",
-      "mcp__Claude_Preview__preview_start"
+      "mcp__Claude_Preview__preview_start",
+      "Bash(pnpm --filter @workout/api exec prisma db seed)",
+      "Bash(pnpm exec prisma db seed)",
+      "Bash(git add apps/api/)"
     ]
   }
 }
