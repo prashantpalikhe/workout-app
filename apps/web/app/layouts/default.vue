@@ -65,7 +65,7 @@ const navItems = computed<NavigationMenuItem[]>(() => [
       <template #footer="{ collapsed }">
         <div class="flex items-center w-full" :class="collapsed ? 'justify-center' : 'gap-2'">
           <UAvatar
-            src="https://api.dicebear.com/9.x/avataaars/svg?seed=workout"
+            :src="authStore.user?.avatarUrl || undefined"
             :alt="authStore.fullName"
             size="sm"
             class="shrink-0"

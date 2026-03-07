@@ -151,7 +151,13 @@
       "Bash(pnpm --filter @workout/shared build)",
       "Bash(pnpm --filter api build)",
       "Bash(pnpm test -- --run src/sessions/)",
-      "Bash(lsof -i :3000 -P -n)"
+      "Bash(lsof -i :3000 -P -n)",
+      "Bash(head -100 /Users/prashantpalikhe/Projects/OpenSource/workout-app/apps/api/src/auth/interfaces/*.ts)",
+      "Bash(pnpm --filter api add google-auth-library apple-signin-auth)",
+      "Bash(pnpm --filter api test -- --run src/auth/)",
+      "Bash(pnpm --filter api test -- --run)",
+      "Bash(pnpm --filter api prisma migrate reset --force)",
+      "Bash(pnpm --filter api exec prisma migrate reset --force)"
     ]
   }
 }

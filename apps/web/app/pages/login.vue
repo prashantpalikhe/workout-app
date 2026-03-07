@@ -87,6 +87,8 @@ async function onSubmit(event: FormSubmitEvent<LoginData>) {
       />
     </UForm>
 
+    <OAuthButtons v-model:error="error" />
+
     <template #footer>
       <p class="text-sm text-center text-muted">
         Don't have an account?

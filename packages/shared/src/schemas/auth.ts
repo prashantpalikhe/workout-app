@@ -46,3 +46,19 @@ export const messageResponseSchema = z.object({
   message: z.string(),
 });
 export type MessageResponse = z.infer<typeof messageResponseSchema>;
+
+// ── OAuth Input Schemas ──────────────────────
+
+export const googleOAuthInputSchema = z.object({
+  idToken: z.string().min(1),
+});
+export type GoogleOAuthInput = z.infer<typeof googleOAuthInputSchema>;
+
+export const appleOAuthInputSchema = z.object({
+  idToken: z.string().min(1),
+  // Apple only sends the user's name on the FIRST authorization.
+  // The frontend must capture and forward it so we can store it.
+  firstName: z.string().min(1).max(100).trim().optional(),
+  lastName: z.string().min(1).max(100).trim().optional(),
+});
+export type AppleOAuthInput = z.infer<typeof appleOAuthInputSchema>;

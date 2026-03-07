@@ -26,6 +26,12 @@ export const envSchema = z.object({
   // ── Auth / JWT ──────────────────────────────────
   JWT_SECRET: z.string().min(32),
   JWT_REFRESH_SECRET: z.string().min(32),
+
+  // ── OAuth (Google) ────────────────────────────
+  GOOGLE_CLIENT_ID: z.string().optional(),
+
+  // ── OAuth (Apple) ─────────────────────────────
+  APPLE_CLIENT_ID: z.string().optional(),
 });
 
 export type Env = z.infer<typeof envSchema>;

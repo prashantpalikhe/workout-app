@@ -4,13 +4,22 @@ import {
   UnauthorizedException,
   Logger,
 } from '@nestjs/common';
+import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
+import { OAuth2Client } from 'google-auth-library';
+import appleSignin from 'apple-signin-auth';
 import { createHash, randomBytes } from 'node:crypto';
 import { PrismaService } from '../prisma';
 import { UsersService } from '../users';
 import type { JwtPayload } from './interfaces';
-import type { RegisterInput, LoginInput } from '@workout/shared';
+import type { Env } from '../config';
+import type {
+  RegisterInput,
+  LoginInput,
+  GoogleOAuthInput,
+  AppleOAuthInput,
+} from '@workout/shared';
 
 @Injectable()
 export class AuthService {
@@ -20,6 +29,7 @@ export class AuthService {
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
+    private readonly config: ConfigService<Env, true>,
   ) {}
 
   // ── Register ────────────────────────────────
@@ -44,16 +54,7 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     this.logger.log(`User registered: ${user.email}`);
 
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-      tokens,
-    };
+    return this.buildAuthResponse(user, tokens);
   }
 
   // ── Login ───────────────────────────────────
@@ -71,16 +72,79 @@ export class AuthService {
     const tokens = await this.generateTokens(user.id, user.email, user.role);
     this.logger.log(`User logged in: ${user.email}`);
 
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-      tokens,
-    };
+    return this.buildAuthResponse(user, tokens);
+  }
+
+  // ── Google OAuth ──────────────────────────────
+  async googleLogin(dto: GoogleOAuthInput) {
+    const clientId = this.config.get('GOOGLE_CLIENT_ID', { infer: true });
+    if (!clientId) {
+      throw new UnauthorizedException('Google login is not configured');
+    }
+
+    const client = new OAuth2Client(clientId);
+
+    let payload;
+    try {
+      const ticket = await client.verifyIdToken({
+        idToken: dto.idToken,
+        audience: clientId,
+      });
+      payload = ticket.getPayload();
+    } catch {
+      throw new UnauthorizedException('Invalid Google ID token');
+    }
+
+    if (!payload?.email || !payload.email_verified) {
+      throw new UnauthorizedException('Google account email not verified');
+    }
+
+    const user = await this.findOrCreateOAuthUser({
+      email: payload.email,
+      firstName: payload.given_name || payload.email.split('@')[0],
+      lastName: payload.family_name || '',
+      avatarUrl: payload.picture,
+    });
+
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    this.logger.log(`User logged in via Google: ${user.email}`);
+
+    return this.buildAuthResponse(user, tokens);
+  }
+
+  // ── Apple OAuth ───────────────────────────────
+  async appleLogin(dto: AppleOAuthInput) {
+    const clientId = this.config.get('APPLE_CLIENT_ID', { infer: true });
+    if (!clientId) {
+      throw new UnauthorizedException('Apple login is not configured');
+    }
+
+    let payload: { email?: string; sub?: string };
+    try {
+      payload = await appleSignin.verifyIdToken(dto.idToken, {
+        audience: clientId,
+        ignoreExpiration: false,
+      });
+    } catch {
+      throw new UnauthorizedException('Invalid Apple ID token');
+    }
+
+    if (!payload.email) {
+      throw new UnauthorizedException('Apple account did not provide email');
+    }
+
+    // Apple only sends the name on the FIRST authorization.
+    // The DTO may contain firstName/lastName from the frontend.
+    const user = await this.findOrCreateOAuthUser({
+      email: payload.email,
+      firstName: dto.firstName || payload.email.split('@')[0],
+      lastName: dto.lastName || '',
+    });
+
+    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    this.logger.log(`User logged in via Apple: ${user.email}`);
+
+    return this.buildAuthResponse(user, tokens);
   }
 
   // ── Refresh ─────────────────────────────────
@@ -109,16 +173,7 @@ export class AuthService {
     const { user } = stored;
     const tokens = await this.generateTokens(user.id, user.email, user.role);
 
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        role: user.role,
-      },
-      tokens,
-    };
+    return this.buildAuthResponse(user, tokens);
   }
 
   // ── Logout ──────────────────────────────────
@@ -131,7 +186,64 @@ export class AuthService {
     });
   }
 
-  // ── Token Generation (private) ──────────────
+  // ── Private Helpers ───────────────────────────
+
+  /**
+   * Find an existing user by email, or create a new one (without password).
+   * Used by Google and Apple OAuth flows.
+   */
+  private async findOrCreateOAuthUser(data: {
+    email: string;
+    firstName: string;
+    lastName: string;
+    avatarUrl?: string;
+  }) {
+    const existing = await this.usersService.findByEmail(data.email);
+
+    if (existing) {
+      // Update avatar if provided and not already set
+      if (data.avatarUrl && !existing.avatarUrl) {
+        return this.usersService.update(existing.id, {
+          avatarUrl: data.avatarUrl,
+        });
+      }
+      return existing;
+    }
+
+    try {
+      return await this.usersService.create({
+        email: data.email,
+        firstName: data.firstName,
+        lastName: data.lastName,
+        role: 'ATHLETE' as any,
+        avatarUrl: data.avatarUrl,
+      });
+    } catch (error: any) {
+      // Handle race condition: another request created this user concurrently
+      if (error?.code === 'P2002') {
+        const user = await this.usersService.findByEmail(data.email);
+        if (user) return user;
+      }
+      throw error;
+    }
+  }
+
+  private buildAuthResponse(
+    user: { id: string; email: string; firstName: string; lastName: string; role: string },
+    tokens: { accessToken: string; refreshToken: string },
+  ) {
+    return {
+      user: {
+        id: user.id,
+        email: user.email,
+        firstName: user.firstName,
+        lastName: user.lastName,
+        role: user.role,
+      },
+      tokens,
+    };
+  }
+
   private async generateTokens(userId: string, email: string, role: string) {
     const payload: JwtPayload = { sub: userId, email, role };
 

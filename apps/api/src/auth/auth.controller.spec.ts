@@ -22,6 +22,8 @@ describe('AuthController', () => {
     authService = {
       register: vi.fn().mockResolvedValue(mockAuthResponse),
       login: vi.fn().mockResolvedValue(mockAuthResponse),
+      googleLogin: vi.fn().mockResolvedValue(mockAuthResponse),
+      appleLogin: vi.fn().mockResolvedValue(mockAuthResponse),
       refresh: vi.fn().mockResolvedValue(mockAuthResponse),
       logout: vi.fn().mockResolvedValue(undefined),
     };
@@ -51,6 +53,20 @@ describe('AuthController', () => {
     const dto = { email: 'a@b.com', password: '12345678' };
     await controller.login(dto);
     expect(authService.login).toHaveBeenCalledWith(dto);
+  });
+
+  it('googleLogin should call authService.googleLogin', async () => {
+    const dto = { idToken: 'google-token' };
+    const result = await controller.googleLogin(dto);
+    expect(authService.googleLogin).toHaveBeenCalledWith(dto);
+    expect(result.tokens.accessToken).toBe('at');
+  });
+
+  it('appleLogin should call authService.appleLogin', async () => {
+    const dto = { idToken: 'apple-token', firstName: 'A', lastName: 'B' };
+    const result = await controller.appleLogin(dto);
+    expect(authService.appleLogin).toHaveBeenCalledWith(dto);
+    expect(result.tokens.accessToken).toBe('at');
   });
 
   it('refresh should call authService.refresh with token string', async () => {

@@ -13,9 +13,13 @@ import {
   registerInputSchema,
   loginInputSchema,
   refreshTokenInputSchema,
+  googleOAuthInputSchema,
+  appleOAuthInputSchema,
   type RegisterInput,
   type LoginInput,
   type RefreshTokenInput,
+  type GoogleOAuthInput,
+  type AppleOAuthInput,
 } from '@workout/shared';
 import { AuthService } from './auth.service';
 import { Public, ZodValidationPipe, zodToOpenApi } from '../common';
@@ -62,6 +66,32 @@ export class AuthController {
     dto: RefreshTokenInput,
   ) {
     return this.authService.refresh(dto.refreshToken);
+  }
+
+  @Public()
+  @Post('oauth/google')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login or register with Google ID token' })
+  @ApiBody({ schema: zodToOpenApi(googleOAuthInputSchema) })
+  @ApiOkResponse({ description: 'Login successful, tokens returned' })
+  @ApiUnauthorizedResponse({ description: 'Invalid Google ID token' })
+  async googleLogin(
+    @Body(new ZodValidationPipe(googleOAuthInputSchema)) dto: GoogleOAuthInput,
+  ) {
+    return this.authService.googleLogin(dto);
+  }
+
+  @Public()
+  @Post('oauth/apple')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Login or register with Apple ID token' })
+  @ApiBody({ schema: zodToOpenApi(appleOAuthInputSchema) })
+  @ApiOkResponse({ description: 'Login successful, tokens returned' })
+  @ApiUnauthorizedResponse({ description: 'Invalid Apple ID token' })
+  async appleLogin(
+    @Body(new ZodValidationPipe(appleOAuthInputSchema)) dto: AppleOAuthInput,
+  ) {
+    return this.authService.appleLogin(dto);
   }
 
   @ApiBearerAuth('access-token')

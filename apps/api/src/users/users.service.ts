@@ -36,10 +36,11 @@ export class UsersService {
 
   async create(data: {
     email: string;
-    passwordHash: string;
+    passwordHash?: string;
     firstName: string;
     lastName: string;
     role: UserRole;
+    avatarUrl?: string;
   }) {
     return this.prisma.user.create({ data });
   }

@@ -112,6 +112,8 @@ async function onSubmit(event: FormSubmitEvent<RegisterData>) {
       />
     </UForm>
 
+    <OAuthButtons v-model:error="error" />
+
     <template #footer>
       <p class="text-sm text-center text-muted">
         Already have an account?

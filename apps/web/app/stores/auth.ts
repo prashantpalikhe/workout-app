@@ -6,6 +6,7 @@ interface AuthUser {
   firstName: string
   lastName: string
   role: string
+  avatarUrl?: string | null
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -58,6 +59,38 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  async function loginWithGoogle(idToken: string) {
+    loading.value = true
+    try {
+      const data = await $fetch<AuthResponse>('/auth/oauth/google', {
+        baseURL,
+        method: 'POST',
+        body: { idToken }
+      })
+      setTokens(data.tokens.accessToken, data.tokens.refreshToken)
+      user.value = data.user
+      return data
+    } finally {
+      loading.value = false
+    }
+  }
+
+  async function loginWithApple(idToken: string, firstName?: string, lastName?: string) {
+    loading.value = true
+    try {
+      const data = await $fetch<AuthResponse>('/auth/oauth/apple', {
+        baseURL,
+        method: 'POST',
+        body: { idToken, firstName, lastName }
+      })
+      setTokens(data.tokens.accessToken, data.tokens.refreshToken)
+      user.value = data.user
+      return data
+    } finally {
+      loading.value = false
+    }
+  }
+
   async function logout() {
     const refreshToken = localStorage.getItem('refresh_token')
     if (refreshToken) {
@@ -101,6 +134,8 @@ export const useAuthStore = defineStore('auth', () => {
     isAuthenticated,
     fullName,
     login,
+    loginWithGoogle,
+    loginWithApple,
     register,
     logout,
     fetchUser,
