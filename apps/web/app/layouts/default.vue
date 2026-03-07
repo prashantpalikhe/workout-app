@@ -23,6 +23,12 @@ const navItems = computed<NavigationMenuItem[]>(() => [
     icon: 'i-lucide-clipboard-list',
     to: '/programs',
     active: route.path.startsWith('/programs')
+  },
+  {
+    label: 'Sessions',
+    icon: 'i-lucide-timer',
+    to: '/sessions',
+    active: route.path.startsWith('/sessions')
   }
 ])
 </script>

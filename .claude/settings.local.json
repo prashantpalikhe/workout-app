@@ -150,7 +150,8 @@
       "WebFetch(domain:raw.githubusercontent.com)",
       "Bash(pnpm --filter @workout/shared build)",
       "Bash(pnpm --filter api build)",
-      "Bash(pnpm test -- --run src/sessions/)"
+      "Bash(pnpm test -- --run src/sessions/)",
+      "Bash(lsof -i :3000 -P -n)"
     ]
   }
 }
