@@ -32,6 +32,14 @@ const userMenuItems = computed(() => [
             variant="ghost"
             size="sm"
           />
+          <UButton
+            to="/programs"
+            label="Programs"
+            icon="i-lucide-clipboard-list"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+          />
         </nav>
       </template>
 
