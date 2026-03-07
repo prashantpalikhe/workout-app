@@ -157,7 +157,10 @@
       "Bash(pnpm --filter api test -- --run src/auth/)",
       "Bash(pnpm --filter api test -- --run)",
       "Bash(pnpm --filter api prisma migrate reset --force)",
-      "Bash(pnpm --filter api exec prisma migrate reset --force)"
+      "Bash(pnpm --filter api exec prisma migrate reset --force)",
+      "Bash(lsof -i :3001 -P)",
+      "Bash(curl -s http://localhost:3001/api/auth/login -H 'Content-Type: application/json' -d '{\"\"email\"\":\"\"test@example.com\"\",\"\"password\"\":\"\"Password123!\"\"}')",
+      "Bash(ps -p 20015 -o command=)"
     ]
   }
 }

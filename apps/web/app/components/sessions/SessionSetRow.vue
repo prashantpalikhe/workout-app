@@ -10,6 +10,10 @@ const props = defineProps<{
   trackingType: string
 }>()
 
+const emit = defineEmits<{
+  'set-completed': [{ setId: string; restSec: number | null }]
+}>()
+
 const sessionStore = useSessionStore()
 const toast = useToast()
 const { formatEnum } = useFormatEnum()
@@ -17,22 +21,26 @@ const { formatEnum } = useFormatEnum()
 // Local form state initialized from prop
 const form = reactive({
   setType: props.set.setType,
-  weight: props.set.weight ?? undefined as number | undefined,
-  reps: props.set.reps ?? undefined as number | undefined,
-  durationSec: props.set.durationSec ?? undefined as number | undefined,
-  distance: props.set.distance ?? undefined as number | undefined,
-  rpe: props.set.rpe ?? undefined as number | undefined,
+  weight: props.set.weight ?? (undefined as number | undefined),
+  reps: props.set.reps ?? (undefined as number | undefined),
+  durationSec: props.set.durationSec ?? (undefined as number | undefined),
+  distance: props.set.distance ?? (undefined as number | undefined),
+  rpe: props.set.rpe ?? (undefined as number | undefined)
 })
 
 // Sync from prop when set data changes externally
-watch(() => props.set, (s) => {
-  form.setType = s.setType
-  form.weight = s.weight ?? undefined
-  form.reps = s.reps ?? undefined
-  form.durationSec = s.durationSec ?? undefined
-  form.distance = s.distance ?? undefined
-  form.rpe = s.rpe ?? undefined
-}, { deep: true })
+watch(
+  () => props.set,
+  (s) => {
+    form.setType = s.setType
+    form.weight = s.weight ?? undefined
+    form.reps = s.reps ?? undefined
+    form.durationSec = s.durationSec ?? undefined
+    form.distance = s.distance ?? undefined
+    form.rpe = s.rpe ?? undefined
+  },
+  { deep: true }
+)
 
 // Auto-save on blur
 const { saving, error, schedule } = useAutoSave(
@@ -44,31 +52,38 @@ const { saving, error, schedule } = useAutoSave(
     payload.durationSec = form.durationSec || undefined
     payload.distance = form.distance || undefined
     payload.rpe = form.rpe || undefined
+    // Always include completed so a delayed autosave doesn't overwrite a recent checkmark
+    payload.completed = props.set.completed
 
     await sessionStore.updateSet(
       props.sessionId,
       props.exerciseId,
       props.set.id,
-      payload,
+      payload
     )
   },
   {
     debounceMs: 400,
     onError: () => {
       toast.add({ title: 'Failed to save set', color: 'error' })
-    },
-  },
+    }
+  }
 )
 
 // Completed checkbox — immediate save (no debounce)
 async function toggleCompleted() {
+  const wasCompleted = props.set.completed
   try {
     await sessionStore.updateSet(
       props.sessionId,
       props.exerciseId,
       props.set.id,
-      { completed: !props.set.completed },
+      { completed: !wasCompleted }
     )
+    // Emit only when marking a set as complete (not when uncompleting)
+    if (!wasCompleted) {
+      emit('set-completed', { setId: props.set.id, restSec: props.set.restSec })
+    }
   } catch {
     toast.add({ title: 'Failed to update set', color: 'error' })
   }
@@ -76,174 +91,140 @@ async function toggleCompleted() {
 
 async function deleteSet() {
   try {
-    await sessionStore.deleteSet(props.sessionId, props.exerciseId, props.set.id)
+    await sessionStore.deleteSet(
+      props.sessionId,
+      props.exerciseId,
+      props.set.id
+    )
   } catch {
     toast.add({ title: 'Failed to delete set', color: 'error' })
   }
 }
 
 // Set type options for USelect
-const setTypeItems = SESSION_SET_TYPES.map(t => ({
+const setTypeItems = SESSION_SET_TYPES.map((t) => ({
   label: formatEnum(t),
-  value: t,
+  value: t
 }))
 
 function onInputEnter(event: Event) {
-  (event.target as HTMLInputElement).blur()
+  ;(event.target as HTMLInputElement).blur()
 }
 
 // Which data inputs to show
 const showWeight = computed(() =>
-  ['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(props.trackingType),
+  ['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(props.trackingType)
 )
 const showReps = computed(() =>
-  ['WEIGHT_REPS', 'REPS_ONLY'].includes(props.trackingType),
+  ['WEIGHT_REPS', 'REPS_ONLY'].includes(props.trackingType)
 )
 const showDuration = computed(() =>
-  ['DURATION', 'WEIGHT_DURATION', 'DISTANCE_DURATION'].includes(props.trackingType),
+  ['DURATION', 'WEIGHT_DURATION', 'DISTANCE_DURATION'].includes(
+    props.trackingType
+  )
 )
-const showDistance = computed(() =>
-  props.trackingType === 'DISTANCE_DURATION',
-)
-
-// Grid class — match the column header grid
-const gridClass = computed(() => {
-  if (props.trackingType === 'REPS_ONLY' || props.trackingType === 'DURATION') {
-    return 'grid-cols-[2.5rem_5rem_1fr_3rem_2rem_2rem]'
-  }
-  return 'grid-cols-[2.5rem_5rem_1fr_1fr_3rem_2rem_2rem]'
-})
+const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
 </script>
 
 <template>
   <div
-    class="grid gap-2 items-center px-1 py-0.5 rounded hover:bg-elevated/50 transition-colors"
-    :class="[gridClass, set.completed ? 'opacity-60' : '']"
+    class="rounded-lg p-2 transition-colors"
+    :class="set.completed ? 'opacity-50 bg-elevated/30' : 'hover:bg-elevated/50'"
   >
-    <!-- Set number -->
-    <span class="text-xs font-medium text-muted text-center">
-      {{ setIndex + 1 }}
-    </span>
-
-    <!-- Set type -->
-    <USelect
-      v-model="form.setType"
-      :items="setTypeItems"
-      size="xs"
-      @update:model-value="schedule()"
-    />
-
-    <!-- Dynamic data fields based on trackingType -->
-    <!-- Field 1: weight or reps or duration or distance -->
-    <UInput
-      v-if="showWeight"
-      v-model.number="form.weight"
-      type="number"
-      placeholder="0"
-      size="xs"
-      :step="0.5"
-      :min="0"
-      @blur="schedule()"
-      @keyup.enter="onInputEnter"
-    />
-    <UInput
-      v-else-if="showReps && !showWeight"
-      v-model.number="form.reps"
-      type="number"
-      placeholder="0"
-      size="xs"
-      :min="0"
-      @blur="schedule()"
-      @keyup.enter="onInputEnter"
-    />
-    <UInput
-      v-else-if="showDistance"
-      v-model.number="form.distance"
-      type="number"
-      placeholder="0"
-      size="xs"
-      :step="0.1"
-      :min="0"
-      @blur="schedule()"
-      @keyup.enter="onInputEnter"
-    />
-    <UInput
-      v-else-if="showDuration && !showWeight && !showDistance"
-      v-model.number="form.durationSec"
-      type="number"
-      placeholder="0"
-      size="xs"
-      :min="0"
-      @blur="schedule()"
-      @keyup.enter="onInputEnter"
-    />
-
-    <!-- Field 2 (only for 2-field tracking types) -->
-    <UInput
-      v-if="showWeight && showReps"
-      v-model.number="form.reps"
-      type="number"
-      placeholder="0"
-      size="xs"
-      :min="0"
-      @blur="schedule()"
-      @keyup.enter="onInputEnter"
-    />
-    <UInput
-      v-else-if="showWeight && showDuration"
-      v-model.number="form.durationSec"
-      type="number"
-      placeholder="0"
-      size="xs"
-      :min="0"
-      @blur="schedule()"
-      @keyup.enter="onInputEnter"
-    />
-    <UInput
-      v-else-if="showDistance && showDuration"
-      v-model.number="form.durationSec"
-      type="number"
-      placeholder="0"
-      size="xs"
-      :min="0"
-      @blur="schedule()"
-      @keyup.enter="onInputEnter"
-    />
-
-    <!-- RPE -->
-    <UInput
-      v-model.number="form.rpe"
-      type="number"
-      placeholder="-"
-      size="xs"
-      :min="1"
-      :max="10"
-      :step="0.5"
-      class="w-12"
-      @blur="schedule()"
-      @keyup.enter="onInputEnter"
-    />
-
-    <!-- Completed checkbox -->
-    <button
-      class="flex items-center justify-center"
-      :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
-      @click="toggleCompleted"
-    >
-      <UIcon
-        :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
-        class="size-5"
-        :class="set.completed ? 'text-success' : 'text-muted'"
+    <!-- Row 1: Set info + actions -->
+    <div class="flex items-center gap-2">
+      <span class="text-sm font-semibold text-muted shrink-0 w-6 text-center">
+        {{ setIndex + 1 }}
+      </span>
+      <USelect
+        v-model="form.setType"
+        :items="setTypeItems"
+        size="sm"
+        class="flex-1"
+        @update:model-value="schedule()"
       />
-    </button>
+      <button
+        class="flex items-center justify-center size-9 rounded-md transition-colors"
+        :class="set.completed
+          ? 'text-success bg-success/10'
+          : 'text-muted hover:text-default hover:bg-elevated'"
+        :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
+        @click="toggleCompleted"
+      >
+        <UIcon
+          :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
+          class="size-5"
+        />
+      </button>
+      <button
+        class="flex items-center justify-center size-9 rounded-md text-muted hover:text-error hover:bg-error/10 transition-colors"
+        aria-label="Delete set"
+        @click="deleteSet"
+      >
+        <UIcon name="i-lucide-x" class="size-4" />
+      </button>
+    </div>
 
-    <!-- Delete -->
-    <button
-      class="flex items-center justify-center text-muted hover:text-error transition-colors"
-      aria-label="Delete set"
-      @click="deleteSet"
-    >
-      <UIcon name="i-lucide-x" class="size-4" />
-    </button>
+    <!-- Row 2: Data inputs -->
+    <div class="flex items-center gap-2 mt-2 pl-8">
+      <UInput
+        v-if="showWeight"
+        v-model.number="form.weight"
+        type="number"
+        placeholder="Weight"
+        size="lg"
+        :step="0.5"
+        :min="0"
+        class="flex-1"
+        @blur="schedule()"
+        @keyup.enter="onInputEnter"
+      />
+      <UInput
+        v-if="showReps"
+        v-model.number="form.reps"
+        type="number"
+        placeholder="Reps"
+        size="lg"
+        :min="0"
+        class="flex-1"
+        @blur="schedule()"
+        @keyup.enter="onInputEnter"
+      />
+      <UInput
+        v-if="showDuration"
+        v-model.number="form.durationSec"
+        type="number"
+        placeholder="Dur (s)"
+        size="lg"
+        :min="0"
+        class="flex-1"
+        @blur="schedule()"
+        @keyup.enter="onInputEnter"
+      />
+      <UInput
+        v-if="showDistance"
+        v-model.number="form.distance"
+        type="number"
+        placeholder="Dist"
+        size="lg"
+        :step="0.1"
+        :min="0"
+        class="flex-1"
+        @blur="schedule()"
+        @keyup.enter="onInputEnter"
+      />
+      <UInput
+        v-model.number="form.rpe"
+        type="number"
+        placeholder="RPE"
+        size="lg"
+        :min="1"
+        :max="10"
+        :step="0.5"
+        class="w-16 shrink-0"
+        @blur="schedule()"
+        @keyup.enter="onInputEnter"
+      />
+    </div>
   </div>
 </template>

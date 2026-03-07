@@ -27,6 +27,9 @@ export class SessionsService {
             trackingType: true,
           },
         },
+        prescribedExercise: {
+          select: { restSec: true },
+        },
         sets: { orderBy: { setNumber: 'asc' as const } },
       },
       orderBy: { sortOrder: 'asc' as const },

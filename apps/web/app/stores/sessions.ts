@@ -6,7 +6,7 @@ import type {
   AddSessionExerciseInput,
   UpdateSessionExerciseInput,
   CreateSessionSetInput,
-  UpdateSessionSetInput,
+  UpdateSessionSetInput
 } from '@workout/shared'
 
 // ── Interfaces (mirrors API response shape) ──
@@ -35,6 +35,7 @@ export interface SessionExercise {
   isSubstitution: boolean
   substitutionReason: string | null
   prescribedExerciseId: string | null
+  prescribedExercise: { restSec: number | null } | null
   exercise: {
     id: string
     name: string
@@ -98,7 +99,7 @@ export const useSessionStore = defineStore('sessions', () => {
   async function startSession(input: StartSessionInput) {
     const session = await api<WorkoutSession>('/sessions/start', {
       method: 'POST',
-      body: input,
+      body: input
     })
     activeSession.value = session
     return session
@@ -107,7 +108,7 @@ export const useSessionStore = defineStore('sessions', () => {
   async function updateSession(id: string, input: UpdateSessionInput) {
     const updated = await api<WorkoutSession>(`/sessions/${id}`, {
       method: 'PATCH',
-      body: input,
+      body: input
     })
     if (activeSession.value?.id === id) activeSession.value = updated
     return updated
@@ -116,7 +117,7 @@ export const useSessionStore = defineStore('sessions', () => {
   async function completeSession(id: string, input: CompleteSessionInput) {
     const completed = await api<WorkoutSession>(`/sessions/${id}/complete`, {
       method: 'POST',
-      body: input,
+      body: input
     })
     activeSession.value = null
     return completed
@@ -134,7 +135,7 @@ export const useSessionStore = defineStore('sessions', () => {
     try {
       const query: Record<string, string | number> = {
         page: filters.page ?? 1,
-        limit: filters.limit ?? 20,
+        limit: filters.limit ?? 20
       }
       if (filters.status) query.status = filters.status
       if (filters.fromDate) query.fromDate = filters.fromDate
@@ -159,10 +160,13 @@ export const useSessionStore = defineStore('sessions', () => {
 
   // ── Session Exercises ──
 
-  async function addExercise(sessionId: string, input: AddSessionExerciseInput) {
+  async function addExercise(
+    sessionId: string,
+    input: AddSessionExerciseInput
+  ) {
     const created = await api<SessionExercise>(
       `/sessions/${sessionId}/exercises`,
-      { method: 'POST', body: input },
+      { method: 'POST', body: input }
     )
     // Refetch active session to get full nested data
     if (activeSession.value?.id === sessionId) {
@@ -174,39 +178,48 @@ export const useSessionStore = defineStore('sessions', () => {
   async function updateExercise(
     sessionId: string,
     exerciseId: string,
-    input: UpdateSessionExerciseInput,
+    input: UpdateSessionExerciseInput
   ) {
     const updated = await api<SessionExercise>(
       `/sessions/${sessionId}/exercises/${exerciseId}`,
-      { method: 'PATCH', body: input },
+      { method: 'PATCH', body: input }
     )
     // Update in-place on activeSession
     if (activeSession.value?.id === sessionId) {
-      const idx = activeSession.value.sessionExercises.findIndex(e => e.id === exerciseId)
+      const idx = activeSession.value.sessionExercises.findIndex(
+        (e) => e.id === exerciseId
+      )
       if (idx !== -1) activeSession.value.sessionExercises[idx] = updated
     }
     return updated
   }
 
   async function removeExercise(sessionId: string, exerciseId: string) {
-    await api(`/sessions/${sessionId}/exercises/${exerciseId}`, { method: 'DELETE' })
+    await api(`/sessions/${sessionId}/exercises/${exerciseId}`, {
+      method: 'DELETE'
+    })
     if (activeSession.value?.id === sessionId) {
-      activeSession.value.sessionExercises = activeSession.value.sessionExercises.filter(
-        e => e.id !== exerciseId,
-      )
+      activeSession.value.sessionExercises =
+        activeSession.value.sessionExercises.filter((e) => e.id !== exerciseId)
     }
   }
 
   // ── Session Sets ──
 
-  async function addSet(sessionId: string, exerciseId: string, input: CreateSessionSetInput) {
+  async function addSet(
+    sessionId: string,
+    exerciseId: string,
+    input: CreateSessionSetInput
+  ) {
     const created = await api<SessionSet>(
       `/sessions/${sessionId}/exercises/${exerciseId}/sets`,
-      { method: 'POST', body: input },
+      { method: 'POST', body: input }
     )
     // Append to the exercise's sets locally
     if (activeSession.value?.id === sessionId) {
-      const exercise = activeSession.value.sessionExercises.find(e => e.id === exerciseId)
+      const exercise = activeSession.value.sessionExercises.find(
+        (e) => e.id === exerciseId
+      )
       if (exercise) exercise.sets.push(created)
     }
     return created
@@ -216,32 +229,40 @@ export const useSessionStore = defineStore('sessions', () => {
     sessionId: string,
     exerciseId: string,
     setId: string,
-    input: UpdateSessionSetInput,
+    input: UpdateSessionSetInput
   ) {
     const updated = await api<SessionSet>(
       `/sessions/${sessionId}/exercises/${exerciseId}/sets/${setId}`,
-      { method: 'PATCH', body: input },
+      { method: 'PATCH', body: input }
     )
     // Update in-place
     if (activeSession.value?.id === sessionId) {
-      const exercise = activeSession.value.sessionExercises.find(e => e.id === exerciseId)
+      const exercise = activeSession.value.sessionExercises.find(
+        (e) => e.id === exerciseId
+      )
       if (exercise) {
-        const idx = exercise.sets.findIndex(s => s.id === setId)
+        const idx = exercise.sets.findIndex((s) => s.id === setId)
         if (idx !== -1) exercise.sets[idx] = updated
       }
     }
     return updated
   }
 
-  async function deleteSet(sessionId: string, exerciseId: string, setId: string) {
+  async function deleteSet(
+    sessionId: string,
+    exerciseId: string,
+    setId: string
+  ) {
     await api(`/sessions/${sessionId}/exercises/${exerciseId}/sets/${setId}`, {
-      method: 'DELETE',
+      method: 'DELETE'
     })
     // Remove from local array
     if (activeSession.value?.id === sessionId) {
-      const exercise = activeSession.value.sessionExercises.find(e => e.id === exerciseId)
+      const exercise = activeSession.value.sessionExercises.find(
+        (e) => e.id === exerciseId
+      )
       if (exercise) {
-        exercise.sets = exercise.sets.filter(s => s.id !== setId)
+        exercise.sets = exercise.sets.filter((s) => s.id !== setId)
       }
     }
   }
@@ -273,6 +294,6 @@ export const useSessionStore = defineStore('sessions', () => {
     // Sets
     addSet,
     updateSet,
-    deleteSet,
+    deleteSet
   }
 })

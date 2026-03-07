@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import { SESSION_SET_TYPES } from '@workout/shared'
 import type { SessionExercise } from '~/stores/sessions'
 
 const props = defineProps<{
@@ -10,6 +9,7 @@ const props = defineProps<{
 const emit = defineEmits<{
   substitute: []
   remove: []
+  'set-completed': [{ setRestSec: number | null, exerciseRestSec: number | null }]
 }>()
 
 const sessionStore = useSessionStore()
@@ -19,19 +19,6 @@ const { formatEnum } = useFormatEnum()
 const addingSet = ref(false)
 
 const trackingType = computed(() => props.exercise.exercise.trackingType)
-
-// Column labels based on tracking type
-const columnLabels = computed(() => {
-  const base = ['Set', 'Type']
-  switch (trackingType.value) {
-    case 'WEIGHT_REPS': return [...base, 'Weight (kg)', 'Reps', 'RPE', '', '']
-    case 'REPS_ONLY': return [...base, 'Reps', 'RPE', '', '']
-    case 'DURATION': return [...base, 'Duration (s)', 'RPE', '', '']
-    case 'WEIGHT_DURATION': return [...base, 'Weight (kg)', 'Duration (s)', 'RPE', '', '']
-    case 'DISTANCE_DURATION': return [...base, 'Distance (km)', 'Duration (s)', 'RPE', '', '']
-    default: return [...base, 'Weight (kg)', 'Reps', 'RPE', '', '']
-  }
-})
 
 async function addSet() {
   addingSet.value = true
@@ -47,6 +34,13 @@ async function addSet() {
   } finally {
     addingSet.value = false
   }
+}
+
+function onSetCompleted(data: { setId: string, restSec: number | null }) {
+  emit('set-completed', {
+    setRestSec: data.restSec,
+    exerciseRestSec: props.exercise.prescribedExercise?.restSec ?? null
+  })
 }
 
 const dropdownItems = computed(() => [
@@ -98,23 +92,6 @@ const dropdownItems = computed(() => [
       </UDropdownMenu>
     </div>
 
-    <!-- Column headers -->
-    <div
-      v-if="exercise.sets.length > 0"
-      class="grid gap-2 mb-1 px-1"
-      :class="trackingType === 'REPS_ONLY' || trackingType === 'DURATION'
-        ? 'grid-cols-[2.5rem_5rem_1fr_3rem_2rem_2rem]'
-        : 'grid-cols-[2.5rem_5rem_1fr_1fr_3rem_2rem_2rem]'"
-    >
-      <span
-        v-for="(label, i) in columnLabels"
-        :key="i"
-        class="text-xs text-muted font-medium"
-      >
-        {{ label }}
-      </span>
-    </div>
-
     <!-- Set rows -->
     <div class="space-y-1">
       <SessionsSessionSetRow
@@ -125,6 +102,7 @@ const dropdownItems = computed(() => [
         :set="set"
         :set-index="index"
         :tracking-type="trackingType"
+        @set-completed="onSetCompleted"
       />
     </div>
 

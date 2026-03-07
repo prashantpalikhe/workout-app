@@ -14,11 +14,38 @@ const showAbandonDialog = ref(false)
 const showSubstituteModal = ref(false)
 const substitutingExercise = ref<SessionExercise | null>(null)
 
+// ── Rest Timer ──────────────────────────────────
+const { restTimerEnabled, defaultRestSec, fetch: fetchSettings } = useUserSettings()
+const restTimer = useRestTimer()
+
 const session = computed(() => sessionStore.activeSession)
 
 onMounted(async () => {
-  await sessionStore.fetchActive()
+  await Promise.all([
+    sessionStore.fetchActive(),
+    fetchSettings()
+  ])
 })
+
+function onSetCompleted(data: { setRestSec: number | null, exerciseRestSec: number | null }) {
+  if (!restTimerEnabled.value) return
+
+  // Resolution: session-sticky override → set rest → exercise prescription → user default
+  const seconds = restTimer.sessionDefault.value
+    ?? data.setRestSec
+    ?? data.exerciseRestSec
+    ?? defaultRestSec.value
+
+  if (seconds > 0) {
+    restTimer.start(seconds)
+  }
+}
+
+function onTimerSetDuration(seconds: number) {
+  restTimer.setDuration(seconds)
+  // Restart timer with new duration
+  restTimer.start(seconds)
+}
 
 function onSessionStarted() {
   // Session already set in store by startSession action
@@ -128,6 +155,7 @@ const dropdownItems = computed(() => [
           :exercise="exercise"
           @substitute="openSubstitute(exercise)"
           @remove="removeExercise(exercise)"
+          @set-completed="onSetCompleted"
         />
       </div>
 
@@ -147,6 +175,12 @@ const dropdownItems = computed(() => [
           @click="showExercisePicker = true"
         />
       </div>
+
+      <!-- Bottom spacer so content scrolls past the rest timer overlay -->
+      <div
+        v-if="restTimer.isRunning.value || restTimer.isCompleted.value"
+        class="h-28"
+      />
     </div>
 
     <!-- Modals -->
@@ -177,6 +211,19 @@ const dropdownItems = computed(() => [
       v-model="showSubstituteModal"
       :session-id="session.id"
       :exercise="substitutingExercise"
+    />
+
+    <!-- Rest Timer Overlay -->
+    <SessionsRestTimerOverlay
+      :is-running="restTimer.isRunning.value"
+      :is-completed="restTimer.isCompleted.value"
+      :remaining="restTimer.remaining.value"
+      :total="restTimer.total.value"
+      :progress="restTimer.progress.value"
+      :formatted-time="restTimer.formattedTime.value"
+      @skip="restTimer.skip()"
+      @add-time="restTimer.addTime($event)"
+      @set-duration="onTimerSetDuration"
     />
   </UContainer>
 </template>
