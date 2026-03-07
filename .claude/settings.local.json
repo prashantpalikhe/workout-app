@@ -57,7 +57,32 @@
       "Bash(npx --yes tsx -e \"import { z } from ''zod''; console.log\\(''z.enum:'', typeof z.enum\\); console.log\\(''z.object:'', typeof z.object\\); const s = z.object\\({ name: z.string\\(\\) }\\); console.log\\(''parse:'', s.parse\\({ name: ''test'' }\\)\\); const vals = [''A'', ''B''] as const; const e = z.enum\\(vals\\); console.log\\(''enum parse:'', e.parse\\(''A''\\)\\);\")",
       "Bash(pnpm --filter @workout/api exec tsx -e \"import { z } from ''zod''; console.log\\(''z.enum:'', typeof z.enum\\); console.log\\(''z.object:'', typeof z.object\\); const s = z.object\\({ name: z.string\\(\\) }\\); console.log\\(''parse:'', s.parse\\({ name: ''test'' }\\)\\); const vals = [''A'', ''B''] as const; const e = z.enum\\(vals\\); console.log\\(''enum parse:'', e.parse\\(''A''\\)\\);\")",
       "Bash(pnpm --filter @workout/shared exec tsc --noEmit)",
-      "Bash(pnpm --filter @workout/api exec tsx -e \":*)"
+      "Bash(pnpm --filter @workout/api exec tsx -e \":*)",
+      "Bash(pnpm --filter @workout/api add @nestjs/config @nestjs/swagger nestjs-pino pino-http helmet)",
+      "Bash(pnpm --filter @workout/api add -D pino-pretty)",
+      "Bash(pnpm --filter @workout/api remove dotenv)",
+      "Bash(pnpm --filter @workout/api exec tsc --noEmit)",
+      "Bash(pnpm --filter @workout/api add zod)",
+      "Bash(pnpm test)",
+      "Bash(npm view ts-jest versions --json)",
+      "Bash(pnpm --filter @workout/api remove jest ts-jest @types/jest ts-loader ts-node tsconfig-paths source-map-support)",
+      "Bash(pnpm --filter @workout/api add -D vitest unplugin-swc @swc/core)",
+      "Bash(pnpm approve-builds @swc/core)",
+      "Bash(pnpm --filter @workout/api add -D dotenv)",
+      "Bash(python3 -m json.tool)",
+      "Bash(__NEW_LINE_f9dd390a670d1d3e__ echo \"\")",
+      "Bash(curl -s -X POST http://localhost:3001/api/test/validation -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"test@example.com\"\",\"\"password\"\":\"\"12345678\"\",\"\"firstName\"\":\"\"Test\"\",\"\"lastName\"\":\"\"User\"\"}')",
+      "Bash(__NEW_LINE_3c0e861987e819ba__ echo \"\")",
+      "Bash(curl -s -X POST http://localhost:3001/api/test/validation -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"not-an-email\"\"}')",
+      "Bash(__NEW_LINE_0beec07d02cbaebf__ echo \"\")",
+      "Bash(curl -s http://localhost:3001/api/nonexistent)",
+      "Bash(__NEW_LINE_9e9359f8bed465fd__ echo \"\")",
+      "Bash(curl -sI -H \"Origin: http://localhost:3000\" http://localhost:3001/health)",
+      "Bash(__NEW_LINE_c5c781261a979041__ echo \"\")",
+      "Bash(curl -sI http://localhost:3001/health)",
+      "Bash(curl -s http://localhost:3001/api/docs-json)",
+      "Bash(python3 -c \"import sys,json; d=json.load\\(sys.stdin\\); print\\(f''Title: {d[\"\"info\"\"][\"\"title\"\"]}''\\); print\\(f''Version: {d[\"\"info\"\"][\"\"version\"\"]}''\\); print\\(f''Paths: {list\\(d[\"\"paths\"\"].keys\\(\\)\\)}''\\); print\\(f''Security: {list\\(d.get\\(\"\"components\"\",{}\\).get\\(\"\"securitySchemes\"\",{}\\).keys\\(\\)\\)}''\\)\")",
+      "Bash(curl -s http://localhost:3001/api/docs)"
     ]
   }
 }

@@ -24,7 +24,8 @@
       "unrs-resolver",
       "vue-demi",
       "@prisma/engines",
-      "prisma"
+      "prisma",
+      "@swc/core"
     ]
   }
 }
