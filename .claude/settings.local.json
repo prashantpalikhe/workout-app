@@ -144,7 +144,10 @@
       "Bash(curl -s \"http://localhost:3001/api/program-folders/$FOLDER_ID\" -X PATCH -H 'Content-Type: application/json' -H \"Authorization: Bearer $TOKEN\" -d '{\"\"name\"\":\"\"Push Programs\"\"}')",
       "Bash(__NEW_LINE_ade8b3b7f399c18f__ echo \"\")",
       "Bash(curl -s \"http://localhost:3001/api/programs\" -H \"Authorization: Bearer $TOKEN\")",
-      "Bash(pnpm --filter @workout/web add vuedraggable@next)"
+      "Bash(pnpm --filter @workout/web add vuedraggable@next)",
+      "WebFetch(domain:ui.nuxt.com)",
+      "Bash(pnpm --filter web build)",
+      "WebFetch(domain:raw.githubusercontent.com)"
     ]
   }
 }

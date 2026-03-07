@@ -1,76 +1,100 @@
 <script setup lang="ts">
-const authStore = useAuthStore()
+import type { NavigationMenuItem } from '@nuxt/ui'
 
-const userMenuItems = computed(() => [
-  [{
-    label: authStore.fullName,
-    slot: 'account',
-    disabled: true
-  }],
-  [{
-    label: 'Logout',
-    icon: 'i-lucide-log-out',
-    onSelect: () => authStore.logout()
-  }]
+const authStore = useAuthStore()
+const route = useRoute()
+const sidebarOpen = ref(false)
+
+const navItems = computed<NavigationMenuItem[]>(() => [
+  {
+    label: 'Dashboard',
+    icon: 'i-lucide-house',
+    to: '/dashboard',
+    active: route.path === '/dashboard'
+  },
+  {
+    label: 'Exercises',
+    icon: 'i-lucide-dumbbell',
+    to: '/exercises',
+    active: route.path === '/exercises'
+  },
+  {
+    label: 'Programs',
+    icon: 'i-lucide-clipboard-list',
+    to: '/programs',
+    active: route.path.startsWith('/programs')
+  }
 ])
 </script>
 
 <template>
-  <div>
-    <UHeader>
-      <template #left>
-        <NuxtLink to="/dashboard">
-          <AppLogo class="w-auto h-6 shrink-0" />
+  <UDashboardGroup>
+    <UDashboardSidebar
+      v-model:open="sidebarOpen"
+      collapsible
+      resizable
+      :ui="{ footer: 'border-t border-default' }"
+    >
+      <template #header="{ collapsed }">
+        <NuxtLink to="/dashboard" class="flex items-center gap-2" :class="collapsed ? 'justify-center w-full' : ''">
+          <div class="size-8 rounded-full bg-primary shrink-0" />
+          <span v-if="!collapsed" class="font-semibold text-lg truncate">Workout</span>
         </NuxtLink>
-
-        <nav class="flex items-center gap-1 ml-4">
-          <UButton
-            to="/exercises"
-            label="Exercises"
-            icon="i-lucide-dumbbell"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-          />
-          <UButton
-            to="/programs"
-            label="Programs"
-            icon="i-lucide-clipboard-list"
-            color="neutral"
-            variant="ghost"
-            size="sm"
-          />
-        </nav>
       </template>
 
-      <template #right>
-        <UColorModeButton />
+      <template #default="{ collapsed }">
+        <UNavigationMenu
+          :collapsed="collapsed"
+          :items="navItems"
+          orientation="vertical"
+        />
 
-        <UDropdownMenu
-          :items="userMenuItems"
-          :content="{ align: 'end' }"
-        >
-          <UButton
-            :label="authStore.user?.firstName"
-            icon="i-lucide-user"
-            color="neutral"
-            variant="ghost"
-            trailing-icon="i-lucide-chevron-down"
+        <div class="mt-auto">
+          <UColorModeButton
+            :class="collapsed ? 'mx-auto' : ''"
           />
-        </UDropdownMenu>
+        </div>
       </template>
-    </UHeader>
 
-    <UMain>
+      <template #footer="{ collapsed }">
+        <div class="flex items-center w-full" :class="collapsed ? 'justify-center' : 'gap-2'">
+          <UAvatar
+            src="https://api.dicebear.com/9.x/avataaars/svg?seed=workout"
+            :alt="authStore.fullName"
+            size="sm"
+            class="shrink-0"
+          />
+          <template v-if="!collapsed">
+            <span class="text-sm font-medium truncate flex-1">{{ authStore.fullName }}</span>
+            <UButton
+              icon="i-lucide-log-out"
+              color="neutral"
+              variant="ghost"
+              size="xs"
+              aria-label="Logout"
+              @click="authStore.logout()"
+            />
+          </template>
+        </div>
+      </template>
+    </UDashboardSidebar>
+
+    <div class="flex-1 overflow-y-auto min-h-svh">
+      <!-- Mobile header with hamburger -->
+      <div class="lg:hidden flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default">
+        <UButton
+          icon="i-lucide-menu"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          aria-label="Open menu"
+          @click="sidebarOpen = true"
+        />
+        <div class="size-6 rounded-full bg-primary shrink-0" />
+        <span class="font-semibold">Workout</span>
+      </div>
+
       <slot />
-    </UMain>
-
-    <UFooter>
-      <template #left>
-        <p class="text-sm text-muted">
-          Workout App &copy; {{ new Date().getFullYear() }}
-        </p>
-      </template>
-    </UFooter>
-  </div>
+    </div>
+  </UDashboardGroup>
 </template>
