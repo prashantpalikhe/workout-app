@@ -1,29 +1,86 @@
 <script setup lang="ts">
 import type { ProgramExercise } from '~/stores/programs'
 
-defineProps<{
+const props = defineProps<{
   exercise: ProgramExercise
-  isFirst: boolean
-  isLast: boolean
 }>()
 
 defineEmits<{
-  edit: []
   remove: []
-  moveUp: []
-  moveDown: []
 }>()
 
 const { formatEnum } = useFormatEnum()
+const programStore = useProgramStore()
+const toast = useToast()
+
+// Local reactive form state, initialized from prop
+const form = reactive({
+  targetSets: props.exercise.targetSets ?? undefined as number | undefined,
+  targetReps: props.exercise.targetReps ?? '',
+  targetRpe: props.exercise.targetRpe ?? undefined as number | undefined,
+  targetTempo: props.exercise.targetTempo ?? '',
+  restSec: props.exercise.restSec ?? undefined as number | undefined,
+  notes: props.exercise.notes ?? '',
+})
+
+// Sync from prop when exercise data changes externally (e.g., after reorder API response)
+watch(() => props.exercise, (ex) => {
+  form.targetSets = ex.targetSets ?? undefined
+  form.targetReps = ex.targetReps ?? ''
+  form.targetRpe = ex.targetRpe ?? undefined
+  form.targetTempo = ex.targetTempo ?? ''
+  form.restSec = ex.restSec ?? undefined
+  form.notes = ex.notes ?? ''
+}, { deep: true })
+
+// Auto-save on blur
+const { saving, error, schedule } = useAutoSave(
+  async () => {
+    const payload: Record<string, unknown> = {}
+    payload.targetSets = form.targetSets || undefined
+    payload.targetReps = form.targetReps || undefined
+    payload.targetRpe = form.targetRpe || undefined
+    payload.targetTempo = form.targetTempo || undefined
+    payload.restSec = form.restSec || undefined
+    payload.notes = form.notes || undefined
+
+    await programStore.updateExercise(
+      props.exercise.programId,
+      props.exercise.id,
+      payload,
+    )
+  },
+  {
+    debounceMs: 400,
+    onError: () => {
+      toast.add({ title: 'Failed to save exercise changes', color: 'error' })
+    },
+  },
+)
+
+// Notes expand/collapse
+const showNotes = ref(!!props.exercise.notes)
+
+function onInputEnter(event: Event) {
+  (event.target as HTMLInputElement).blur()
+}
 </script>
 
 <template>
-  <div class="border border-default rounded-lg p-4">
-    <div class="flex items-start justify-between gap-3">
-      <div class="min-w-0 flex-1">
-        <!-- Exercise name + equipment -->
-        <div class="flex items-center gap-2 mb-1">
-          <span class="font-medium">{{ exercise.exercise.name }}</span>
+  <div class="border border-default rounded-lg p-4 flex gap-3 items-start group">
+    <!-- Drag handle -->
+    <div
+      class="drag-handle cursor-grab active:cursor-grabbing pt-1 text-muted opacity-50 group-hover:opacity-100 transition-opacity touch-none"
+    >
+      <UIcon name="i-lucide-grip-vertical" class="size-5" />
+    </div>
+
+    <!-- Content -->
+    <div class="flex-1 min-w-0">
+      <!-- Header: name + badge + status + remove -->
+      <div class="flex items-center justify-between gap-2 mb-2">
+        <div class="flex items-center gap-2 min-w-0">
+          <span class="font-medium truncate">{{ exercise.exercise.name }}</span>
           <UBadge
             v-if="exercise.exercise.equipment"
             variant="subtle"
@@ -32,64 +89,97 @@ const { formatEnum } = useFormatEnum()
             {{ formatEnum(exercise.exercise.equipment) }}
           </UBadge>
         </div>
-
-        <!-- Target details -->
-        <div class="flex flex-wrap gap-x-2 gap-y-1 text-sm text-muted">
-          <span v-if="exercise.targetSets">{{ exercise.targetSets }} sets</span>
-          <span v-if="exercise.targetSets && exercise.targetReps">&middot;</span>
-          <span v-if="exercise.targetReps">{{ exercise.targetReps }} reps</span>
-          <span v-if="(exercise.targetSets || exercise.targetReps) && exercise.targetRpe">&middot;</span>
-          <span v-if="exercise.targetRpe">RPE {{ exercise.targetRpe }}</span>
-          <span v-if="(exercise.targetSets || exercise.targetReps || exercise.targetRpe) && exercise.targetTempo">&middot;</span>
-          <span v-if="exercise.targetTempo">Tempo {{ exercise.targetTempo }}</span>
-          <span v-if="(exercise.targetSets || exercise.targetReps || exercise.targetRpe || exercise.targetTempo) && exercise.restSec">&middot;</span>
-          <span v-if="exercise.restSec">Rest {{ exercise.restSec }}s</span>
+        <div class="flex items-center gap-1 shrink-0">
+          <span v-if="saving" class="text-xs text-muted animate-pulse">Saving...</span>
+          <UIcon v-if="error" name="i-lucide-alert-circle" class="size-4 text-error" />
+          <UButton
+            icon="i-lucide-trash-2"
+            color="error"
+            variant="ghost"
+            size="xs"
+            aria-label="Remove exercise"
+            @click="$emit('remove')"
+          />
         </div>
-
-        <!-- Notes -->
-        <p
-          v-if="exercise.notes"
-          class="text-xs text-muted mt-1 italic"
-        >
-          {{ exercise.notes }}
-        </p>
       </div>
 
-      <!-- Actions -->
-      <div class="flex items-center gap-1 shrink-0">
-        <UButton
-          icon="i-lucide-chevron-up"
-          color="neutral"
-          variant="ghost"
+      <!-- Inline input fields -->
+      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-2">
+        <UFormField label="Sets" size="xs">
+          <UInput
+            v-model.number="form.targetSets"
+            type="number"
+            placeholder="3"
+            size="xs"
+            :min="1"
+            @blur="schedule()"
+            @keyup.enter="onInputEnter"
+          />
+        </UFormField>
+
+        <UFormField label="Reps" size="xs">
+          <UInput
+            v-model="form.targetReps"
+            placeholder="8-12"
+            size="xs"
+            @blur="schedule()"
+            @keyup.enter="onInputEnter"
+          />
+        </UFormField>
+
+        <UFormField label="RPE" size="xs">
+          <UInput
+            v-model.number="form.targetRpe"
+            type="number"
+            placeholder="8"
+            size="xs"
+            :min="1"
+            :max="10"
+            :step="0.5"
+            @blur="schedule()"
+            @keyup.enter="onInputEnter"
+          />
+        </UFormField>
+
+        <UFormField label="Tempo" size="xs">
+          <UInput
+            v-model="form.targetTempo"
+            placeholder="2-1-1-0"
+            size="xs"
+            @blur="schedule()"
+            @keyup.enter="onInputEnter"
+          />
+        </UFormField>
+
+        <UFormField label="Rest (s)" size="xs">
+          <UInput
+            v-model.number="form.restSec"
+            type="number"
+            placeholder="90"
+            size="xs"
+            :min="0"
+            @blur="schedule()"
+            @keyup.enter="onInputEnter"
+          />
+        </UFormField>
+      </div>
+
+      <!-- Notes: collapsible -->
+      <div>
+        <button
+          v-if="!showNotes"
+          class="text-xs text-muted hover:text-default transition-colors"
+          @click="showNotes = true"
+        >
+          + Add notes
+        </button>
+        <UTextarea
+          v-else
+          v-model="form.notes"
+          placeholder="Notes..."
+          :rows="2"
           size="xs"
-          aria-label="Move up"
-          :disabled="isFirst"
-          @click="$emit('moveUp')"
-        />
-        <UButton
-          icon="i-lucide-chevron-down"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          aria-label="Move down"
-          :disabled="isLast"
-          @click="$emit('moveDown')"
-        />
-        <UButton
-          icon="i-lucide-pencil"
-          color="neutral"
-          variant="ghost"
-          size="xs"
-          aria-label="Edit exercise"
-          @click="$emit('edit')"
-        />
-        <UButton
-          icon="i-lucide-trash-2"
-          color="error"
-          variant="ghost"
-          size="xs"
-          aria-label="Remove exercise"
-          @click="$emit('remove')"
+          @blur="schedule()"
         />
       </div>
     </div>

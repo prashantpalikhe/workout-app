@@ -1,5 +1,6 @@
 <script setup lang="ts">
-import type { Program, ProgramExercise } from '~/stores/programs'
+import type { ProgramExercise } from '~/stores/programs'
+import draggable from 'vuedraggable'
 
 definePageMeta({
   middleware: 'auth',
@@ -13,36 +14,50 @@ const programId = computed(() => route.params.id as string)
 
 // Modal state
 const showExercisePicker = ref(false)
-const showExerciseFormModal = ref(false)
-const editingExercise = ref<ProgramExercise | null>(null)
 const showProgramFormModal = ref(false)
 const showDeleteDialog = ref(false)
 
 // Fetch on mount
 onMounted(() => {
   programStore.fetchProgramById(programId.value)
-  // Ensure folders are loaded for the edit program modal
   if (programStore.folders.length === 0) {
     programStore.fetchFolders()
   }
 })
 
-// Watch for route param changes
 watch(programId, (id) => {
   programStore.fetchProgramById(id)
 })
 
 const program = computed(() => programStore.selectedProgram)
 
-// Exercise actions
-function openEditExercise(exercise: ProgramExercise) {
-  editingExercise.value = exercise
-  showExerciseFormModal.value = true
-}
+// Writable computed for vuedraggable v-model
+const exerciseList = computed({
+  get: () => program.value?.exercises ?? [],
+  set: (val: ProgramExercise[]) => {
+    if (program.value) {
+      program.value.exercises = val
+    }
+  },
+})
 
-function onExerciseFormSuccess() {
-  showExerciseFormModal.value = false
-  toast.add({ title: 'Exercise targets updated', color: 'success' })
+// DnD reorder
+async function onDragEnd() {
+  if (!program.value) return
+  const items = program.value.exercises.map((e, i) => ({
+    id: e.id,
+    sortOrder: i,
+  }))
+  try {
+    await programStore.reorderExercises(programId.value, items)
+  } catch (err: unknown) {
+    const fetchError = err as { data?: { message?: string } }
+    toast.add({
+      title: fetchError?.data?.message || 'Failed to reorder exercises',
+      color: 'error',
+    })
+    await programStore.fetchProgramById(programId.value)
+  }
 }
 
 function onExercisePickerSuccess() {
@@ -62,32 +77,10 @@ async function onRemoveExercise(exercise: ProgramExercise) {
   }
 }
 
-// Reorder
-async function onMoveUp(index: number) {
-  if (!program.value || index <= 0) return
-  const exercises = program.value.exercises
-  const items = exercises.map((e, i) => ({
-    id: e.id,
-    sortOrder: i === index ? index - 1 : i === index - 1 ? index : i,
-  }))
-  await programStore.reorderExercises(programId.value, items)
-}
-
-async function onMoveDown(index: number) {
-  if (!program.value || index >= program.value.exercises.length - 1) return
-  const exercises = program.value.exercises
-  const items = exercises.map((e, i) => ({
-    id: e.id,
-    sortOrder: i === index ? index + 1 : i === index + 1 ? index : i,
-  }))
-  await programStore.reorderExercises(programId.value, items)
-}
-
 // Program actions
 function onProgramFormSuccess() {
   showProgramFormModal.value = false
   toast.add({ title: 'Program updated', color: 'success' })
-  // Refetch to update header
   programStore.fetchProgramById(programId.value)
 }
 
@@ -154,20 +147,24 @@ async function onDeleteConfirm() {
         </UBadge>
       </div>
 
-      <!-- Exercise list -->
-      <div v-if="program.exercises.length" class="space-y-3">
-        <ProgramsProgramExerciseCard
-          v-for="(exercise, index) in program.exercises"
-          :key="exercise.id"
-          :exercise="exercise"
-          :is-first="index === 0"
-          :is-last="index === program.exercises.length - 1"
-          @edit="openEditExercise(exercise)"
-          @remove="onRemoveExercise(exercise)"
-          @move-up="onMoveUp(index)"
-          @move-down="onMoveDown(index)"
-        />
-      </div>
+      <!-- Exercise list with drag-and-drop -->
+      <draggable
+        v-if="program.exercises.length"
+        v-model="exerciseList"
+        item-key="id"
+        handle=".drag-handle"
+        :animation="200"
+        ghost-class="opacity-50"
+        class="space-y-3"
+        @end="onDragEnd"
+      >
+        <template #item="{ element }">
+          <ProgramsProgramExerciseCard
+            :exercise="element"
+            @remove="onRemoveExercise(element)"
+          />
+        </template>
+      </draggable>
 
       <!-- Empty exercise state -->
       <div
@@ -190,12 +187,6 @@ async function onDeleteConfirm() {
     <ProgramsProgramExercisePicker
       v-model="showExercisePicker"
       @success="onExercisePickerSuccess"
-    />
-
-    <ProgramsProgramExerciseFormModal
-      v-model="showExerciseFormModal"
-      :exercise="editingExercise"
-      @success="onExerciseFormSuccess"
     />
 
     <ProgramsProgramFormModal

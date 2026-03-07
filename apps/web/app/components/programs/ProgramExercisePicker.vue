@@ -58,6 +58,9 @@ async function addExercise(exercise: Exercise) {
     await programStore.addExercise(programStore.selectedProgram.id, {
       exerciseId: exercise.id,
       sortOrder: programStore.selectedProgram.exercises.length,
+      targetSets: 3,
+      targetReps: '8-12',
+      targetTempo: '2-1-1-0',
     })
     emit('success')
     open.value = false

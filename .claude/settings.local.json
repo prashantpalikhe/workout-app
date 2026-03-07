@@ -143,7 +143,8 @@
       "Bash(__NEW_LINE_03add1b5991a8ac8__ echo \"\")",
       "Bash(curl -s \"http://localhost:3001/api/program-folders/$FOLDER_ID\" -X PATCH -H 'Content-Type: application/json' -H \"Authorization: Bearer $TOKEN\" -d '{\"\"name\"\":\"\"Push Programs\"\"}')",
       "Bash(__NEW_LINE_ade8b3b7f399c18f__ echo \"\")",
-      "Bash(curl -s \"http://localhost:3001/api/programs\" -H \"Authorization: Bearer $TOKEN\")"
+      "Bash(curl -s \"http://localhost:3001/api/programs\" -H \"Authorization: Bearer $TOKEN\")",
+      "Bash(pnpm --filter @workout/web add vuedraggable@next)"
     ]
   }
 }
