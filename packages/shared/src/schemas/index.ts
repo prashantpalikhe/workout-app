@@ -10,3 +10,4 @@ export * from './session-exercise.js';
 export * from './session-set.js';
 export * from './record.js';
 export * from './trainer.js';
+export * from './user-stats.js';

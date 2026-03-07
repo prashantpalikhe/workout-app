@@ -2,6 +2,7 @@ import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
+import { UserStatsService } from './user-stats.service';
 
 describe('UsersController', () => {
   let controller: UsersController;
@@ -51,7 +52,17 @@ describe('UsersController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
-      providers: [{ provide: UsersService, useValue: usersService }],
+      providers: [
+        { provide: UsersService, useValue: usersService },
+        {
+          provide: UserStatsService,
+          useValue: {
+            getStats: vi.fn(),
+            getWeeklyStats: vi.fn(),
+            getCalendarStats: vi.fn(),
+          },
+        },
+      ],
     }).compile();
 
     controller = module.get<UsersController>(UsersController);

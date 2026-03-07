@@ -31,6 +31,12 @@ const navItems = computed<NavigationMenuItem[]>(() => [
     active: route.path.startsWith('/sessions')
   },
   {
+    label: 'Profile',
+    icon: 'i-lucide-user',
+    to: '/profile',
+    active: route.path === '/profile'
+  },
+  {
     label: 'Settings',
     icon: 'i-lucide-settings',
     to: '/settings',

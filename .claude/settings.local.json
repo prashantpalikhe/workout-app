@@ -160,7 +160,13 @@
       "Bash(pnpm --filter api exec prisma migrate reset --force)",
       "Bash(lsof -i :3001 -P)",
       "Bash(curl -s http://localhost:3001/api/auth/login -H 'Content-Type: application/json' -d '{\"\"email\"\":\"\"test@example.com\"\",\"\"password\"\":\"\"Password123!\"\"}')",
-      "Bash(ps -p 20015 -o command=)"
+      "Bash(ps -p 20015 -o command=)",
+      "Bash(pnpm --filter @workout/web add chart.js vue-chartjs)",
+      "Bash(pnpm --filter @workout/api test -- --run)",
+      "Bash(pnpm --filter api test)",
+      "Bash(ls -la /Users/prashantpalikhe/Projects/OpenSource/workout-app/apps/api/dist/users/user-stats*)",
+      "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H 'Content-Type: application/json' -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"Test1234!\"\",\"\"firstName\"\":\"\"Test\"\",\"\"lastName\"\":\"\"User\"\"}')",
+      "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"Test12345\"\",\"\"firstName\"\":\"\"Test\"\",\"\"lastName\"\":\"\"User\"\"}')"
     ]
   }
 }

@@ -1,27 +1,36 @@
-import { Controller, Get, Patch, Body } from '@nestjs/common';
+import { Controller, Get, Patch, Body, Query } from '@nestjs/common';
 import {
   ApiTags,
   ApiOperation,
   ApiBody,
   ApiOkResponse,
   ApiBearerAuth,
+  ApiQuery,
 } from '@nestjs/swagger';
 import {
   updateUserInputSchema,
   athleteProfileInputSchema,
   userSettingsInputSchema,
+  chartStatsFilterSchema,
+  calendarStatsFilterSchema,
   type UpdateUserInput,
   type AthleteProfileInput,
   type UserSettingsInput,
+  type ChartStatsFilter,
+  type CalendarStatsFilter,
 } from '@workout/shared';
 import { UsersService } from './users.service';
+import { UserStatsService } from './user-stats.service';
 import { CurrentUser, ZodValidationPipe, zodToOpenApi } from '../common';
 
 @ApiTags('users')
 @ApiBearerAuth('access-token')
 @Controller('users/me')
 export class UsersController {
-  constructor(private readonly usersService: UsersService) {}
+  constructor(
+    private readonly usersService: UsersService,
+    private readonly userStatsService: UserStatsService,
+  ) {}
 
   // ── User ────────────────────────────────────
 
@@ -87,5 +96,44 @@ export class UsersController {
     dto: UserSettingsInput,
   ) {
     return this.usersService.updateSettings(userId, dto);
+  }
+
+  // ── Stats ─────────────────────────────────────
+
+  @Get('stats')
+  @ApiOperation({ summary: 'Get user profile statistics overview' })
+  @ApiOkResponse({ description: 'User stats (totals, streak, etc.)' })
+  async getStats(@CurrentUser('sub') userId: string) {
+    return this.userStatsService.getStats(userId);
+  }
+
+  @Get('stats/weekly')
+  @ApiOperation({ summary: 'Get chart stats (weekly or monthly buckets)' })
+  @ApiQuery({ name: 'range', required: false, enum: ['12w', 'year', 'all'] })
+  @ApiQuery({
+    name: 'metric',
+    required: false,
+    enum: ['duration', 'reps'],
+  })
+  @ApiOkResponse({ description: 'Chart bucket data' })
+  async getWeeklyStats(
+    @CurrentUser('sub') userId: string,
+    @Query(new ZodValidationPipe(chartStatsFilterSchema))
+    filter: ChartStatsFilter,
+  ) {
+    return this.userStatsService.getChartStats(userId, filter);
+  }
+
+  @Get('stats/calendar')
+  @ApiOperation({ summary: 'Get calendar heatmap data for a month' })
+  @ApiQuery({ name: 'month', required: true, type: Number })
+  @ApiQuery({ name: 'year', required: true, type: Number })
+  @ApiOkResponse({ description: 'Calendar workout days for the month' })
+  async getCalendarStats(
+    @CurrentUser('sub') userId: string,
+    @Query(new ZodValidationPipe(calendarStatsFilterSchema))
+    filter: CalendarStatsFilter,
+  ) {
+    return this.userStatsService.getCalendarStats(userId, filter);
   }
 }

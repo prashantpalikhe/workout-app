@@ -51,9 +51,29 @@ const muscleGroups = [
 // Global Exercises
 // ────────────────────────────────────────────
 
-type TrackingType = 'WEIGHT_REPS' | 'REPS_ONLY' | 'DURATION' | 'WEIGHT_DURATION' | 'DISTANCE_DURATION';
-type Equipment = 'BARBELL' | 'DUMBBELL' | 'CABLE' | 'MACHINE' | 'BODYWEIGHT' | 'BAND' | 'KETTLEBELL' | 'OTHER';
-type Movement = 'PUSH' | 'PULL' | 'SQUAT' | 'HINGE' | 'CARRY' | 'ROTATION' | 'ISOLATION';
+type TrackingType =
+  | 'WEIGHT_REPS'
+  | 'REPS_ONLY'
+  | 'DURATION'
+  | 'WEIGHT_DURATION'
+  | 'DISTANCE_DURATION';
+type Equipment =
+  | 'BARBELL'
+  | 'DUMBBELL'
+  | 'CABLE'
+  | 'MACHINE'
+  | 'BODYWEIGHT'
+  | 'BAND'
+  | 'KETTLEBELL'
+  | 'OTHER';
+type Movement =
+  | 'PUSH'
+  | 'PULL'
+  | 'SQUAT'
+  | 'HINGE'
+  | 'CARRY'
+  | 'ROTATION'
+  | 'ISOLATION';
 type MuscleRole = 'PRIMARY' | 'SECONDARY';
 
 interface ExerciseSeed {
@@ -188,9 +208,7 @@ const exercises: ExerciseSeed[] = [
     trackingType: 'WEIGHT_REPS',
     equipment: 'DUMBBELL',
     movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Side Delts', role: 'PRIMARY' },
-    ],
+    muscles: [{ name: 'Side Delts', role: 'PRIMARY' }],
   },
   {
     name: 'Dumbbell Bicep Curl',
@@ -240,9 +258,7 @@ const exercises: ExerciseSeed[] = [
     trackingType: 'WEIGHT_REPS',
     equipment: 'DUMBBELL',
     movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Triceps', role: 'PRIMARY' },
-    ],
+    muscles: [{ name: 'Triceps', role: 'PRIMARY' }],
   },
 
   // ── Cable ──────────────────────────────────
@@ -273,9 +289,7 @@ const exercises: ExerciseSeed[] = [
     trackingType: 'WEIGHT_REPS',
     equipment: 'CABLE',
     movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Triceps', role: 'PRIMARY' },
-    ],
+    muscles: [{ name: 'Triceps', role: 'PRIMARY' }],
   },
   {
     name: 'Cable Face Pull',
@@ -293,9 +307,7 @@ const exercises: ExerciseSeed[] = [
     trackingType: 'WEIGHT_REPS',
     equipment: 'CABLE',
     movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-    ],
+    muscles: [{ name: 'Chest', role: 'PRIMARY' }],
   },
 
   // ── Machine ────────────────────────────────
@@ -314,27 +326,21 @@ const exercises: ExerciseSeed[] = [
     trackingType: 'WEIGHT_REPS',
     equipment: 'MACHINE',
     movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-    ],
+    muscles: [{ name: 'Quads', role: 'PRIMARY' }],
   },
   {
     name: 'Leg Curl',
     trackingType: 'WEIGHT_REPS',
     equipment: 'MACHINE',
     movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Hamstrings', role: 'PRIMARY' },
-    ],
+    muscles: [{ name: 'Hamstrings', role: 'PRIMARY' }],
   },
   {
     name: 'Calf Raise Machine',
     trackingType: 'WEIGHT_REPS',
     equipment: 'MACHINE',
     movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Calves', role: 'PRIMARY' },
-    ],
+    muscles: [{ name: 'Calves', role: 'PRIMARY' }],
   },
   {
     name: 'Chest Press Machine',
@@ -361,9 +367,7 @@ const exercises: ExerciseSeed[] = [
     trackingType: 'WEIGHT_REPS',
     equipment: 'MACHINE',
     movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Adductors', role: 'PRIMARY' },
-    ],
+    muscles: [{ name: 'Adductors', role: 'PRIMARY' }],
   },
 
   // ── Bodyweight ─────────────────────────────
@@ -469,7 +473,7 @@ const exercises: ExerciseSeed[] = [
 
   // ── Carry ──────────────────────────────────
   {
-    name: 'Farmer\'s Walk',
+    name: "Farmer's Walk",
     trackingType: 'DISTANCE_DURATION',
     equipment: 'DUMBBELL',
     movementPattern: 'CARRY',
@@ -477,6 +481,399 @@ const exercises: ExerciseSeed[] = [
       { name: 'Forearms', role: 'PRIMARY' },
       { name: 'Traps', role: 'PRIMARY' },
       { name: 'Abs', role: 'SECONDARY' },
+    ],
+  },
+
+  // ── More Barbell ───────────────────────────
+  {
+    name: 'Decline Barbell Bench Press',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'BARBELL',
+    movementPattern: 'PUSH',
+    muscles: [
+      { name: 'Chest', role: 'PRIMARY' },
+      { name: 'Front Delts', role: 'SECONDARY' },
+      { name: 'Triceps', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Sumo Deadlift',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'BARBELL',
+    movementPattern: 'HINGE',
+    muscles: [
+      { name: 'Glutes', role: 'PRIMARY' },
+      { name: 'Hamstrings', role: 'PRIMARY' },
+      { name: 'Quads', role: 'SECONDARY' },
+      { name: 'Lower Back', role: 'SECONDARY' },
+      { name: 'Adductors', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Barbell Hip Thrust',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'BARBELL',
+    movementPattern: 'HINGE',
+    muscles: [
+      { name: 'Glutes', role: 'PRIMARY' },
+      { name: 'Hamstrings', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Barbell Shrug',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'BARBELL',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Traps', role: 'PRIMARY' }],
+  },
+  {
+    name: 'Barbell Bicep Curl',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'BARBELL',
+    movementPattern: 'ISOLATION',
+    muscles: [
+      { name: 'Biceps', role: 'PRIMARY' },
+      { name: 'Forearms', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Close-Grip Barbell Bench Press',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'BARBELL',
+    movementPattern: 'PUSH',
+    muscles: [
+      { name: 'Triceps', role: 'PRIMARY' },
+      { name: 'Chest', role: 'SECONDARY' },
+      { name: 'Front Delts', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Skull Crusher',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'BARBELL',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Triceps', role: 'PRIMARY' }],
+  },
+
+  // ── More Dumbbell ──────────────────────────
+  {
+    name: 'Incline Dumbbell Press',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'DUMBBELL',
+    movementPattern: 'PUSH',
+    muscles: [
+      { name: 'Chest', role: 'PRIMARY' },
+      { name: 'Front Delts', role: 'PRIMARY' },
+      { name: 'Triceps', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Incline Dumbbell Fly',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'DUMBBELL',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Chest', role: 'PRIMARY' }],
+  },
+  {
+    name: 'Hammer Curl',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'DUMBBELL',
+    movementPattern: 'ISOLATION',
+    muscles: [
+      { name: 'Biceps', role: 'PRIMARY' },
+      { name: 'Forearms', role: 'PRIMARY' },
+    ],
+  },
+  {
+    name: 'Concentration Curl',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'DUMBBELL',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Biceps', role: 'PRIMARY' }],
+  },
+  {
+    name: 'Dumbbell Rear Delt Fly',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'DUMBBELL',
+    movementPattern: 'ISOLATION',
+    muscles: [
+      { name: 'Rear Delts', role: 'PRIMARY' },
+      { name: 'Upper Back', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Bulgarian Split Squat',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'DUMBBELL',
+    movementPattern: 'SQUAT',
+    muscles: [
+      { name: 'Quads', role: 'PRIMARY' },
+      { name: 'Glutes', role: 'PRIMARY' },
+      { name: 'Hamstrings', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Dumbbell Step-Up',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'DUMBBELL',
+    movementPattern: 'SQUAT',
+    muscles: [
+      { name: 'Quads', role: 'PRIMARY' },
+      { name: 'Glutes', role: 'PRIMARY' },
+      { name: 'Hamstrings', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Dumbbell Shrug',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'DUMBBELL',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Traps', role: 'PRIMARY' }],
+  },
+
+  // ── More Cable ─────────────────────────────
+  {
+    name: 'Cable Bicep Curl',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'CABLE',
+    movementPattern: 'ISOLATION',
+    muscles: [
+      { name: 'Biceps', role: 'PRIMARY' },
+      { name: 'Forearms', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Cable Lateral Raise',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'CABLE',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Side Delts', role: 'PRIMARY' }],
+  },
+  {
+    name: 'Cable Crossover',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'CABLE',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Chest', role: 'PRIMARY' }],
+  },
+  {
+    name: 'Straight-Arm Pulldown',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'CABLE',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Lats', role: 'PRIMARY' }],
+  },
+
+  // ── More Machine ──────────────────────────
+  {
+    name: 'Pec Deck / Chest Fly Machine',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'MACHINE',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Chest', role: 'PRIMARY' }],
+  },
+  {
+    name: 'Seated Cable Row Machine',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'MACHINE',
+    movementPattern: 'PULL',
+    muscles: [
+      { name: 'Upper Back', role: 'PRIMARY' },
+      { name: 'Lats', role: 'PRIMARY' },
+      { name: 'Biceps', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Lat Pulldown Machine',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'MACHINE',
+    movementPattern: 'PULL',
+    muscles: [
+      { name: 'Lats', role: 'PRIMARY' },
+      { name: 'Biceps', role: 'SECONDARY' },
+      { name: 'Upper Back', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Seated Calf Raise',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'MACHINE',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Calves', role: 'PRIMARY' }],
+  },
+  {
+    name: 'Preacher Curl Machine',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'MACHINE',
+    movementPattern: 'ISOLATION',
+    muscles: [
+      { name: 'Biceps', role: 'PRIMARY' },
+      { name: 'Forearms', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Smith Machine Bench Press',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'MACHINE',
+    movementPattern: 'PUSH',
+    muscles: [
+      { name: 'Chest', role: 'PRIMARY' },
+      { name: 'Front Delts', role: 'SECONDARY' },
+      { name: 'Triceps', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Smith Machine Squat',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'MACHINE',
+    movementPattern: 'SQUAT',
+    muscles: [
+      { name: 'Quads', role: 'PRIMARY' },
+      { name: 'Glutes', role: 'PRIMARY' },
+      { name: 'Hamstrings', role: 'SECONDARY' },
+    ],
+  },
+
+  // ── More Bodyweight ────────────────────────
+  {
+    name: 'Pike Push-Up',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BODYWEIGHT',
+    movementPattern: 'PUSH',
+    muscles: [
+      { name: 'Front Delts', role: 'PRIMARY' },
+      { name: 'Side Delts', role: 'SECONDARY' },
+      { name: 'Triceps', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Incline Push-Up',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BODYWEIGHT',
+    movementPattern: 'PUSH',
+    muscles: [
+      { name: 'Chest', role: 'PRIMARY' },
+      { name: 'Triceps', role: 'SECONDARY' },
+      { name: 'Front Delts', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Reverse Crunch',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BODYWEIGHT',
+    movementPattern: 'ISOLATION',
+    muscles: [
+      { name: 'Abs', role: 'PRIMARY' },
+      { name: 'Hip Flexors', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Bicycle Crunch',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BODYWEIGHT',
+    movementPattern: 'ISOLATION',
+    muscles: [
+      { name: 'Abs', role: 'PRIMARY' },
+      { name: 'Obliques', role: 'PRIMARY' },
+    ],
+  },
+  {
+    name: 'Glute Bridge',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BODYWEIGHT',
+    movementPattern: 'HINGE',
+    muscles: [
+      { name: 'Glutes', role: 'PRIMARY' },
+      { name: 'Hamstrings', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Bodyweight Calf Raise',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BODYWEIGHT',
+    movementPattern: 'ISOLATION',
+    muscles: [{ name: 'Calves', role: 'PRIMARY' }],
+  },
+  {
+    name: 'Pistol Squat',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BODYWEIGHT',
+    movementPattern: 'SQUAT',
+    muscles: [
+      { name: 'Quads', role: 'PRIMARY' },
+      { name: 'Glutes', role: 'PRIMARY' },
+      { name: 'Hamstrings', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Australian Pull-Up',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BODYWEIGHT',
+    movementPattern: 'PULL',
+    muscles: [
+      { name: 'Lats', role: 'PRIMARY' },
+      { name: 'Biceps', role: 'SECONDARY' },
+      { name: 'Upper Back', role: 'SECONDARY' },
+    ],
+  },
+
+  // ── More Kettlebell ────────────────────────
+  {
+    name: 'Kettlebell Turkish Get-Up',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'KETTLEBELL',
+    movementPattern: 'PUSH',
+    muscles: [
+      { name: 'Front Delts', role: 'PRIMARY' },
+      { name: 'Abs', role: 'PRIMARY' },
+      { name: 'Glutes', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Kettlebell Row',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'KETTLEBELL',
+    movementPattern: 'PULL',
+    muscles: [
+      { name: 'Lats', role: 'PRIMARY' },
+      { name: 'Upper Back', role: 'PRIMARY' },
+      { name: 'Biceps', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Kettlebell Clean and Press',
+    trackingType: 'WEIGHT_REPS',
+    equipment: 'KETTLEBELL',
+    movementPattern: 'PUSH',
+    muscles: [
+      { name: 'Front Delts', role: 'PRIMARY' },
+      { name: 'Glutes', role: 'PRIMARY' },
+      { name: 'Quads', role: 'SECONDARY' },
+      { name: 'Triceps', role: 'SECONDARY' },
+    ],
+  },
+
+  // ── Band ───────────────────────────────────
+  {
+    name: 'Band Pull-Apart',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BAND',
+    movementPattern: 'PULL',
+    muscles: [
+      { name: 'Rear Delts', role: 'PRIMARY' },
+      { name: 'Upper Back', role: 'SECONDARY' },
+      { name: 'Rotator Cuff', role: 'SECONDARY' },
+    ],
+  },
+  {
+    name: 'Band Face Pull',
+    trackingType: 'REPS_ONLY',
+    equipment: 'BAND',
+    movementPattern: 'PULL',
+    muscles: [
+      { name: 'Rear Delts', role: 'PRIMARY' },
+      { name: 'Upper Back', role: 'SECONDARY' },
+      { name: 'Rotator Cuff', role: 'SECONDARY' },
     ],
   },
 ];
@@ -547,7 +944,9 @@ async function seedExercises() {
     for (const muscle of ex.muscles) {
       const muscleGroupId = mgMap.get(muscle.name);
       if (!muscleGroupId) {
-        console.warn(`  ⚠ Muscle group "${muscle.name}" not found, skipping for "${ex.name}"`);
+        console.warn(
+          `  ⚠ Muscle group "${muscle.name}" not found, skipping for "${ex.name}"`,
+        );
         continue;
       }
       await prisma.exerciseMuscleGroup.create({
