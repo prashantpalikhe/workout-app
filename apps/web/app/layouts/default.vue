@@ -22,6 +22,17 @@ const userMenuItems = computed(() => [
         <NuxtLink to="/dashboard">
           <AppLogo class="w-auto h-6 shrink-0" />
         </NuxtLink>
+
+        <nav class="flex items-center gap-1 ml-4">
+          <UButton
+            to="/exercises"
+            label="Exercises"
+            icon="i-lucide-dumbbell"
+            color="neutral"
+            variant="ghost"
+            size="sm"
+          />
+        </nav>
       </template>
 
       <template #right>

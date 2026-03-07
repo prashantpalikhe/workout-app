@@ -113,7 +113,8 @@
       "mcp__Claude_Preview__preview_start",
       "Bash(pnpm --filter @workout/api exec prisma db seed)",
       "Bash(pnpm exec prisma db seed)",
-      "Bash(git add apps/api/)"
+      "Bash(git add apps/api/)",
+      "Bash(grep -rh \"^import\\\\|^export\\\\|<U[A-Z]\\\\|<N[u]\" /Users/prashantpalikhe/Projects/OpenSource/workout-app/apps/web/app/pages/*.vue)"
     ]
   }
 }
