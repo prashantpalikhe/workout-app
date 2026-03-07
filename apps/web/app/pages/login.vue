@@ -16,7 +16,10 @@ const state = reactive({
 })
 const error = ref('')
 
-type LoginData = { email: string, password: string }
+type LoginData = {
+  email: string
+  password: string
+}
 
 async function onSubmit(event: FormSubmitEvent<LoginData>) {
   error.value = ''
@@ -34,9 +37,7 @@ async function onSubmit(event: FormSubmitEvent<LoginData>) {
 <template>
   <UCard>
     <template #header>
-      <h1 class="text-2xl font-bold text-center">
-        Sign In
-      </h1>
+      <h1 class="text-2xl font-bold text-center">Sign In</h1>
       <p class="text-sm text-muted text-center mt-1">
         Enter your credentials to continue
       </p>
@@ -50,23 +51,31 @@ async function onSubmit(event: FormSubmitEvent<LoginData>) {
       class="mb-4"
     />
 
-    <UForm :schema="loginInputSchema" :state="state" @submit="onSubmit">
-      <UFormField label="Email" name="email" class="mb-4">
+    <UForm
+      :schema="loginInputSchema"
+      :state
+      :validate-on="['change']"
+      class="grid gap-4"
+      @submit="onSubmit"
+    >
+      <UFormField label="Email" name="email">
         <UInput
           v-model="state.email"
+          class="block"
           type="email"
-          placeholder="you@example.com"
-          icon="i-lucide-mail"
           autofocus
+          variant="soft"
+          size="lg"
         />
       </UFormField>
 
       <UFormField label="Password" name="password" class="mb-6">
         <UInput
           v-model="state.password"
+          class="block"
           type="password"
-          placeholder="Enter your password"
-          icon="i-lucide-lock"
+          variant="soft"
+          size="lg"
         />
       </UFormField>
 

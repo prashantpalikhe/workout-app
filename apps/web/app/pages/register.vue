@@ -35,7 +35,8 @@ async function onSubmit(event: FormSubmitEvent<RegisterData>) {
     navigateTo('/dashboard')
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
-    error.value = fetchError?.data?.message || 'Registration failed. Please try again.'
+    error.value =
+      fetchError?.data?.message || 'Registration failed. Please try again.'
   }
 }
 </script>
@@ -43,9 +44,7 @@ async function onSubmit(event: FormSubmitEvent<RegisterData>) {
 <template>
   <UCard>
     <template #header>
-      <h1 class="text-2xl font-bold text-center">
-        Create Account
-      </h1>
+      <h1 class="text-2xl font-bold text-center">Create Account</h1>
       <p class="text-sm text-muted text-center mt-1">
         Start tracking your workouts today
       </p>
@@ -59,41 +58,49 @@ async function onSubmit(event: FormSubmitEvent<RegisterData>) {
       class="mb-4"
     />
 
-    <UForm :schema="registerFormSchema" :state="state" @submit="onSubmit">
-      <div class="grid grid-cols-2 gap-4 mb-4">
-        <UFormField label="First Name" name="firstName">
-          <UInput
-            v-model="state.firstName"
-            placeholder="John"
-            icon="i-lucide-user"
-            autofocus
-          />
-        </UFormField>
-
-        <UFormField label="Last Name" name="lastName">
-          <UInput
-            v-model="state.lastName"
-            placeholder="Doe"
-            icon="i-lucide-user"
-          />
-        </UFormField>
-      </div>
-
-      <UFormField label="Email" name="email" class="mb-4">
+    <UForm
+      :schema="registerFormSchema"
+      :state="state"
+      class="grid gap-4"
+      :validate-on="['change']"
+      @submit="onSubmit"
+    >
+      <UFormField label="First Name" name="firstName">
         <UInput
-          v-model="state.email"
-          type="email"
-          placeholder="you@example.com"
-          icon="i-lucide-mail"
+          v-model="state.firstName"
+          class="block"
+          autofocus
+          variant="soft"
+          size="lg"
         />
       </UFormField>
 
-      <UFormField label="Password" name="password" class="mb-6" hint="Minimum 8 characters">
+      <UFormField label="Last Name" name="lastName">
+        <UInput
+          v-model="state.lastName"
+          class="block"
+          variant="soft"
+          size="lg"
+        />
+      </UFormField>
+
+      <UFormField label="Email" name="email">
+        <UInput
+          v-model="state.email"
+          type="email"
+          class="block"
+          variant="soft"
+          size="lg"
+        />
+      </UFormField>
+
+      <UFormField label="Password" name="password" hint="Minimum 8 characters">
         <UInput
           v-model="state.password"
           type="password"
-          placeholder="Choose a strong password"
-          icon="i-lucide-lock"
+          class="block"
+          variant="soft"
+          size="lg"
         />
       </UFormField>
 
