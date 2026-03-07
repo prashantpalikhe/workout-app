@@ -185,18 +185,18 @@ The core of the app — actually logging workouts.
 
 - Countdown timer component
 - Auto-start after completing a set (if enabled)
-- Default from exercise/program rest time, overridable
-- Visual countdown + audio/vibration alert on completion
-- **Done when:** Timer runs between sets, resets, and alerts correctly
+- **Default from exercise/program rest time, overridable**
+- **Visual countdown + audio/vibration alert on completion**
+- **Done when: Timer runs between sets, resets, and alerts correctly**
 
-### Step 19: Session History
+### **Step 19: Session History**
 
-- GET /sessions (paginated, filterable)
-- GET /sessions/:id (full detail)
-- Session history page: list of past sessions with summary stats
-- Session detail page: every exercise and set
-- Exercise history tab: past sessions filtered by exercise
-- **Done when:** Can browse all past workouts and drill into detail
+- **GET /sessions (paginated, filterable)**
+- **GET /sessions/:id (full detail)**
+- **Session history page: list of past sessions with summary stats**
+- **Session detail page: every exercise and set**
+- **Exercise history tab: past sessions filtered by exercise**
+- **Done when: Can browse all past workouts and drill into detail**
 
 ---
 

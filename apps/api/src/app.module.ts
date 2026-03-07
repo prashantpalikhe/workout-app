@@ -6,6 +6,7 @@ import { PrismaModule } from './prisma';
 import { AuthModule } from './auth';
 import { UsersModule } from './users';
 import { ExercisesModule } from './exercises';
+import { ProgramsModule } from './programs';
 import { envSchema, type Env } from './config';
 
 @Module({
@@ -58,6 +59,7 @@ import { envSchema, type Env } from './config';
     AuthModule,
     UsersModule,
     ExercisesModule,
+    ProgramsModule,
   ],
   controllers: [AppController],
 })
