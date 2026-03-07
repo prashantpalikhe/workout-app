@@ -25,7 +25,8 @@
       "vue-demi",
       "@prisma/engines",
       "prisma",
-      "@swc/core"
+      "@swc/core",
+      "argon2"
     ]
   }
 }

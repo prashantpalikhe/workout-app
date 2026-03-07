@@ -21,3 +21,28 @@ export const refreshTokenInputSchema = z.object({
   refreshToken: z.string().min(1),
 });
 export type RefreshTokenInput = z.infer<typeof refreshTokenInputSchema>;
+
+// ── Auth Response Schemas ─────────────────────
+
+export const authTokensSchema = z.object({
+  accessToken: z.string(),
+  refreshToken: z.string(),
+});
+export type AuthTokens = z.infer<typeof authTokensSchema>;
+
+export const authResponseSchema = z.object({
+  user: z.object({
+    id: z.string().uuid(),
+    email: emailSchema,
+    firstName: z.string(),
+    lastName: z.string(),
+    role: z.enum(USER_ROLES as [string, ...string[]]),
+  }),
+  tokens: authTokensSchema,
+});
+export type AuthResponse = z.infer<typeof authResponseSchema>;
+
+export const messageResponseSchema = z.object({
+  message: z.string(),
+});
+export type MessageResponse = z.infer<typeof messageResponseSchema>;
