@@ -18,7 +18,12 @@
       "Bash(lsof -i :3001 -i :3000)",
       "Bash(lsof -i :3001)",
       "Bash(kill 32544 32599 24664)",
-      "Bash(lsof -i :3000 -i :3001)"
+      "Bash(lsof -i :3000 -i :3001)",
+      "Bash(docker --version)",
+      "Bash(docker compose version)",
+      "Bash(docker compose -f /Users/prashantpalikhe/Projects/OpenSource/workout-app/docker-compose.yml up -d)",
+      "Bash(docker compose -f /Users/prashantpalikhe/Projects/OpenSource/workout-app/docker-compose.yml ps)",
+      "Bash(docker compose -f /Users/prashantpalikhe/Projects/OpenSource/workout-app/docker-compose.yml down -v)"
     ]
   }
 }
