@@ -6,6 +6,7 @@ export * from './measurement.js';
 export * from './program.js';
 export * from './program-exercise.js';
 export * from './session.js';
+export * from './session-exercise.js';
 export * from './session-set.js';
 export * from './record.js';
 export * from './trainer.js';

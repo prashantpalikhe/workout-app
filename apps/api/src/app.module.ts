@@ -7,6 +7,7 @@ import { AuthModule } from './auth';
 import { UsersModule } from './users';
 import { ExercisesModule } from './exercises';
 import { ProgramsModule } from './programs';
+import { SessionsModule } from './sessions';
 import { envSchema, type Env } from './config';
 
 @Module({
@@ -60,6 +61,7 @@ import { envSchema, type Env } from './config';
     UsersModule,
     ExercisesModule,
     ProgramsModule,
+    SessionsModule,
   ],
   controllers: [AppController],
 })

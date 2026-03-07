@@ -147,7 +147,10 @@
       "Bash(pnpm --filter @workout/web add vuedraggable@next)",
       "WebFetch(domain:ui.nuxt.com)",
       "Bash(pnpm --filter web build)",
-      "WebFetch(domain:raw.githubusercontent.com)"
+      "WebFetch(domain:raw.githubusercontent.com)",
+      "Bash(pnpm --filter @workout/shared build)",
+      "Bash(pnpm --filter api build)",
+      "Bash(pnpm test -- --run src/sessions/)"
     ]
   }
 }

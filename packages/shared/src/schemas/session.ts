@@ -1,5 +1,6 @@
 import { z } from 'zod';
-import { uuidSchema, rpeSchema } from './common.js';
+import { uuidSchema, rpeSchema, paginationSchema, dateStringSchema } from './common.js';
+import { WORKOUT_SESSION_STATUSES } from '../constants/session.js';
 
 export const startSessionInputSchema = z.object({
   programAssignmentId: uuidSchema.optional(),
@@ -19,3 +20,10 @@ export const updateSessionInputSchema = z.object({
   overallRpe: rpeSchema.optional(),
 });
 export type UpdateSessionInput = z.infer<typeof updateSessionInputSchema>;
+
+export const sessionHistoryFilterSchema = paginationSchema.extend({
+  status: z.enum(WORKOUT_SESSION_STATUSES as [string, ...string[]]).optional(),
+  fromDate: dateStringSchema.optional(),
+  toDate: dateStringSchema.optional(),
+});
+export type SessionHistoryFilter = z.infer<typeof sessionHistoryFilterSchema>;
