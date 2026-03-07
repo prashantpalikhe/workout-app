@@ -1,2 +1,3 @@
-// @workout/shared — barrel export
-// Types, Zod schemas, constants, and utilities will be exported from here.
+export * from './constants/index.js';
+export * from './schemas/index.js';
+export * from './utils/index.js';

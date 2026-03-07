@@ -52,7 +52,12 @@
       "Bash(pnpm --filter @workout/api run prisma:seed)",
       "Bash(docker exec workout-app-postgres-1 psql -U workout -d workout_app -c \"SELECT name, body_region FROM muscle_groups ORDER BY body_region, name;\")",
       "Bash(pnpm build)",
-      "Bash(docker exec workout-app-postgres-1 psql -U workout -d workout_app -c \":*)"
+      "Bash(docker exec workout-app-postgres-1 psql -U workout -d workout_app -c \":*)",
+      "Bash(pnpm --filter @workout/shared add zod)",
+      "Bash(npx --yes tsx -e \"import { z } from ''zod''; console.log\\(''z.enum:'', typeof z.enum\\); console.log\\(''z.object:'', typeof z.object\\); const s = z.object\\({ name: z.string\\(\\) }\\); console.log\\(''parse:'', s.parse\\({ name: ''test'' }\\)\\); const vals = [''A'', ''B''] as const; const e = z.enum\\(vals\\); console.log\\(''enum parse:'', e.parse\\(''A''\\)\\);\")",
+      "Bash(pnpm --filter @workout/api exec tsx -e \"import { z } from ''zod''; console.log\\(''z.enum:'', typeof z.enum\\); console.log\\(''z.object:'', typeof z.object\\); const s = z.object\\({ name: z.string\\(\\) }\\); console.log\\(''parse:'', s.parse\\({ name: ''test'' }\\)\\); const vals = [''A'', ''B''] as const; const e = z.enum\\(vals\\); console.log\\(''enum parse:'', e.parse\\(''A''\\)\\);\")",
+      "Bash(pnpm --filter @workout/shared exec tsc --noEmit)",
+      "Bash(pnpm --filter @workout/api exec tsx -e \":*)"
     ]
   }
 }
