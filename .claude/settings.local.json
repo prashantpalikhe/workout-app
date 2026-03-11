@@ -174,7 +174,8 @@
       "Bash(npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script)",
       "Bash(npx prisma migrate deploy)",
       "Bash(npx prisma generate)",
-      "Bash(pnpm --filter shared build)"
+      "Bash(pnpm --filter shared build)",
+      "Bash(pnpm --filter api prisma:seed)"
     ]
   }
 }

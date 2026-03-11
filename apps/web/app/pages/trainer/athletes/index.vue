@@ -38,6 +38,47 @@ function formatDate(dateStr: string) {
     year: 'numeric',
   })
 }
+
+// ── Group Session Selection Mode ──
+
+const selectionMode = ref(false)
+const selectedAthleteIds = ref(new Set<string>())
+const MAX_GROUP_SIZE = 3
+
+function enterSelectionMode() {
+  selectionMode.value = true
+  selectedAthleteIds.value.clear()
+}
+
+function cancelSelection() {
+  selectionMode.value = false
+  selectedAthleteIds.value.clear()
+}
+
+function toggleSelection(athleteId: string, event: Event) {
+  event.preventDefault()
+  event.stopPropagation()
+
+  if (selectedAthleteIds.value.has(athleteId)) {
+    selectedAthleteIds.value.delete(athleteId)
+  } else if (selectedAthleteIds.value.size < MAX_GROUP_SIZE) {
+    selectedAthleteIds.value.add(athleteId)
+  }
+  // Force reactivity
+  selectedAthleteIds.value = new Set(selectedAthleteIds.value)
+}
+
+function startGroupSession() {
+  const ids = Array.from(selectedAthleteIds.value).join(',')
+  navigateTo(`/trainer/group-session?athletes=${ids}`)
+}
+
+// Only ACTIVE athletes can be selected for group sessions
+function isSelectable(status: string) {
+  return status === 'ACTIVE'
+}
+
+const NuxtLink = resolveComponent('NuxtLink')
 </script>
 
 <template>
@@ -48,12 +89,36 @@ function formatDate(dateStr: string) {
     >
       <template #links>
         <UButton
+          v-if="!selectionMode"
+          label="Group Session"
+          icon="i-lucide-users"
+          variant="outline"
+          @click="enterSelectionMode"
+        />
+        <UButton
           label="Invite Athlete"
           icon="i-lucide-user-plus"
           to="/trainer/athletes/invite"
         />
       </template>
     </UPageHeader>
+
+    <!-- Selection mode banner -->
+    <div
+      v-if="selectionMode"
+      class="mt-4 px-4 py-2 bg-primary/10 border border-primary/20 rounded-lg flex items-center gap-2 text-sm"
+    >
+      <UIcon name="i-lucide-mouse-pointer-click" class="size-4 text-primary shrink-0" />
+      <span>Select up to {{ MAX_GROUP_SIZE }} athletes for a group session</span>
+      <UButton
+        label="Cancel"
+        size="xs"
+        variant="ghost"
+        color="neutral"
+        class="ml-auto"
+        @click="cancelSelection"
+      />
+    </div>
 
     <div class="mt-6 space-y-4">
       <!-- Status filter tabs -->
@@ -96,15 +161,44 @@ function formatDate(dateStr: string) {
 
       <!-- Athletes List -->
       <div v-else class="space-y-3">
-        <NuxtLink
+        <component
+          :is="selectionMode ? 'div' : NuxtLink"
           v-for="rel in trainerStore.athletes"
           :key="rel.id"
-          :to="`/trainer/athletes/${rel.athlete.id}`"
+          :to="selectionMode ? undefined : `/trainer/athletes/${rel.athlete.id}`"
           class="block"
+          :class="selectionMode && isSelectable(rel.status) ? 'cursor-pointer' : ''"
+          @click="selectionMode && isSelectable(rel.status) ? toggleSelection(rel.athlete.id, $event) : undefined"
         >
-          <UCard class="hover:bg-elevated transition-colors cursor-pointer">
+          <UCard
+            class="transition-colors"
+            :class="{
+              'hover:bg-elevated cursor-pointer': !selectionMode,
+              'ring-2 ring-primary bg-primary/5': selectionMode && selectedAthleteIds.has(rel.athlete.id),
+              'opacity-40': selectionMode && !isSelectable(rel.status),
+            }"
+          >
             <div class="flex items-center justify-between">
               <div class="flex items-center gap-3 min-w-0">
+                <!-- Selection checkbox -->
+                <div
+                  v-if="selectionMode"
+                  class="shrink-0"
+                >
+                  <div
+                    class="size-5 rounded border-2 flex items-center justify-center transition-colors"
+                    :class="selectedAthleteIds.has(rel.athlete.id)
+                      ? 'bg-primary border-primary text-white'
+                      : 'border-default'"
+                  >
+                    <UIcon
+                      v-if="selectedAthleteIds.has(rel.athlete.id)"
+                      name="i-lucide-check"
+                      class="size-3.5"
+                    />
+                  </div>
+                </div>
+
                 <UAvatar
                   :src="rel.athlete.avatarUrl || undefined"
                   :alt="`${rel.athlete.firstName} ${rel.athlete.lastName}`"
@@ -131,11 +225,11 @@ function formatDate(dateStr: string) {
                   variant="subtle"
                   size="xs"
                 />
-                <UIcon name="i-lucide-chevron-right" class="size-4 text-muted" />
+                <UIcon v-if="!selectionMode" name="i-lucide-chevron-right" class="size-4 text-muted" />
               </div>
             </div>
           </UCard>
-        </NuxtLink>
+        </component>
 
         <!-- Pagination -->
         <div
@@ -151,5 +245,47 @@ function formatDate(dateStr: string) {
         </div>
       </div>
     </div>
+
+    <!-- Floating action bar for selection mode -->
+    <Transition name="slide-up">
+      <div
+        v-if="selectionMode && selectedAthleteIds.size > 0"
+        class="fixed bottom-0 left-0 right-0 bg-default border-t border-default shadow-xl z-40 px-4 py-3"
+      >
+        <div class="max-w-3xl mx-auto flex items-center justify-between">
+          <span class="text-sm font-medium">
+            {{ selectedAthleteIds.size }}/{{ MAX_GROUP_SIZE }} selected
+          </span>
+          <div class="flex gap-2">
+            <UButton
+              label="Cancel"
+              variant="outline"
+              color="neutral"
+              size="sm"
+              @click="cancelSelection"
+            />
+            <UButton
+              label="Start Session"
+              icon="i-lucide-play"
+              size="sm"
+              @click="startGroupSession"
+            />
+          </div>
+        </div>
+      </div>
+    </Transition>
   </div>
 </template>
+
+<style scoped>
+.slide-up-enter-active,
+.slide-up-leave-active {
+  transition: transform 0.2s ease, opacity 0.2s ease;
+}
+
+.slide-up-enter-from,
+.slide-up-leave-to {
+  transform: translateY(100%);
+  opacity: 0;
+}
+</style>

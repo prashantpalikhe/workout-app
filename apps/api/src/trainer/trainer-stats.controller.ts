@@ -17,12 +17,15 @@ import {
   personalRecordFilterSchema,
   chartStatsFilterSchema,
   calendarStatsFilterSchema,
+  exerciseHistoryFilterSchema,
   type PersonalRecordFilter,
   type ChartStatsFilter,
   type CalendarStatsFilter,
+  type ExerciseHistoryFilter,
 } from '@workout/shared';
 import { RecordsService } from '../records';
 import { UserStatsService } from '../users';
+import { ExercisesService } from '../exercises';
 import { ZodValidationPipe, IsTrainer } from '../common';
 import { TrainerGuard } from '../common/guards/trainer.guard';
 import { TrainerAccessGuard } from '../common/guards/trainer-access.guard';
@@ -36,6 +39,7 @@ export class TrainerStatsController {
   constructor(
     private readonly recordsService: RecordsService,
     private readonly userStatsService: UserStatsService,
+    private readonly exercisesService: ExercisesService,
   ) {}
 
   // ── Records ───────────────────────────────────
@@ -100,5 +104,21 @@ export class TrainerStatsController {
     filter: CalendarStatsFilter,
   ) {
     return this.userStatsService.getCalendarStats(athleteId, filter);
+  }
+
+  // ── Exercise History ────────────────────────────
+
+  @Get('exercises/:exerciseId/history')
+  @ApiOperation({ summary: "Get athlete's exercise session history" })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOkResponse({ description: 'Paginated exercise history for this athlete' })
+  async getExerciseHistory(
+    @Param('athleteId', ParseUUIDPipe) athleteId: string,
+    @Param('exerciseId', ParseUUIDPipe) exerciseId: string,
+    @Query(new ZodValidationPipe(exerciseHistoryFilterSchema))
+    filter: ExerciseHistoryFilter,
+  ) {
+    return this.exercisesService.getHistory(athleteId, exerciseId, filter);
   }
 }

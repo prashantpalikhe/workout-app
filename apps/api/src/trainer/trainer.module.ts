@@ -3,6 +3,7 @@ import { PrismaModule } from '../prisma';
 import { SessionsModule } from '../sessions';
 import { RecordsModule } from '../records';
 import { UsersModule } from '../users';
+import { ExercisesModule } from '../exercises';
 import { TrainerController } from './trainer.controller';
 import { InviteController } from './invite.controller';
 import { AthleteController } from './athlete.controller';
@@ -12,7 +13,7 @@ import { TrainerAssignmentsController } from './trainer-assignments.controller';
 import { TrainerService } from './trainer.service';
 
 @Module({
-  imports: [PrismaModule, SessionsModule, RecordsModule, UsersModule],
+  imports: [PrismaModule, SessionsModule, RecordsModule, UsersModule, ExercisesModule],
   controllers: [
     TrainerController,
     InviteController,
