@@ -1,4 +1,16 @@
-import { Controller, Get, Patch, Body, Query } from '@nestjs/common';
+import {
+  Controller,
+  Get,
+  Post,
+  Patch,
+  Delete,
+  Body,
+  Query,
+  UploadedFile,
+  UseInterceptors,
+  BadRequestException,
+} from '@nestjs/common';
+import { FileInterceptor } from '@nestjs/platform-express';
 import {
   ApiTags,
   ApiOperation,
@@ -6,6 +18,7 @@ import {
   ApiOkResponse,
   ApiBearerAuth,
   ApiQuery,
+  ApiConsumes,
 } from '@nestjs/swagger';
 import {
   updateUserInputSchema,
@@ -21,7 +34,15 @@ import {
 } from '@workout/shared';
 import { UsersService } from './users.service';
 import { UserStatsService } from './user-stats.service';
+import { CloudinaryService } from '../cloudinary';
 import { CurrentUser, ZodValidationPipe, zodToOpenApi } from '../common';
+
+const ALLOWED_IMAGE_TYPES = [
+  'image/jpeg',
+  'image/png',
+  'image/webp',
+  'image/gif',
+];
 
 @ApiTags('users')
 @ApiBearerAuth('access-token')
@@ -30,6 +51,7 @@ export class UsersController {
   constructor(
     private readonly usersService: UsersService,
     private readonly userStatsService: UserStatsService,
+    private readonly cloudinaryService: CloudinaryService,
   ) {}
 
   // ── User ────────────────────────────────────
@@ -54,6 +76,57 @@ export class UsersController {
     const user = await this.usersService.update(userId, dto);
     const { passwordHash, ...rest } = user;
     return rest;
+  }
+
+  // ── Avatar ────────────────────────────────────
+
+  @Post('avatar')
+  @ApiOperation({ summary: 'Upload avatar image' })
+  @ApiConsumes('multipart/form-data')
+  @ApiBody({
+    schema: {
+      type: 'object',
+      properties: { file: { type: 'string', format: 'binary' } },
+    },
+  })
+  @ApiOkResponse({ description: 'Avatar URL' })
+  @UseInterceptors(
+    FileInterceptor('file', {
+      limits: { fileSize: 5 * 1024 * 1024 }, // 5 MB
+      fileFilter: (_req, file, cb) => {
+        if (ALLOWED_IMAGE_TYPES.includes(file.mimetype)) {
+          cb(null, true);
+        } else {
+          cb(
+            new BadRequestException(
+              'Only JPEG, PNG, WebP, and GIF images are allowed',
+            ),
+            false,
+          );
+        }
+      },
+    }),
+  )
+  async uploadAvatar(
+    @CurrentUser('sub') userId: string,
+    @UploadedFile() file: Express.Multer.File,
+  ) {
+    if (!file) {
+      throw new BadRequestException('No file provided');
+    }
+
+    const avatarUrl = await this.cloudinaryService.uploadAvatar(file, userId);
+    await this.usersService.setAvatarUrl(userId, avatarUrl);
+    return { avatarUrl };
+  }
+
+  @Delete('avatar')
+  @ApiOperation({ summary: 'Remove avatar image' })
+  @ApiOkResponse({ description: 'Avatar removed' })
+  async removeAvatar(@CurrentUser('sub') userId: string) {
+    await this.cloudinaryService.deleteAvatar(userId);
+    await this.usersService.setAvatarUrl(userId, null);
+    return { avatarUrl: null };
   }
 
   // ── Athlete Profile ─────────────────────────

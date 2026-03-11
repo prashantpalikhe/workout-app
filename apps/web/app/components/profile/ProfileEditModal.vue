@@ -12,6 +12,11 @@ const profileStore = useProfileStore()
 const toast = useToast()
 
 const saving = ref(false)
+const avatarUploading = ref(false)
+const avatarRemoving = ref(false)
+const pendingAvatarFile = ref<File | null>(null)
+const avatarPreviewUrl = ref<string | null>(null)
+const fileInputRef = ref<HTMLInputElement | null>(null)
 
 const form = reactive({
   firstName: '',
@@ -31,6 +36,18 @@ const genderOptions = [
   { label: 'Prefer not to say', value: 'PREFER_NOT_TO_SAY' },
 ]
 
+const initials = computed(() => {
+  const f = authStore.user?.firstName?.charAt(0) ?? ''
+  const l = authStore.user?.lastName?.charAt(0) ?? ''
+  return `${f}${l}` || '?'
+})
+
+// The avatar to display: preview of pending file > current user avatar
+const displayAvatarSrc = computed(() => {
+  if (avatarPreviewUrl.value) return avatarPreviewUrl.value
+  return authStore.user?.avatarUrl || undefined
+})
+
 // Populate form when modal opens
 watch(open, (val) => {
   if (val) {
@@ -42,12 +59,70 @@ watch(open, (val) => {
     form.gender = props.profile?.gender ?? ''
     form.weight = props.profile?.weight ?? null
     form.height = props.profile?.height ?? null
+    // Reset avatar state
+    pendingAvatarFile.value = null
+    avatarPreviewUrl.value = null
   }
 })
+
+function triggerFileInput() {
+  fileInputRef.value?.click()
+}
+
+function onFileSelected(event: Event) {
+  const input = event.target as HTMLInputElement
+  const file = input.files?.[0]
+  if (!file) return
+
+  // Validate file size (5 MB)
+  if (file.size > 5 * 1024 * 1024) {
+    toast.add({ title: 'Image must be under 5 MB', color: 'error' })
+    input.value = ''
+    return
+  }
+
+  pendingAvatarFile.value = file
+  avatarPreviewUrl.value = URL.createObjectURL(file)
+
+  // Reset input so the same file can be re-selected
+  input.value = ''
+}
+
+function clearPendingAvatar() {
+  if (avatarPreviewUrl.value) {
+    URL.revokeObjectURL(avatarPreviewUrl.value)
+  }
+  pendingAvatarFile.value = null
+  avatarPreviewUrl.value = null
+}
+
+async function removeAvatar() {
+  avatarRemoving.value = true
+  try {
+    await profileStore.removeAvatar()
+    clearPendingAvatar()
+    toast.add({ title: 'Photo removed', color: 'success' })
+  } catch {
+    toast.add({ title: 'Failed to remove photo', color: 'error' })
+  } finally {
+    avatarRemoving.value = false
+  }
+}
 
 async function save() {
   saving.value = true
   try {
+    // Upload avatar if a new file is pending
+    if (pendingAvatarFile.value) {
+      avatarUploading.value = true
+      try {
+        await profileStore.uploadAvatar(pendingAvatarFile.value)
+        clearPendingAvatar()
+      } finally {
+        avatarUploading.value = false
+      }
+    }
+
     // Update user (firstName, lastName)
     const userChanges: Record<string, unknown> = {}
     if (form.firstName !== authStore.user?.firstName) userChanges.firstName = form.firstName
@@ -90,6 +165,54 @@ async function save() {
 
     <template #body>
       <div class="space-y-4">
+        <!-- Avatar -->
+        <div class="flex items-center gap-4">
+          <div class="relative group">
+            <UAvatar
+              :src="displayAvatarSrc"
+              :text="initials"
+              size="xl"
+              class="ring-2 ring-default"
+            />
+            <!-- Overlay on hover -->
+            <button
+              type="button"
+              class="absolute inset-0 rounded-full bg-black/40 flex items-center justify-center opacity-0 group-hover:opacity-100 transition-opacity cursor-pointer"
+              @click="triggerFileInput"
+            >
+              <UIcon name="i-lucide-camera" class="size-5 text-white" />
+            </button>
+          </div>
+
+          <div class="flex flex-col gap-1">
+            <button
+              type="button"
+              class="text-sm text-primary hover:underline text-left cursor-pointer"
+              @click="triggerFileInput"
+            >
+              Change photo
+            </button>
+            <button
+              v-if="authStore.user?.avatarUrl || pendingAvatarFile"
+              type="button"
+              class="text-sm text-error hover:underline text-left cursor-pointer"
+              :disabled="avatarRemoving"
+              @click="pendingAvatarFile ? clearPendingAvatar() : removeAvatar()"
+            >
+              {{ avatarRemoving ? 'Removing...' : 'Remove photo' }}
+            </button>
+          </div>
+
+          <!-- Hidden file input -->
+          <input
+            ref="fileInputRef"
+            type="file"
+            accept="image/jpeg,image/png,image/webp,image/gif"
+            class="hidden"
+            @change="onFileSelected"
+          />
+        </div>
+
         <div class="grid grid-cols-2 gap-3">
           <UFormField label="First Name">
             <UInput v-model="form.firstName" placeholder="First name" />

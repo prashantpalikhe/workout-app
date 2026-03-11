@@ -208,6 +208,7 @@ async function createUser(
     firstName: string;
     lastName: string;
     isTrainer: boolean;
+    avatarUrl?: string;
     profile: {
       weight?: number;
       height?: number;
@@ -224,6 +225,7 @@ async function createUser(
       isTrainer: opts.isTrainer,
       firstName: opts.firstName,
       lastName: opts.lastName,
+      avatarUrl: opts.avatarUrl ?? null,
     },
   });
 
@@ -662,6 +664,7 @@ export async function seedTestUser(prisma: PrismaClient) {
     firstName: 'Athlete',
     lastName: 'One',
     isTrainer: false,
+    avatarUrl: 'https://ui-avatars.com/api/?name=Athlete+One&background=4F46E5&color=fff&size=128',
     profile: { weight: 82, height: 178, gender: 'MALE' },
   });
   await generateWorkoutSessions(prisma, {
@@ -680,6 +683,7 @@ export async function seedTestUser(prisma: PrismaClient) {
     firstName: 'Athlete',
     lastName: 'Two',
     isTrainer: false,
+    avatarUrl: 'https://ui-avatars.com/api/?name=Athlete+Two&background=059669&color=fff&size=128',
     profile: { weight: 62, height: 165, gender: 'FEMALE' },
   });
   await generateWorkoutSessions(prisma, {
@@ -698,6 +702,7 @@ export async function seedTestUser(prisma: PrismaClient) {
     firstName: 'Trainer',
     lastName: 'One',
     isTrainer: true,
+    avatarUrl: 'https://ui-avatars.com/api/?name=Trainer+One&background=DC2626&color=fff&size=128',
     profile: { weight: 88, height: 182, gender: 'MALE' },
   });
 
@@ -710,6 +715,7 @@ export async function seedTestUser(prisma: PrismaClient) {
     firstName: 'Trainer',
     lastName: 'Two',
     isTrainer: false,
+    avatarUrl: 'https://ui-avatars.com/api/?name=Trainer+Two&background=D97706&color=fff&size=128',
     profile: { weight: 75, height: 175, gender: 'MALE' },
   });
 

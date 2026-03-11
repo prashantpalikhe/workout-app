@@ -1,3 +1,4 @@
+import { effectScope } from 'vue'
 import type {
   StartSessionInput,
   CompleteSessionInput,
@@ -32,6 +33,9 @@ export function useGroupSession() {
   const slots = ref<AthleteSlot[]>([])
   const initializing = ref(false)
 
+  // effectScope for rest timers created outside the setup scope (inside onMounted → initSlots)
+  const timerScope = effectScope()
+
   // ── Helpers ──
 
   function basePath(athleteId: string) {
@@ -53,7 +57,7 @@ export function useGroupSession() {
   async function initSlots(athletes: Array<{ id: string; name: string }>) {
     initializing.value = true
 
-    // Create slots with rest timers
+    // Create slots with rest timers (run inside timerScope so onScopeDispose works)
     slots.value = athletes.map((a) => ({
       athleteId: a.id,
       athleteName: a.name,
@@ -61,7 +65,7 @@ export function useGroupSession() {
       loading: true,
       error: null,
       currentExerciseIndex: 0,
-      restTimer: useRestTimer(),
+      restTimer: timerScope.run(() => useRestTimer())!,
       exerciseHistory: new Map(),
       historyLoading: new Set(),
     }))
@@ -274,7 +278,7 @@ export function useGroupSession() {
 
   function currentExercise(athleteId: string): SessionExercise | null {
     const slot = getSlot(athleteId)
-    if (!slot?.session) return null
+    if (!slot?.session?.sessionExercises) return null
     return (
       slot.session.sessionExercises[slot.currentExerciseIndex] ?? null
     )
@@ -282,7 +286,7 @@ export function useGroupSession() {
 
   function exerciseCount(athleteId: string): number {
     const slot = getSlot(athleteId)
-    return slot?.session?.sessionExercises.length ?? 0
+    return slot?.session?.sessionExercises?.length ?? 0
   }
 
   function nextExercise(athleteId: string) {
@@ -345,6 +349,11 @@ export function useGroupSession() {
   )
 
   const allDone = computed(() => slots.value.length === 0)
+
+  // Cleanup all rest timer intervals when the composable's parent scope is disposed
+  onScopeDispose(() => {
+    timerScope.stop()
+  })
 
   return {
     // State

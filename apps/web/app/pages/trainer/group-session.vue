@@ -349,7 +349,7 @@ onBeforeRouteLeave((_to, _from, next) => {
 
     <template v-else>
       <!-- Header -->
-      <TrainerGroupSessionGroupSessionHeader
+      <TrainerGroupSessionHeader
         :slot-count="groupSession.slots.value.length"
         :earliest-started-at="earliestStartedAt"
         @end-all-complete="endAllComplete"
@@ -357,7 +357,7 @@ onBeforeRouteLeave((_to, _from, next) => {
       />
 
       <!-- Cards Grid -->
-      <TrainerGroupSessionGroupSessionCardsView>
+      <TrainerGroupSessionCardsView>
         <TrainerGroupSessionAthleteSessionCard
           v-for="slot in groupSession.slots.value"
           :key="slot.athleteId"
@@ -394,7 +394,7 @@ onBeforeRouteLeave((_to, _from, next) => {
             @click="startSessionFor = slot.athleteId; startSessionName = ''"
           />
         </UCard>
-      </TrainerGroupSessionGroupSessionCardsView>
+      </TrainerGroupSessionCardsView>
     </template>
 
     <!-- Exercise Picker Modal -->

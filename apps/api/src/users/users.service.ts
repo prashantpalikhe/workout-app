@@ -80,6 +80,15 @@ export class UsersService {
     });
   }
 
+  // ── Avatar ────────────────────────────────────
+
+  async setAvatarUrl(userId: string, avatarUrl: string | null) {
+    return this.prisma.user.update({
+      where: { id: userId },
+      data: { avatarUrl },
+    });
+  }
+
   // ── Athlete Profile ─────────────────────────
 
   async getProfile(userId: string) {

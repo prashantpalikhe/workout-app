@@ -11,6 +11,7 @@ import { SessionsModule } from './sessions';
 import { RecordsModule } from './records';
 import { TrainerModule } from './trainer';
 import { MailModule } from './mail';
+import { CloudinaryModule } from './cloudinary';
 import { envSchema, type Env } from './config';
 
 @Module({
@@ -61,6 +62,7 @@ import { envSchema, type Env } from './config';
 
     PrismaModule,
     MailModule,
+    CloudinaryModule,
     AuthModule,
     UsersModule,
     ExercisesModule,

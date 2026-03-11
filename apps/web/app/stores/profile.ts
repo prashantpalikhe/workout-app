@@ -91,6 +91,29 @@ export const useProfileStore = defineStore('profile', () => {
     await api('/users/me', { method: 'PATCH', body: data })
   }
 
+  async function uploadAvatar(file: File): Promise<string> {
+    const formData = new FormData()
+    formData.append('file', file)
+    const result = await api<{ avatarUrl: string }>('/users/me/avatar', {
+      method: 'POST',
+      body: formData,
+    })
+    // Sync auth store so avatar updates everywhere immediately
+    const authStore = useAuthStore()
+    if (authStore.user) {
+      authStore.user.avatarUrl = result.avatarUrl
+    }
+    return result.avatarUrl
+  }
+
+  async function removeAvatar(): Promise<void> {
+    await api('/users/me/avatar', { method: 'DELETE' })
+    const authStore = useAuthStore()
+    if (authStore.user) {
+      authStore.user.avatarUrl = null
+    }
+  }
+
   async function fetchRecentSessions() {
     const result = await api<{
       data: WorkoutSession[]
@@ -117,6 +140,8 @@ export const useProfileStore = defineStore('profile', () => {
     fetchProfile,
     updateProfile,
     updateUser,
+    uploadAvatar,
+    removeAvatar,
     fetchRecentSessions,
   }
 })

@@ -3,10 +3,12 @@ import { Test, TestingModule } from '@nestjs/testing';
 import { UsersController } from './users.controller';
 import { UsersService } from './users.service';
 import { UserStatsService } from './user-stats.service';
+import { CloudinaryService } from '../cloudinary';
 
 describe('UsersController', () => {
   let controller: UsersController;
   let usersService: Record<string, ReturnType<typeof vi.fn>>;
+  let cloudinaryService: Record<string, ReturnType<typeof vi.fn>>;
 
   const mockUser = {
     id: 'uid',
@@ -44,16 +46,23 @@ describe('UsersController', () => {
     usersService = {
       findByIdOrThrow: vi.fn().mockResolvedValue(mockUser),
       update: vi.fn().mockResolvedValue(mockUser),
+      setAvatarUrl: vi.fn().mockResolvedValue(mockUser),
       getProfile: vi.fn().mockResolvedValue(mockProfile),
       updateProfile: vi.fn().mockResolvedValue(mockProfile),
       getSettings: vi.fn().mockResolvedValue(mockSettings),
       updateSettings: vi.fn().mockResolvedValue(mockSettings),
     };
 
+    cloudinaryService = {
+      uploadAvatar: vi.fn().mockResolvedValue('https://res.cloudinary.com/test/avatar.webp'),
+      deleteAvatar: vi.fn().mockResolvedValue(undefined),
+    };
+
     const module: TestingModule = await Test.createTestingModule({
       controllers: [UsersController],
       providers: [
         { provide: UsersService, useValue: usersService },
+        { provide: CloudinaryService, useValue: cloudinaryService },
         {
           provide: UserStatsService,
           useValue: {
@@ -117,6 +126,41 @@ describe('UsersController', () => {
       const result = await controller.updateSettings('uid', dto);
       expect(usersService.updateSettings).toHaveBeenCalledWith('uid', dto);
       expect(result).toEqual(mockSettings);
+    });
+  });
+
+  describe('uploadAvatar', () => {
+    it('should upload avatar and update user', async () => {
+      const mockFile = {
+        buffer: Buffer.from('fake-image'),
+        mimetype: 'image/png',
+        size: 1024,
+      } as Express.Multer.File;
+
+      const result = await controller.uploadAvatar('uid', mockFile);
+      expect(cloudinaryService.uploadAvatar).toHaveBeenCalledWith(mockFile, 'uid');
+      expect(usersService.setAvatarUrl).toHaveBeenCalledWith(
+        'uid',
+        'https://res.cloudinary.com/test/avatar.webp',
+      );
+      expect(result).toEqual({
+        avatarUrl: 'https://res.cloudinary.com/test/avatar.webp',
+      });
+    });
+
+    it('should throw if no file provided', async () => {
+      await expect(
+        controller.uploadAvatar('uid', undefined as unknown as Express.Multer.File),
+      ).rejects.toThrow('No file provided');
+    });
+  });
+
+  describe('removeAvatar', () => {
+    it('should delete from cloudinary and clear avatarUrl', async () => {
+      const result = await controller.removeAvatar('uid');
+      expect(cloudinaryService.deleteAvatar).toHaveBeenCalledWith('uid');
+      expect(usersService.setAvatarUrl).toHaveBeenCalledWith('uid', null);
+      expect(result).toEqual({ avatarUrl: null });
     });
   });
 });

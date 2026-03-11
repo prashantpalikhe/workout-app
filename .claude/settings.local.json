@@ -175,7 +175,9 @@
       "Bash(npx prisma migrate deploy)",
       "Bash(npx prisma generate)",
       "Bash(pnpm --filter shared build)",
-      "Bash(pnpm --filter api prisma:seed)"
+      "Bash(pnpm --filter api prisma:seed)",
+      "Bash(pnpm --filter api add cloudinary)",
+      "Bash(pnpm --filter api add -D @types/multer)"
     ]
   }
 }
