@@ -4,6 +4,7 @@ definePageMeta({ layout: 'default', middleware: 'auth' })
 const { api } = useApiClient()
 const toast = useToast()
 const colorMode = useColorMode()
+const { refresh: refreshUserSettings } = useUserSettings()
 
 interface UserSettings {
   restTimerEnabled: boolean
@@ -91,6 +92,8 @@ async function saveSettings() {
       },
     })
     toast.add({ title: 'Settings saved', color: 'success' })
+    // Refresh the global settings cache so other pages (e.g. active workout) see updated values
+    await refreshUserSettings()
   } catch {
     toast.add({ title: 'Failed to save settings', color: 'error' })
   }
