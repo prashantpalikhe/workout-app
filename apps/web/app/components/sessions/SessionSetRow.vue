@@ -151,12 +151,12 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       {{ setIndex + 1 }}
     </span>
 
-    <!-- Set type -->
+    <!-- Set type (hidden on mobile) -->
     <USelect
       v-model="form.setType"
       :items="setTypeItems"
       size="xs"
-      class="w-24 shrink-0"
+      class="hidden md:block w-24 shrink-0"
       @update:model-value="schedule()"
     />
 
@@ -222,7 +222,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
 
     <!-- Complete button -->
     <button
-      class="flex items-center justify-center size-7 shrink-0 rounded-md transition-colors"
+      class="flex items-center justify-center size-8 shrink-0 rounded-md transition-colors"
       :class="set.completed
         ? 'text-success bg-success/10'
         : 'text-muted hover:text-default hover:bg-elevated'"
@@ -231,13 +231,13 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
     >
       <UIcon
         :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
-        class="size-4"
+        class="size-5"
       />
     </button>
 
-    <!-- Delete button -->
+    <!-- Delete button (hidden on mobile) -->
     <button
-      class="flex items-center justify-center size-7 shrink-0 rounded-md text-muted hover:text-error hover:bg-error/10 transition-colors"
+      class="hidden md:flex items-center justify-center size-7 shrink-0 rounded-md text-muted hover:text-error hover:bg-error/10 transition-colors"
       aria-label="Delete set"
       @click="deleteSet"
     >

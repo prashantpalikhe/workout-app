@@ -107,14 +107,14 @@ const dropdownItems = computed(() => [
     <!-- Column headers -->
     <div v-if="exercise.sets.length" class="flex items-center gap-1.5 px-1.5 py-1 text-[10px] uppercase tracking-wider text-muted font-medium">
       <span class="w-5 shrink-0 text-center">Set</span>
-      <span class="w-24 shrink-0">Type</span>
+      <span class="hidden md:block w-24 shrink-0">Type</span>
       <span v-if="showWeight" class="flex-1 min-w-0">kg</span>
       <span v-if="showReps" class="flex-1 min-w-0">Reps</span>
       <span v-if="showDuration" class="flex-1 min-w-0">Sec</span>
       <span v-if="showDistance" class="flex-1 min-w-0">km</span>
       <span class="w-14 shrink-0">RPE</span>
-      <span class="w-7 shrink-0" />
-      <span class="w-7 shrink-0" />
+      <span class="w-8 shrink-0" />
+      <span class="hidden md:block w-7 shrink-0" />
     </div>
 
     <!-- Set rows -->

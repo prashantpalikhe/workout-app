@@ -52,7 +52,7 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
 }))
 
 // SVG progress ring
-const radius = 40
+const radius = 22
 const circumference = 2 * Math.PI * radius
 const strokeDashoffset = computed(() => circumference * (1 - props.progress))
 </script>
@@ -71,26 +71,26 @@ const strokeDashoffset = computed(() => circumference * (1 - props.progress))
       class="fixed bottom-4 left-1/2 -translate-x-1/2 z-50 w-[calc(100%-2rem)] max-w-md"
     >
       <div
-        class="rounded-2xl shadow-xl border border-default p-4 flex items-center gap-4"
+        class="rounded-xl shadow-xl border border-default px-3 py-2 flex items-center gap-3"
         :class="isCompleted ? 'bg-success/10 animate-pulse' : 'bg-default'"
       >
         <!-- Progress Ring -->
         <div class="relative shrink-0">
-          <svg width="96" height="96" viewBox="0 0 96 96" class="-rotate-90">
+          <svg width="52" height="52" viewBox="0 0 52 52" class="-rotate-90">
             <!-- Background circle -->
             <circle
-              cx="48" cy="48" :r="radius"
+              cx="26" cy="26" :r="radius"
               fill="none"
               stroke="currentColor"
-              stroke-width="4"
+              stroke-width="3"
               class="text-muted/20"
             />
             <!-- Progress circle -->
             <circle
-              cx="48" cy="48" :r="radius"
+              cx="26" cy="26" :r="radius"
               fill="none"
               stroke="currentColor"
-              stroke-width="4"
+              stroke-width="3"
               stroke-linecap="round"
               :stroke-dasharray="circumference"
               :stroke-dashoffset="strokeDashoffset"
@@ -100,43 +100,37 @@ const strokeDashoffset = computed(() => circumference * (1 - props.progress))
           </svg>
           <!-- Time display (clickable to edit) -->
           <button
-            class="absolute inset-0 flex flex-col items-center justify-center"
+            class="absolute inset-0 flex items-center justify-center"
             :class="isCompleted ? '' : 'cursor-pointer hover:opacity-70'"
             @click="startEdit"
           >
-            <template v-if="isCompleted">
-              <UIcon name="i-lucide-check" class="size-6 text-success" />
-              <span class="text-xs text-success font-medium">Done</span>
-            </template>
-            <template v-else>
-              <span class="text-xl font-bold tabular-nums">{{ formattedTime }}</span>
-              <span class="text-[10px] text-muted">tap to edit</span>
-            </template>
+            <UIcon v-if="isCompleted" name="i-lucide-check" class="size-5 text-success" />
+            <span v-else class="text-sm font-bold tabular-nums">{{ formattedTime }}</span>
           </button>
         </div>
 
+        <!-- Label -->
+        <p class="text-sm font-medium flex-1 min-w-0">
+          {{ isCompleted ? 'Rest complete!' : 'Resting...' }}
+        </p>
+
         <!-- Actions -->
-        <div class="flex flex-col gap-2 flex-1 min-w-0">
-          <p class="text-sm font-medium">
-            {{ isCompleted ? 'Rest complete!' : 'Resting...' }}
-          </p>
-          <div class="flex gap-2">
-            <UButton
-              v-if="!isCompleted"
-              label="+30s"
-              size="sm"
-              color="neutral"
-              variant="soft"
-              @click="emit('add-time', 30)"
-            />
-            <UButton
-              :label="isCompleted ? 'Dismiss' : 'Skip'"
-              size="sm"
-              :color="isCompleted ? 'success' : 'neutral'"
-              :variant="isCompleted ? 'soft' : 'outline'"
-              @click="emit('skip')"
-            />
-          </div>
+        <div class="flex items-center gap-1.5 shrink-0">
+          <UButton
+            v-if="!isCompleted"
+            label="+30s"
+            size="xs"
+            color="neutral"
+            variant="soft"
+            @click="emit('add-time', 30)"
+          />
+          <UButton
+            :label="isCompleted ? 'Dismiss' : 'Skip'"
+            size="xs"
+            :color="isCompleted ? 'success' : 'neutral'"
+            :variant="isCompleted ? 'soft' : 'outline'"
+            @click="emit('skip')"
+          />
         </div>
       </div>
 
