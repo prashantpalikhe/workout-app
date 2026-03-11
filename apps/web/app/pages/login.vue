@@ -69,7 +69,7 @@ async function onSubmit(event: FormSubmitEvent<LoginData>) {
         />
       </UFormField>
 
-      <UFormField label="Password" name="password" class="mb-6">
+      <UFormField label="Password" name="password">
         <UInput
           v-model="state.password"
           class="block"
@@ -78,6 +78,12 @@ async function onSubmit(event: FormSubmitEvent<LoginData>) {
           size="lg"
         />
       </UFormField>
+
+      <div class="text-right mb-2">
+        <NuxtLink to="/forgot-password" class="text-sm text-primary font-medium">
+          Forgot password?
+        </NuxtLink>
+      </div>
 
       <UButton
         type="submit"

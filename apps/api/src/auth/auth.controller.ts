@@ -15,11 +15,15 @@ import {
   refreshTokenInputSchema,
   googleOAuthInputSchema,
   appleOAuthInputSchema,
+  forgotPasswordInputSchema,
+  resetPasswordInputSchema,
   type RegisterInput,
   type LoginInput,
   type RefreshTokenInput,
   type GoogleOAuthInput,
   type AppleOAuthInput,
+  type ForgotPasswordInput,
+  type ResetPasswordInput,
 } from '@workout/shared';
 import { AuthService } from './auth.service';
 import { Public, ZodValidationPipe, zodToOpenApi } from '../common';
@@ -92,6 +96,36 @@ export class AuthController {
     @Body(new ZodValidationPipe(appleOAuthInputSchema)) dto: AppleOAuthInput,
   ) {
     return this.authService.appleLogin(dto);
+  }
+
+  @Public()
+  @Post('forgot-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Request a password reset email' })
+  @ApiBody({ schema: zodToOpenApi(forgotPasswordInputSchema) })
+  @ApiOkResponse({ description: 'If the email exists, a reset link has been sent' })
+  async forgotPassword(
+    @Body(new ZodValidationPipe(forgotPasswordInputSchema))
+    dto: ForgotPasswordInput,
+  ) {
+    await this.authService.forgotPassword(dto.email);
+    // Always return the same response to prevent user enumeration
+    return { message: 'If an account with that email exists, a reset link has been sent' };
+  }
+
+  @Public()
+  @Post('reset-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Reset password using token from email' })
+  @ApiBody({ schema: zodToOpenApi(resetPasswordInputSchema) })
+  @ApiOkResponse({ description: 'Password has been reset' })
+  @ApiUnauthorizedResponse({ description: 'Invalid or expired reset token' })
+  async resetPassword(
+    @Body(new ZodValidationPipe(resetPasswordInputSchema))
+    dto: ResetPasswordInput,
+  ) {
+    await this.authService.resetPassword(dto.token, dto.password);
+    return { message: 'Password has been reset successfully' };
   }
 
   @ApiBearerAuth('access-token')

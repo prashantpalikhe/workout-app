@@ -12,6 +12,7 @@ import appleSignin from 'apple-signin-auth';
 import { createHash, randomBytes } from 'node:crypto';
 import { PrismaService } from '../prisma';
 import { UsersService } from '../users';
+import { MailService } from '../mail';
 import type { JwtPayload } from './interfaces';
 import type { Env } from '../config';
 import type {
@@ -25,11 +26,15 @@ import type {
 export class AuthService {
   private readonly logger = new Logger(AuthService.name);
 
+  private static readonly RESET_TOKEN_EXPIRY_MS = 15 * 60 * 1000; // 15 minutes
+  private static readonly RESET_TOKEN_RATE_LIMIT = 3; // max per hour
+
   constructor(
     private readonly usersService: UsersService,
     private readonly jwtService: JwtService,
     private readonly prisma: PrismaService,
     private readonly config: ConfigService<Env, true>,
+    private readonly mailService: MailService,
   ) {}
 
   // ── Register ────────────────────────────────
@@ -184,6 +189,86 @@ export class AuthService {
       where: { tokenHash, revokedAt: null },
       data: { revokedAt: new Date() },
     });
+  }
+
+  // ── Forgot Password ───────────────────────────
+  async forgotPassword(email: string) {
+    // Always return the same response to prevent user enumeration
+    const user = await this.usersService.findByEmail(email);
+    if (!user) return;
+
+    // Rate limit: max 3 tokens per hour per user
+    const oneHourAgo = new Date(Date.now() - 60 * 60 * 1000);
+    const recentCount = await this.prisma.passwordResetToken.count({
+      where: { userId: user.id, createdAt: { gt: oneHourAgo } },
+    });
+    if (recentCount >= AuthService.RESET_TOKEN_RATE_LIMIT) {
+      this.logger.warn(`Password reset rate limit hit for ${email}`);
+      return; // Silent — don't reveal rate limiting to caller
+    }
+
+    // Invalidate any existing unused tokens for this user
+    await this.prisma.passwordResetToken.updateMany({
+      where: { userId: user.id, usedAt: null },
+      data: { usedAt: new Date() },
+    });
+
+    // Generate token: 32 random bytes → hex string, store SHA-256 hash
+    const rawToken = randomBytes(32).toString('hex');
+    const tokenHash = this.hashToken(rawToken);
+    const expiresAt = new Date(
+      Date.now() + AuthService.RESET_TOKEN_EXPIRY_MS,
+    );
+
+    await this.prisma.passwordResetToken.create({
+      data: { userId: user.id, tokenHash, expiresAt },
+    });
+
+    // Send email (fire-and-forget — don't let email failures block the response)
+    this.mailService
+      .sendPasswordReset(user.email, user.firstName, rawToken)
+      .catch((err) => {
+        this.logger.error(`Failed to send reset email to ${email}: ${err}`);
+      });
+  }
+
+  // ── Reset Password ──────────────────────────
+  async resetPassword(token: string, newPassword: string) {
+    const tokenHash = this.hashToken(token);
+
+    const stored = await this.prisma.passwordResetToken.findUnique({
+      where: { tokenHash },
+      include: { user: true },
+    });
+
+    if (!stored || stored.usedAt || stored.expiresAt < new Date()) {
+      throw new UnauthorizedException('Invalid or expired reset token');
+    }
+
+    // Hash new password and update user
+    const passwordHash = await argon2.hash(newPassword, {
+      type: argon2.argon2id,
+    });
+
+    await this.prisma.$transaction([
+      // Update password
+      this.prisma.user.update({
+        where: { id: stored.userId },
+        data: { passwordHash },
+      }),
+      // Mark token as used
+      this.prisma.passwordResetToken.update({
+        where: { id: stored.id },
+        data: { usedAt: new Date() },
+      }),
+      // Revoke all refresh tokens (force re-login everywhere)
+      this.prisma.refreshToken.updateMany({
+        where: { userId: stored.userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+
+    this.logger.log(`Password reset successful for ${stored.user.email}`);
   }
 
   // ── Private Helpers ───────────────────────────

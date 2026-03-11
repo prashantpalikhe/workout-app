@@ -32,6 +32,11 @@ export const envSchema = z.object({
 
   // ── OAuth (Apple) ─────────────────────────────
   APPLE_CLIENT_ID: z.string().optional(),
+
+  // ── Email (Resend) ──────────────────────────
+  RESEND_API_KEY: z.string().min(1),
+  MAIL_FROM: z.string().min(1),
+  FRONTEND_URL: z.string().url(),
 });
 
 export type Env = z.infer<typeof envSchema>;

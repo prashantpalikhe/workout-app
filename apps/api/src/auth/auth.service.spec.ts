@@ -6,6 +6,7 @@ import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
 import { UsersService } from '../users';
 import { PrismaService } from '../prisma';
+import { MailService } from '../mail';
 
 vi.mock('argon2', () => ({
   hash: vi.fn().mockResolvedValue('hashed-password'),
@@ -46,8 +47,20 @@ describe('AuthService', () => {
       update: ReturnType<typeof vi.fn>;
       updateMany: ReturnType<typeof vi.fn>;
     };
+    passwordResetToken: {
+      count: ReturnType<typeof vi.fn>;
+      create: ReturnType<typeof vi.fn>;
+      findUnique: ReturnType<typeof vi.fn>;
+      update: ReturnType<typeof vi.fn>;
+      updateMany: ReturnType<typeof vi.fn>;
+    };
+    user: {
+      update: ReturnType<typeof vi.fn>;
+    };
+    $transaction: ReturnType<typeof vi.fn>;
   };
   let configService: { get: ReturnType<typeof vi.fn> };
+  let mailService: { sendPasswordReset: ReturnType<typeof vi.fn> };
 
   const mockUser = {
     id: 'user-uuid',
@@ -73,8 +86,20 @@ describe('AuthService', () => {
         update: vi.fn().mockResolvedValue({}),
         updateMany: vi.fn().mockResolvedValue({ count: 1 }),
       },
+      passwordResetToken: {
+        count: vi.fn().mockResolvedValue(0),
+        create: vi.fn().mockResolvedValue({}),
+        findUnique: vi.fn(),
+        update: vi.fn().mockResolvedValue({}),
+        updateMany: vi.fn().mockResolvedValue({ count: 0 }),
+      },
+      user: {
+        update: vi.fn().mockResolvedValue({}),
+      },
+      $transaction: vi.fn().mockResolvedValue([]),
     };
     configService = { get: vi.fn() };
+    mailService = { sendPasswordReset: vi.fn().mockResolvedValue(undefined) };
 
     // Reset OAuth mocks
     mockVerifyIdToken.mockReset();
@@ -87,6 +112,7 @@ describe('AuthService', () => {
         { provide: JwtService, useValue: jwtService },
         { provide: PrismaService, useValue: prisma },
         { provide: ConfigService, useValue: configService },
+        { provide: MailService, useValue: mailService },
       ],
     }).compile();
 
@@ -397,6 +423,103 @@ describe('AuthService', () => {
           data: { revokedAt: expect.any(Date) },
         }),
       );
+    });
+  });
+
+  // ── Forgot Password ───────────────────────────
+  describe('forgotPassword', () => {
+    it('should silently return if user not found (prevents enumeration)', async () => {
+      usersService.findByEmail.mockResolvedValue(null);
+      await service.forgotPassword('nonexistent@example.com');
+      expect(prisma.passwordResetToken.create).not.toHaveBeenCalled();
+      expect(mailService.sendPasswordReset).not.toHaveBeenCalled();
+    });
+
+    it('should generate token, invalidate old ones, and send email', async () => {
+      usersService.findByEmail.mockResolvedValue(mockUser);
+
+      await service.forgotPassword('test@example.com');
+
+      // Should invalidate existing tokens
+      expect(prisma.passwordResetToken.updateMany).toHaveBeenCalledWith({
+        where: { userId: 'user-uuid', usedAt: null },
+        data: { usedAt: expect.any(Date) },
+      });
+      // Should create a new token
+      expect(prisma.passwordResetToken.create).toHaveBeenCalledWith({
+        data: {
+          userId: 'user-uuid',
+          tokenHash: expect.any(String),
+          expiresAt: expect.any(Date),
+        },
+      });
+      // Should send email
+      expect(mailService.sendPasswordReset).toHaveBeenCalledWith(
+        'test@example.com',
+        'John',
+        expect.any(String), // raw token
+      );
+    });
+
+    it('should silently return if rate limited (3 tokens per hour)', async () => {
+      usersService.findByEmail.mockResolvedValue(mockUser);
+      prisma.passwordResetToken.count.mockResolvedValue(3);
+
+      await service.forgotPassword('test@example.com');
+
+      expect(prisma.passwordResetToken.create).not.toHaveBeenCalled();
+      expect(mailService.sendPasswordReset).not.toHaveBeenCalled();
+    });
+  });
+
+  // ── Reset Password ────────────────────────────
+  describe('resetPassword', () => {
+    const validToken = {
+      id: 'prt-uuid',
+      userId: 'user-uuid',
+      tokenHash: 'hashed',
+      expiresAt: new Date(Date.now() + 60_000), // 1 min from now
+      usedAt: null,
+      user: mockUser,
+    };
+
+    it('should throw if token not found', async () => {
+      prisma.passwordResetToken.findUnique.mockResolvedValue(null);
+      await expect(
+        service.resetPassword('invalid', 'newpass123'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw if token already used', async () => {
+      prisma.passwordResetToken.findUnique.mockResolvedValue({
+        ...validToken,
+        usedAt: new Date(),
+      });
+      await expect(
+        service.resetPassword('used-token', 'newpass123'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw if token is expired', async () => {
+      prisma.passwordResetToken.findUnique.mockResolvedValue({
+        ...validToken,
+        expiresAt: new Date(Date.now() - 60_000), // 1 min ago
+      });
+      await expect(
+        service.resetPassword('expired-token', 'newpass123'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should update password, mark token used, and revoke refresh tokens', async () => {
+      prisma.passwordResetToken.findUnique.mockResolvedValue(validToken);
+
+      await service.resetPassword('valid-token', 'newpassword123');
+
+      expect(prisma.$transaction).toHaveBeenCalledWith([
+        expect.anything(), // user.update (password)
+        expect.anything(), // passwordResetToken.update (usedAt)
+        expect.anything(), // refreshToken.updateMany (revoke all)
+      ]);
     });
   });
 });

@@ -8,6 +8,7 @@ import { UsersModule } from './users';
 import { ExercisesModule } from './exercises';
 import { ProgramsModule } from './programs';
 import { SessionsModule } from './sessions';
+import { MailModule } from './mail';
 import { envSchema, type Env } from './config';
 
 @Module({
@@ -57,6 +58,7 @@ import { envSchema, type Env } from './config';
     }),
 
     PrismaModule,
+    MailModule,
     AuthModule,
     UsersModule,
     ExercisesModule,
