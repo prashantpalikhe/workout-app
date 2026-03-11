@@ -2,6 +2,7 @@ import 'dotenv/config';
 import { PrismaClient } from '../src/generated/prisma/client.js';
 import { PrismaPg } from '@prisma/adapter-pg';
 import pg from 'pg';
+import { seedTestUser } from './seed-test-user.js';
 
 const pool = new pg.Pool({
   connectionString: process.env.DATABASE_URL,
@@ -972,6 +973,7 @@ async function main() {
 
   await seedMuscleGroups();
   await seedExercises();
+  await seedTestUser(prisma);
 
   console.log('\nSeed complete!');
 }

@@ -166,7 +166,9 @@
       "Bash(pnpm --filter api test)",
       "Bash(ls -la /Users/prashantpalikhe/Projects/OpenSource/workout-app/apps/api/dist/users/user-stats*)",
       "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H 'Content-Type: application/json' -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"Test1234!\"\",\"\"firstName\"\":\"\"Test\"\",\"\"lastName\"\":\"\"User\"\"}')",
-      "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"Test12345\"\",\"\"firstName\"\":\"\"Test\"\",\"\"lastName\"\":\"\"User\"\"}')"
+      "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"Test12345\"\",\"\"firstName\"\":\"\"Test\"\",\"\"lastName\"\":\"\"User\"\"}')",
+      "Bash(pnpm --filter api prisma db seed)",
+      "Bash(npx prisma db seed)"
     ]
   }
 }

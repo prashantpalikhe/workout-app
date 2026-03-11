@@ -65,7 +65,7 @@ pnpm services:up      # starts PostgreSQL 17 + Redis 8 via Docker Compose
 
 ```bash
 pnpm --filter @workout/api run prisma:migrate   # runs all migrations
-pnpm --filter @workout/api run prisma:seed       # seeds muscle groups + starter exercises
+pnpm --filter @workout/api run prisma:seed       # seeds muscle groups, exercises, and test user
 ```
 
 ### 5. Start development servers
@@ -102,9 +102,81 @@ pnpm dev              # starts both API (3001) and Web (3000) via Turborepo
 | `build`           | Compile TypeScript              |
 | `prisma:generate` | Regenerate Prisma client        |
 | `prisma:migrate`  | Run pending migrations          |
-| `prisma:seed`     | Seed muscle groups + exercises  |
+| `prisma:seed`     | Seed data (see [Seeding](#seeding))  |
 | `prisma:studio`   | Open Prisma Studio (DB browser) |
 
+
+## Seeding
+
+The seed command populates the database with reference data and (optionally) a test user with realistic workout history.
+
+```bash
+pnpm --filter @workout/api run prisma:seed
+```
+
+This runs three seeders in order:
+
+| Seeder | What it creates |
+| --- | --- |
+| Muscle Groups | 22 muscle groups (Chest, Quads, Lats, etc.) |
+| Global Exercises | 77 exercises with tracking types, equipment, and muscle group associations |
+| Test User | A pre-built user with ~6 months of workout data (see below) |
+
+### Test user
+
+The seed creates a test user you can log in with immediately:
+
+| Field | Value |
+| --- | --- |
+| Email | `test@workout.dev` |
+| Password | `Test1234!` |
+| User ID | `00000000-0000-4000-a000-000000000001` |
+
+The test user comes with:
+- **~96 completed workout sessions** spanning ~6 months (Push/Pull/Legs/Upper split)
+- **Progressive overload** — weights increase over time for realistic chart trends
+- **~74 personal records** computed from the best sets
+- **Calendar data** — workouts on Mon/Wed/Fri/Sat
+
+The data is **deterministic** (same output every run) and **idempotent** (safe to re-run — deletes existing test user data first).
+
+### Production safety
+
+The seed script does **not** check `NODE_ENV`. If you point `DATABASE_URL` at a production database and run the seed, it **will** create the test user there. Only run the seed against development/staging databases.
+
+## Starting with a clean slate
+
+To completely reset your local database and start fresh:
+
+```bash
+# 1. Stop dev servers (Ctrl+C)
+
+# 2. Reset the database (drops all tables, re-runs migrations)
+pnpm --filter @workout/api exec prisma migrate reset
+
+# This automatically runs:
+#   - Drop all tables
+#   - Re-apply all migrations
+#   - Run prisma:seed (muscle groups + exercises + test user)
+```
+
+If you also want to reset Docker volumes (removes all persisted Postgres data):
+
+```bash
+pnpm services:reset              # stops containers and deletes volumes
+pnpm services:up                 # starts fresh containers
+pnpm --filter @workout/api run prisma:migrate   # re-create tables
+pnpm --filter @workout/api run prisma:seed      # seed data
+```
+
+### Quick reference
+
+| Goal | Command |
+| --- | --- |
+| Re-seed without resetting | `pnpm --filter @workout/api run prisma:seed` |
+| Reset DB + re-seed | `pnpm --filter @workout/api exec prisma migrate reset` |
+| Nuke everything (Docker volumes too) | `pnpm services:reset && pnpm services:up && pnpm --filter @workout/api run prisma:migrate && pnpm --filter @workout/api run prisma:seed` |
+| Open DB browser | `pnpm --filter @workout/api run prisma:studio` |
 
 ## Database
 
