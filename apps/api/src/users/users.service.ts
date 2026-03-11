@@ -1,7 +1,6 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '../prisma';
 import type {
-  UserRole,
   UnitPreference,
   Gender,
   Theme,
@@ -39,7 +38,6 @@ export class UsersService {
     passwordHash?: string;
     firstName: string;
     lastName: string;
-    role: UserRole;
     avatarUrl?: string;
   }) {
     return this.prisma.user.create({ data });
@@ -48,9 +46,37 @@ export class UsersService {
   // ── Update User ─────────────────────────────
 
   async update(userId: string, dto: UpdateUserInput) {
+    const { isTrainer, ...rest } = dto;
+
+    // Handle trainer toggle with relationship lifecycle
+    if (isTrainer !== undefined) {
+      return this.prisma.$transaction(async (tx) => {
+        const user = await tx.user.update({
+          where: { id: userId },
+          data: { ...rest, isTrainer },
+        });
+
+        if (isTrainer === false) {
+          // Deactivate all ACTIVE relationships where this user is trainer
+          await tx.trainerAthlete.updateMany({
+            where: { trainerId: userId, status: 'ACTIVE' },
+            data: { status: 'INACTIVE', endedAt: new Date() },
+          });
+        } else if (isTrainer === true) {
+          // Reactivate INACTIVE relationships (not DISCONNECTED — those are permanent)
+          await tx.trainerAthlete.updateMany({
+            where: { trainerId: userId, status: 'INACTIVE' },
+            data: { status: 'ACTIVE', endedAt: null },
+          });
+        }
+
+        return user;
+      });
+    }
+
     return this.prisma.user.update({
       where: { id: userId },
-      data: dto,
+      data: rest,
     });
   }
 

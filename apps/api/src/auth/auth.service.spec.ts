@@ -68,7 +68,7 @@ describe('AuthService', () => {
     passwordHash: 'hashed-password',
     firstName: 'John',
     lastName: 'Doe',
-    role: 'ATHLETE',
+    isTrainer: false,
     avatarUrl: null,
   };
 
@@ -128,7 +128,6 @@ describe('AuthService', () => {
           password: 'password123',
           firstName: 'John',
           lastName: 'Doe',
-          role: 'ATHLETE',
         }),
       ).rejects.toThrow(ConflictException);
     });
@@ -142,7 +141,6 @@ describe('AuthService', () => {
         password: 'password123',
         firstName: 'John',
         lastName: 'Doe',
-        role: 'ATHLETE',
       });
 
       expect(result.user.email).toBe('test@example.com');
@@ -253,7 +251,6 @@ describe('AuthService', () => {
         email: 'google@example.com',
         firstName: 'Google',
         lastName: 'User',
-        role: 'ATHLETE',
         avatarUrl: 'https://example.com/photo.jpg',
       });
       expect(result.user.email).toBe('google@example.com');
@@ -345,7 +342,6 @@ describe('AuthService', () => {
         email: 'apple@example.com',
         firstName: 'Jane',
         lastName: 'Appleseed',
-        role: 'ATHLETE',
         avatarUrl: undefined,
       });
       expect(result.user.email).toBe('apple@example.com');

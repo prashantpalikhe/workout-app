@@ -13,7 +13,7 @@ describe('AuthController', () => {
       email: 'a@b.com',
       firstName: 'A',
       lastName: 'B',
-      role: 'ATHLETE',
+      isTrainer: false,
     },
     tokens: { accessToken: 'at', refreshToken: 'rt' },
   };
@@ -42,7 +42,6 @@ describe('AuthController', () => {
       password: '12345678',
       firstName: 'A',
       lastName: 'B',
-      role: 'ATHLETE' as const,
     };
     const result = await controller.register(dto);
     expect(authService.register).toHaveBeenCalledWith(dto);

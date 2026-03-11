@@ -15,6 +15,6 @@ import { RecordsModule } from '../records';
     SessionSetsController,
   ],
   providers: [SessionsService, SessionExercisesService, SessionSetsService],
-  exports: [SessionsService],
+  exports: [SessionsService, SessionExercisesService, SessionSetsService],
 })
 export class SessionsModule {}

@@ -6,6 +6,7 @@ export const updateUserInputSchema = z.object({
   firstName: z.string().min(1).max(100).trim().optional(),
   lastName: z.string().min(1).max(100).trim().optional(),
   avatarUrl: z.string().url().optional(),
+  isTrainer: z.boolean().optional(),
 });
 export type UpdateUserInput = z.infer<typeof updateUserInputSchema>;
 

@@ -4,6 +4,7 @@ definePageMeta({ layout: 'default', middleware: 'auth' })
 const { api } = useApiClient()
 const toast = useToast()
 const colorMode = useColorMode()
+const authStore = useAuthStore()
 const { refresh: refreshUserSettings } = useUserSettings()
 
 interface UserSettings {
@@ -36,6 +37,54 @@ const unitOptions = [
   { label: 'Metric (kg, cm)', value: 'METRIC' },
   { label: 'Imperial (lbs, in)', value: 'IMPERIAL' },
 ]
+
+// ── Trainer Mode ─────────────────────────────────
+const trainerMode = ref(!!authStore.user?.isTrainer)
+const trainerToggleLoading = ref(false)
+const showDisableConfirm = ref(false)
+
+async function toggleTrainerMode(value: boolean) {
+  if (!value) {
+    // Show confirmation before disabling
+    showDisableConfirm.value = true
+    return
+  }
+  await saveTrainerMode(true)
+}
+
+async function confirmDisableTrainer() {
+  showDisableConfirm.value = false
+  await saveTrainerMode(false)
+}
+
+function cancelDisableTrainer() {
+  showDisableConfirm.value = false
+  // Revert the toggle
+  trainerMode.value = true
+}
+
+async function saveTrainerMode(isTrainer: boolean) {
+  trainerToggleLoading.value = true
+  try {
+    await api('/users/me', {
+      method: 'PATCH',
+      body: { isTrainer },
+    })
+    trainerMode.value = isTrainer
+    // Refresh JWT tokens so the isTrainer claim is up to date
+    await authStore.refreshSession()
+    toast.add({
+      title: isTrainer ? 'Trainer mode enabled' : 'Trainer mode disabled',
+      color: 'success',
+    })
+  } catch {
+    // Revert on failure
+    trainerMode.value = !isTrainer
+    toast.add({ title: 'Failed to update trainer mode', color: 'error' })
+  } finally {
+    trainerToggleLoading.value = false
+  }
+}
 
 // ── Fetch settings ──────────────────────────────
 onMounted(async () => {
@@ -186,6 +235,58 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
           </div>
         </div>
       </UCard>
+
+      <!-- Trainer Mode -->
+      <UCard>
+        <div class="space-y-5">
+          <div class="flex items-center justify-between">
+            <div>
+              <p class="font-medium">Trainer Mode</p>
+              <p class="text-sm text-muted">
+                Manage athletes and log workouts on their behalf
+              </p>
+            </div>
+            <USwitch
+              :model-value="trainerMode"
+              :loading="trainerToggleLoading"
+              @update:model-value="toggleTrainerMode"
+            />
+          </div>
+        </div>
+      </UCard>
+
+      <!-- Disable Trainer Mode Confirmation -->
+      <UModal v-model:open="showDisableConfirm">
+        <template #content>
+          <div class="p-6 space-y-4">
+            <div class="flex items-center gap-3">
+              <div class="size-10 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
+                <UIcon name="i-lucide-alert-triangle" class="size-5 text-warning" />
+              </div>
+              <div>
+                <p class="font-semibold">Disable Trainer Mode?</p>
+                <p class="text-sm text-muted mt-1">
+                  All your active athlete relationships will be deactivated. You can re-enable trainer mode later to reactivate them.
+                </p>
+              </div>
+            </div>
+            <div class="flex justify-end gap-2">
+              <UButton
+                label="Cancel"
+                color="neutral"
+                variant="outline"
+                @click="cancelDisableTrainer"
+              />
+              <UButton
+                label="Disable"
+                color="error"
+                :loading="trainerToggleLoading"
+                @click="confirmDisableTrainer"
+              />
+            </div>
+          </div>
+        </template>
+      </UModal>
 
       <!-- Rest Timer -->
       <UCard>

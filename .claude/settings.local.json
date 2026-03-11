@@ -168,7 +168,13 @@
       "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H 'Content-Type: application/json' -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"Test1234!\"\",\"\"firstName\"\":\"\"Test\"\",\"\"lastName\"\":\"\"User\"\"}')",
       "Bash(curl -s -X POST http://localhost:3001/api/auth/register -H \"Content-Type: application/json\" -d '{\"\"email\"\":\"\"test@test.com\"\",\"\"password\"\":\"\"Test12345\"\",\"\"firstName\"\":\"\"Test\"\",\"\"lastName\"\":\"\"User\"\"}')",
       "Bash(pnpm --filter api prisma db seed)",
-      "Bash(npx prisma db seed)"
+      "Bash(npx prisma db seed)",
+      "Bash(npx prisma migrate dev --create-only --name add_trainer_features)",
+      "Bash(npx prisma migrate diff --from-schema-datamodel prisma/schema.prisma --to-schema-datasource prisma/schema.prisma --script)",
+      "Bash(npx prisma migrate diff --from-config-datasource --to-schema prisma/schema.prisma --script)",
+      "Bash(npx prisma migrate deploy)",
+      "Bash(npx prisma generate)",
+      "Bash(pnpm --filter shared build)"
     ]
   }
 }

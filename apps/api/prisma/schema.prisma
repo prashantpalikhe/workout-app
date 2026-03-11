@@ -12,11 +12,6 @@ generator client {
 // ENUMS
 // ════════════════════════════════════════════
 
-enum UserRole {
-  ATHLETE
-  TRAINER
-}
-
 enum UnitPreference {
   METRIC
   IMPERIAL
@@ -38,6 +33,7 @@ enum TrainerAthleteStatus {
   PENDING
   ACTIVE
   INACTIVE
+  DISCONNECTED
 }
 
 enum ExerciseTrackingType {
@@ -110,7 +106,7 @@ model User {
   id           String   @id @default(uuid()) @db.Uuid
   email        String   @unique
   passwordHash String?  @map("password_hash")
-  role         UserRole @default(ATHLETE)
+  isTrainer    Boolean  @default(false) @map("is_trainer")
   firstName    String   @map("first_name")
   lastName     String   @map("last_name")
   avatarUrl    String?  @map("avatar_url")
@@ -127,9 +123,12 @@ model User {
   assignedPrograms   ProgramAssignment[] @relation("AssignedToAthlete")
   assignedByPrograms ProgramAssignment[] @relation("AssignedByTrainer")
   workoutSessions    WorkoutSession[]
+  loggedSessions     WorkoutSession[]    @relation("LoggedByTrainer")
   personalRecords    PersonalRecord[]
   refreshTokens       RefreshToken[]
   passwordResetTokens PasswordResetToken[]
+  trainerInvites     TrainerInvite[]     @relation("TrainerInvites")
+  acceptedInvites    TrainerInvite[]     @relation("AcceptedInvites")
 
   @@map("users")
 }
@@ -240,6 +239,23 @@ model TrainerAthlete {
   @@index([athleteId])
   @@index([status])
   @@map("trainer_athletes")
+}
+
+model TrainerInvite {
+  id        String    @id @default(uuid()) @db.Uuid
+  trainerId String    @map("trainer_id") @db.Uuid
+  token     String    @unique
+  expiresAt DateTime  @map("expires_at")
+  usedAt    DateTime? @map("used_at")
+  usedById  String?   @map("used_by") @db.Uuid
+  createdAt DateTime  @default(now()) @map("created_at")
+
+  trainer User  @relation("TrainerInvites", fields: [trainerId], references: [id], onDelete: Cascade)
+  usedBy  User? @relation("AcceptedInvites", fields: [usedById], references: [id], onDelete: SetNull)
+
+  @@index([trainerId])
+  @@index([token])
+  @@map("trainer_invites")
 }
 
 // ════════════════════════════════════════════
@@ -386,6 +402,7 @@ model WorkoutSession {
   id                  String               @id @default(uuid()) @db.Uuid
   athleteId           String               @map("athlete_id") @db.Uuid
   programAssignmentId String?              @map("program_assignment_id") @db.Uuid
+  loggedById          String?              @map("logged_by") @db.Uuid
   name                String
   startedAt           DateTime             @default(now()) @map("started_at")
   completedAt         DateTime?            @map("completed_at")
@@ -395,10 +412,12 @@ model WorkoutSession {
 
   athlete           User               @relation(fields: [athleteId], references: [id], onDelete: Cascade)
   programAssignment ProgramAssignment? @relation(fields: [programAssignmentId], references: [id], onDelete: SetNull)
+  loggedBy          User?              @relation("LoggedByTrainer", fields: [loggedById], references: [id], onDelete: SetNull)
   sessionExercises  SessionExercise[]
 
   @@index([athleteId])
   @@index([programAssignmentId])
+  @@index([loggedById])
   @@index([status])
   @@index([startedAt])
   @@map("workout_sessions")

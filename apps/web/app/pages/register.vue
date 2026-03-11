@@ -10,7 +10,7 @@ definePageMeta({
 const authStore = useAuthStore()
 const toast = useToast()
 
-const registerFormSchema = registerInputSchema.omit({ role: true })
+const registerFormSchema = registerInputSchema
 
 const state = reactive({
   email: '',

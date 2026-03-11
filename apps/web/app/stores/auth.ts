@@ -5,7 +5,7 @@ interface AuthUser {
   email: string
   firstName: string
   lastName: string
-  role: string
+  isTrainer: boolean
   avatarUrl?: string | null
 }
 
@@ -21,6 +21,7 @@ export const useAuthStore = defineStore('auth', () => {
 
   // ── Getters ───────────────────────────────────
   const isAuthenticated = computed(() => !!user.value && !!getAccessToken())
+  const isTrainer = computed(() => !!user.value?.isTrainer)
   const fullName = computed(() =>
     user.value ? `${user.value.firstName} ${user.value.lastName}` : ''
   )
@@ -43,7 +44,7 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
-  async function register(input: Omit<RegisterInput, 'role'>) {
+  async function register(input: RegisterInput) {
     loading.value = true
     try {
       const data = await $fetch<AuthResponse>('/auth/register', {
@@ -118,6 +119,23 @@ export const useAuthStore = defineStore('auth', () => {
     }
   }
 
+  /**
+   * Force-refresh the JWT tokens so the payload (e.g. isTrainer) is up to date.
+   * Also re-fetches the user to keep local state in sync.
+   */
+  async function refreshSession() {
+    const refreshToken = localStorage.getItem('refresh_token')
+    if (!refreshToken) return
+
+    const data = await $fetch<AuthResponse>('/auth/refresh', {
+      baseURL,
+      method: 'POST',
+      body: { refreshToken },
+    })
+    setTokens(data.tokens.accessToken, data.tokens.refreshToken)
+    user.value = data.user
+  }
+
   async function initialize() {
     if (initialized.value) return
     const token = getAccessToken()
@@ -132,6 +150,7 @@ export const useAuthStore = defineStore('auth', () => {
     loading,
     initialized,
     isAuthenticated,
+    isTrainer,
     fullName,
     login,
     loginWithGoogle,
@@ -139,6 +158,7 @@ export const useAuthStore = defineStore('auth', () => {
     register,
     logout,
     fetchUser,
+    refreshSession,
     initialize
   }
 })

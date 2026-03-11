@@ -54,7 +54,7 @@ export class SessionsService {
     },
   };
 
-  async start(userId: string, dto: StartSessionInput) {
+  async start(userId: string, dto: StartSessionInput, loggedById?: string) {
     // Enforce one active session per athlete
     const existing = await this.prisma.workoutSession.findFirst({
       where: { athleteId: userId, status: 'IN_PROGRESS' },
@@ -67,7 +67,7 @@ export class SessionsService {
     }
 
     if (dto.programAssignmentId) {
-      return this.startFromProgram(userId, dto);
+      return this.startFromProgram(userId, dto, loggedById);
     }
 
     return this.prisma.workoutSession.create({
@@ -75,6 +75,7 @@ export class SessionsService {
         athleteId: userId,
         name: dto.name || 'Freestyle Workout',
         status: 'IN_PROGRESS',
+        ...(loggedById && { loggedById }),
       },
       include: this.sessionInclude,
     });
@@ -206,7 +207,7 @@ export class SessionsService {
     }
   }
 
-  private async startFromProgram(userId: string, dto: StartSessionInput) {
+  private async startFromProgram(userId: string, dto: StartSessionInput, loggedById?: string) {
     const assignment = await this.prisma.programAssignment.findUnique({
       where: { id: dto.programAssignmentId! },
       include: {
@@ -244,6 +245,7 @@ export class SessionsService {
         programAssignmentId: assignment.id,
         name: sessionName,
         status: 'IN_PROGRESS',
+        ...(loggedById && { loggedById }),
         sessionExercises: {
           create: assignment.program.exercises.map((pe) => ({
             exerciseId: pe.exerciseId,

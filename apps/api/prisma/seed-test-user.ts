@@ -140,7 +140,7 @@ async function createTestUser(prisma: PrismaClient) {
       id: TEST_USER_ID,
       email: TEST_USER_EMAIL,
       passwordHash,
-      role: 'ATHLETE',
+      isTrainer: false,
       firstName: 'Test',
       lastName: 'User',
     },
@@ -485,7 +485,7 @@ async function computeAndCreatePRs(prisma: PrismaClient) {
       data: {
         athleteId: pr.athleteId,
         exerciseId: pr.exerciseId,
-        prType: pr.prType,
+        prType: pr.prType as any,
         value: pr.value,
         achievedOn: pr.achievedOn,
         sessionSetId,

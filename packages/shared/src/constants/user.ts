@@ -1,10 +1,3 @@
-export const UserRole = {
-  ATHLETE: 'ATHLETE',
-  TRAINER: 'TRAINER',
-} as const;
-export type UserRole = (typeof UserRole)[keyof typeof UserRole];
-export const USER_ROLES = Object.values(UserRole);
-
 export const UnitPreference = {
   METRIC: 'METRIC',
   IMPERIAL: 'IMPERIAL',

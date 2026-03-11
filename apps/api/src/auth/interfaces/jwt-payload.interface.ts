@@ -5,5 +5,5 @@
 export interface JwtPayload {
   sub: string; // user ID (UUID)
   email: string;
-  role: string; // 'ATHLETE' | 'TRAINER'
+  isTrainer: boolean;
 }

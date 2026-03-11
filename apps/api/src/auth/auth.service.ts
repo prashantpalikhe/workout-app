@@ -53,10 +53,9 @@ export class AuthService {
       passwordHash,
       firstName: dto.firstName,
       lastName: dto.lastName,
-      role: dto.role as any, // Zod already validated the enum value
     });
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
     this.logger.log(`User registered: ${user.email}`);
 
     return this.buildAuthResponse(user, tokens);
@@ -74,7 +73,7 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
     this.logger.log(`User logged in: ${user.email}`);
 
     return this.buildAuthResponse(user, tokens);
@@ -111,7 +110,7 @@ export class AuthService {
       avatarUrl: payload.picture,
     });
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
     this.logger.log(`User logged in via Google: ${user.email}`);
 
     return this.buildAuthResponse(user, tokens);
@@ -146,7 +145,7 @@ export class AuthService {
       lastName: dto.lastName || '',
     });
 
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
     this.logger.log(`User logged in via Apple: ${user.email}`);
 
     return this.buildAuthResponse(user, tokens);
@@ -176,7 +175,7 @@ export class AuthService {
     });
 
     const { user } = stored;
-    const tokens = await this.generateTokens(user.id, user.email, user.role);
+    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
 
     return this.buildAuthResponse(user, tokens);
   }
@@ -300,7 +299,6 @@ export class AuthService {
         email: data.email,
         firstName: data.firstName,
         lastName: data.lastName,
-        role: 'ATHLETE' as any,
         avatarUrl: data.avatarUrl,
       });
     } catch (error: any) {
@@ -314,7 +312,7 @@ export class AuthService {
   }
 
   private buildAuthResponse(
-    user: { id: string; email: string; firstName: string; lastName: string; role: string },
+    user: { id: string; email: string; firstName: string; lastName: string; isTrainer: boolean },
     tokens: { accessToken: string; refreshToken: string },
   ) {
     return {
@@ -323,14 +321,14 @@ export class AuthService {
         email: user.email,
         firstName: user.firstName,
         lastName: user.lastName,
-        role: user.role,
+        isTrainer: user.isTrainer,
       },
       tokens,
     };
   }
 
-  private async generateTokens(userId: string, email: string, role: string) {
-    const payload: JwtPayload = { sub: userId, email, role };
+  private async generateTokens(userId: string, email: string, isTrainer: boolean) {
+    const payload: JwtPayload = { sub: userId, email, isTrainer };
 
     // Access token: short-lived JWT signed with JWT_SECRET
     const accessToken = this.jwtService.sign(payload);

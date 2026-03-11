@@ -25,7 +25,11 @@ async function confirmAbandon() {
     open.value = false
     emit('abandoned')
     // Navigate directly since parent may have unmounted this component
-    router.push('/sessions')
+    if (sessionStore.isTrainerMode) {
+      router.push(`/trainer/athletes/${sessionStore.trainerAthleteId}`)
+    } else {
+      router.push('/sessions')
+    }
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
     toast.add({ title: fetchError?.data?.message || 'Failed to abandon workout', color: 'error' })

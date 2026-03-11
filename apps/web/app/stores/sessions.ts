@@ -83,6 +83,29 @@ export const useSessionStore = defineStore('sessions', () => {
   const selectedSession = ref<WorkoutSession | null>(null)
   const detailLoading = ref(false)
 
+  // ── Trainer Mode ──
+  // When set, all session API calls route through /trainer/athletes/:id/sessions/...
+  const trainerAthleteId = ref<string | null>(null)
+  const isTrainerMode = computed(() => !!trainerAthleteId.value)
+
+  function enterTrainerMode(athleteId: string) {
+    trainerAthleteId.value = athleteId
+    // Reset session state for the new context
+    activeSession.value = null
+  }
+
+  function exitTrainerMode() {
+    trainerAthleteId.value = null
+    activeSession.value = null
+  }
+
+  /** Returns the base path for session API calls */
+  function sessionsBase() {
+    return trainerAthleteId.value
+      ? `/trainer/athletes/${trainerAthleteId.value}/sessions`
+      : '/sessions'
+  }
+
   // ── Getters ──
   const hasActiveSession = computed(() => !!activeSession.value)
 
@@ -91,14 +114,14 @@ export const useSessionStore = defineStore('sessions', () => {
   async function fetchActive() {
     activeLoading.value = true
     try {
-      activeSession.value = await api<WorkoutSession | null>('/sessions/active')
+      activeSession.value = await api<WorkoutSession | null>(`${sessionsBase()}/active`)
     } finally {
       activeLoading.value = false
     }
   }
 
   async function startSession(input: StartSessionInput) {
-    const session = await api<WorkoutSession>('/sessions/start', {
+    const session = await api<WorkoutSession>(`${sessionsBase()}/start`, {
       method: 'POST',
       body: input
     })
@@ -107,7 +130,7 @@ export const useSessionStore = defineStore('sessions', () => {
   }
 
   async function updateSession(id: string, input: UpdateSessionInput) {
-    const updated = await api<WorkoutSession>(`/sessions/${id}`, {
+    const updated = await api<WorkoutSession>(`${sessionsBase()}/${id}`, {
       method: 'PATCH',
       body: input
     })
@@ -116,7 +139,7 @@ export const useSessionStore = defineStore('sessions', () => {
   }
 
   async function completeSession(id: string, input: CompleteSessionInput) {
-    const completed = await api<WorkoutSession>(`/sessions/${id}/complete`, {
+    const completed = await api<WorkoutSession>(`${sessionsBase()}/${id}/complete`, {
       method: 'POST',
       body: input
     })
@@ -125,7 +148,7 @@ export const useSessionStore = defineStore('sessions', () => {
   }
 
   async function abandonSession(id: string) {
-    await api(`/sessions/${id}/abandon`, { method: 'POST' })
+    await api(`${sessionsBase()}/${id}/abandon`, { method: 'POST' })
     activeSession.value = null
   }
 
@@ -142,7 +165,7 @@ export const useSessionStore = defineStore('sessions', () => {
       if (filters.fromDate) query.fromDate = filters.fromDate
       if (filters.toDate) query.toDate = filters.toDate
 
-      const result = await api<PaginatedResponse>('/sessions', { query })
+      const result = await api<PaginatedResponse>(sessionsBase(), { query })
       sessions.value = result.data
       meta.value = result.meta
     } finally {
@@ -153,7 +176,7 @@ export const useSessionStore = defineStore('sessions', () => {
   async function fetchSessionById(id: string) {
     detailLoading.value = true
     try {
-      selectedSession.value = await api<WorkoutSession>(`/sessions/${id}`)
+      selectedSession.value = await api<WorkoutSession>(`${sessionsBase()}/${id}`)
     } finally {
       detailLoading.value = false
     }
@@ -166,7 +189,7 @@ export const useSessionStore = defineStore('sessions', () => {
     input: AddSessionExerciseInput
   ) {
     const created = await api<SessionExercise>(
-      `/sessions/${sessionId}/exercises`,
+      `${sessionsBase()}/${sessionId}/exercises`,
       { method: 'POST', body: input }
     )
     // Refetch active session to get full nested data
@@ -182,7 +205,7 @@ export const useSessionStore = defineStore('sessions', () => {
     input: UpdateSessionExerciseInput
   ) {
     const updated = await api<SessionExercise>(
-      `/sessions/${sessionId}/exercises/${exerciseId}`,
+      `${sessionsBase()}/${sessionId}/exercises/${exerciseId}`,
       { method: 'PATCH', body: input }
     )
     // Update in-place on activeSession
@@ -196,7 +219,7 @@ export const useSessionStore = defineStore('sessions', () => {
   }
 
   async function removeExercise(sessionId: string, exerciseId: string) {
-    await api(`/sessions/${sessionId}/exercises/${exerciseId}`, {
+    await api(`${sessionsBase()}/${sessionId}/exercises/${exerciseId}`, {
       method: 'DELETE'
     })
     if (activeSession.value?.id === sessionId) {
@@ -213,7 +236,7 @@ export const useSessionStore = defineStore('sessions', () => {
     input: CreateSessionSetInput
   ) {
     const created = await api<SessionSet>(
-      `/sessions/${sessionId}/exercises/${exerciseId}/sets`,
+      `${sessionsBase()}/${sessionId}/exercises/${exerciseId}/sets`,
       { method: 'POST', body: input }
     )
     // Append to the exercise's sets locally
@@ -233,7 +256,7 @@ export const useSessionStore = defineStore('sessions', () => {
     input: UpdateSessionSetInput
   ) {
     const updated = await api<SessionSet>(
-      `/sessions/${sessionId}/exercises/${exerciseId}/sets/${setId}`,
+      `${sessionsBase()}/${sessionId}/exercises/${exerciseId}/sets/${setId}`,
       { method: 'PATCH', body: input }
     )
     // Update in-place
@@ -254,7 +277,7 @@ export const useSessionStore = defineStore('sessions', () => {
     exerciseId: string,
     setId: string
   ) {
-    await api(`/sessions/${sessionId}/exercises/${exerciseId}/sets/${setId}`, {
+    await api(`${sessionsBase()}/${sessionId}/exercises/${exerciseId}/sets/${setId}`, {
       method: 'DELETE'
     })
     // Remove from local array
@@ -277,6 +300,11 @@ export const useSessionStore = defineStore('sessions', () => {
     activeLoading,
     selectedSession,
     detailLoading,
+    // Trainer mode
+    trainerAthleteId,
+    isTrainerMode,
+    enterTrainerMode,
+    exitTrainerMode,
     // Getters
     hasActiveSession,
     // Session lifecycle

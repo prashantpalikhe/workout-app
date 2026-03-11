@@ -36,6 +36,12 @@ const navItems = computed<NavigationMenuItem[]>(() => [
     to: '/records',
     active: route.path === '/records'
   },
+  ...(authStore.user?.isTrainer ? [{
+    label: 'Athletes',
+    icon: 'i-lucide-users',
+    to: '/trainer/athletes',
+    active: route.path.startsWith('/trainer')
+  }] : []),
   {
     label: 'Profile',
     icon: 'i-lucide-user',

@@ -14,7 +14,7 @@ describe('UsersController', () => {
     firstName: 'A',
     lastName: 'B',
     avatarUrl: null,
-    role: 'ATHLETE',
+    isTrainer: false,
     passwordHash: 'secret',
     createdAt: new Date(),
     updatedAt: new Date(),

@@ -81,8 +81,8 @@ function onSessionStarted() {
           <p class="text-sm text-muted">
             {{ authStore.user?.email }}
           </p>
-          <p class="text-sm text-muted mt-1">
-            Role: {{ authStore.user?.role }}
+          <p v-if="authStore.isTrainer" class="text-sm text-muted mt-1">
+            <UBadge label="Trainer" color="primary" variant="subtle" size="xs" />
           </p>
         </div>
         <UButton

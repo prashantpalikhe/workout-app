@@ -48,7 +48,11 @@ async function completeWorkout() {
     open.value = false
     emit('completed', sessionId)
     // Navigate directly since parent may have unmounted this component
-    router.push(`/sessions/${sessionId}`)
+    if (sessionStore.isTrainerMode) {
+      router.push(`/trainer/athletes/${sessionStore.trainerAthleteId}`)
+    } else {
+      router.push(`/sessions/${sessionId}`)
+    }
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
     error.value = fetchError?.data?.message || 'Failed to complete workout'

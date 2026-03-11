@@ -80,7 +80,6 @@ describe('UsersService', () => {
         passwordHash: 'hashed',
         firstName: 'John',
         lastName: 'Doe',
-        role: 'ATHLETE' as const,
       };
       prisma.user.create.mockResolvedValue({ id: 'uuid', ...data });
 
