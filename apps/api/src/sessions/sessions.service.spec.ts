@@ -7,6 +7,7 @@ import {
 } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { PrismaService } from '../prisma';
+import { RecordsService } from '../records';
 
 const mockSession = {
   id: 'session-1',
@@ -78,6 +79,7 @@ describe('SessionsService', () => {
       providers: [
         SessionsService,
         { provide: PrismaService, useValue: prisma },
+        { provide: RecordsService, useValue: { detectPRs: vi.fn().mockResolvedValue([]) } },
       ],
     }).compile();
 

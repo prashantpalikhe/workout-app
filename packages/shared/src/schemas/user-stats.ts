@@ -1,7 +1,7 @@
 import { z } from 'zod';
 
 // ── Chart Stats Filter ──────────────────────
-export const CHART_STATS_RANGES = ['12w', 'year', 'all'] as const;
+export const CHART_STATS_RANGES = ['12w', '1y', 'all'] as const;
 export const CHART_STATS_METRICS = ['duration', 'reps'] as const;
 
 export const chartStatsFilterSchema = z.object({

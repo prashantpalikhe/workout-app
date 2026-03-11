@@ -22,7 +22,7 @@ const metricTabs = [
 
 const rangeOptions = [
   { label: 'Last 12 weeks', value: '12w' },
-  { label: 'Year', value: 'year' },
+  { label: '1 year', value: '1y' },
   { label: 'All Time', value: 'all' },
 ]
 
@@ -39,7 +39,7 @@ function onRangeChange(val: string) {
 // ── Summary line ("1h 30min This week") ──
 const periodLabel = computed(() => {
   switch (range.value) {
-    case 'year': return 'This year'
+    case '1y': return 'This year'
     case 'all': return 'All time'
     default: return 'This week'
   }
@@ -79,7 +79,7 @@ const chartData = computed(() => {
       // Weekly: "Dec 21", "Jan 04"
       return d.toLocaleDateString('en-US', { month: 'short', day: '2-digit' })
     }
-    if (range.value === 'year') {
+    if (range.value === '1y') {
       // Monthly: "Apr", "May"
       return d.toLocaleDateString('en-US', { month: 'short' })
     }
@@ -125,7 +125,7 @@ const chartOptions = computed(() => ({
       ticks: {
         maxRotation: 0,
         autoSkip: true,
-        maxTicksLimit: range.value === 'all' ? 8 : range.value === 'year' ? 12 : 7,
+        maxTicksLimit: range.value === 'all' ? 8 : range.value === '1y' ? 12 : 7,
         font: { size: 11 },
       },
     },

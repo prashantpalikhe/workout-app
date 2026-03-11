@@ -199,12 +199,21 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
                   >
                     {{ val }}
                   </td>
-                  <td class="py-1.5 px-2">
+                  <td class="py-1.5 px-2 flex items-center gap-1">
                     <UIcon
                       :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
                       class="size-4"
                       :class="set.completed ? 'text-success' : 'text-muted'"
                     />
+                    <UBadge
+                      v-if="set.personalRecord"
+                      color="warning"
+                      variant="subtle"
+                      size="xs"
+                    >
+                      <UIcon name="i-lucide-trophy" class="size-3" />
+                      PR
+                    </UBadge>
                   </td>
                 </tr>
               </tbody>

@@ -10,18 +10,13 @@ const exerciseStore = useExerciseStore()
 const toast = useToast()
 const { formatEnum } = useFormatEnum()
 
-// Modal / slideover state
+const router = useRouter()
+
+// Modal state
 const showFormModal = ref(false)
 const editingExercise = ref<Exercise | null>(null)
 const showDeleteDialog = ref(false)
 const deletingExercise = ref<Exercise | null>(null)
-
-const showDetail = computed({
-  get: () => !!exerciseStore.selectedExercise,
-  set: (val: boolean) => {
-    if (!val) exerciseStore.selectedExercise = null
-  },
-})
 
 // Fetch on mount
 onMounted(async () => {
@@ -76,7 +71,7 @@ function openDelete(exercise: Exercise) {
 }
 
 function openDetail(exercise: Exercise) {
-  exerciseStore.fetchExerciseById(exercise.id)
+  router.push(`/exercises/${exercise.id}`)
 }
 
 function onFormSuccess() {
@@ -236,15 +231,6 @@ function getRowActions(exercise: Exercise) {
       v-model="showFormModal"
       :exercise="editingExercise"
       @success="onFormSuccess"
-    />
-
-    <!-- Detail Slideover -->
-    <ExercisesExerciseDetailSlideover
-      v-model="showDetail"
-      :exercise="exerciseStore.selectedExercise"
-      :loading="exerciseStore.detailLoading"
-      @edit="openEdit"
-      @delete="openDelete"
     />
 
     <!-- Delete Confirmation -->

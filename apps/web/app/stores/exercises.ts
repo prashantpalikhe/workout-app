@@ -1,4 +1,9 @@
-import type { CreateExerciseInput, UpdateExerciseInput } from '@workout/shared'
+import type {
+  CreateExerciseInput,
+  UpdateExerciseInput,
+  ExerciseStatsResponse,
+  ExerciseHistorySession,
+} from '@workout/shared'
 
 interface MuscleGroup {
   id: string
@@ -59,6 +64,13 @@ export const useExerciseStore = defineStore('exercises', () => {
 
   const selectedExercise = ref<Exercise | null>(null)
   const detailLoading = ref(false)
+
+  // Exercise detail: stats + history
+  const exerciseStats = ref<ExerciseStatsResponse | null>(null)
+  const statsLoading = ref(false)
+  const exerciseHistory = ref<ExerciseHistorySession[]>([])
+  const exerciseHistoryMeta = ref({ page: 1, limit: 20, total: 0, totalPages: 0 })
+  const historyLoading = ref(false)
 
   // ── Getters ──
   const hasActiveFilters = computed(
@@ -138,6 +150,32 @@ export const useExerciseStore = defineStore('exercises', () => {
     fetchExercises()
   }
 
+  async function fetchExerciseStats(exerciseId: string, range: string = '12w') {
+    statsLoading.value = true
+    try {
+      exerciseStats.value = await api<ExerciseStatsResponse>(
+        `/exercises/${exerciseId}/statistics`,
+        { query: { range } },
+      )
+    } finally {
+      statsLoading.value = false
+    }
+  }
+
+  async function fetchExerciseHistory(exerciseId: string, page: number = 1) {
+    historyLoading.value = true
+    try {
+      const result = await api<{
+        data: ExerciseHistorySession[]
+        meta: { page: number; limit: number; total: number; totalPages: number }
+      }>(`/exercises/${exerciseId}/history`, { query: { page, limit: 20 } })
+      exerciseHistory.value = result.data
+      exerciseHistoryMeta.value = result.meta
+    } finally {
+      historyLoading.value = false
+    }
+  }
+
   function resetFilters() {
     filters.search = ''
     filters.equipment = undefined
@@ -157,9 +195,16 @@ export const useExerciseStore = defineStore('exercises', () => {
     selectedExercise,
     detailLoading,
     hasActiveFilters,
+    exerciseStats,
+    statsLoading,
+    exerciseHistory,
+    exerciseHistoryMeta,
+    historyLoading,
     fetchExercises,
     fetchMuscleGroups,
     fetchExerciseById,
+    fetchExerciseStats,
+    fetchExerciseHistory,
     createExercise,
     updateExercise,
     deleteExercise,

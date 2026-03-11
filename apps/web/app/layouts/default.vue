@@ -16,7 +16,7 @@ const navItems = computed<NavigationMenuItem[]>(() => [
     label: 'Exercises',
     icon: 'i-lucide-dumbbell',
     to: '/exercises',
-    active: route.path === '/exercises'
+    active: route.path.startsWith('/exercises')
   },
   {
     label: 'Programs',
@@ -29,6 +29,12 @@ const navItems = computed<NavigationMenuItem[]>(() => [
     icon: 'i-lucide-timer',
     to: '/sessions',
     active: route.path.startsWith('/sessions')
+  },
+  {
+    label: 'Records',
+    icon: 'i-lucide-trophy',
+    to: '/records',
+    active: route.path === '/records'
   },
   {
     label: 'Profile',

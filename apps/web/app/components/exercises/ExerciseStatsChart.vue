@@ -1,0 +1,156 @@
+<script setup lang="ts">
+import { Line } from 'vue-chartjs'
+import type { ExerciseStatsResponse, ExerciseStatsDataPoint } from '@workout/shared'
+
+const props = defineProps<{
+  data: ExerciseStatsResponse | null
+  loading: boolean
+  trackingType: string
+}>()
+
+const emit = defineEmits<{
+  'update:range': [range: string]
+}>()
+
+const range = ref('12w')
+const rangeOptions = [
+  { label: 'Last 12 weeks', value: '12w' },
+  { label: '1 year', value: '1y' },
+  { label: 'All Time', value: 'all' },
+]
+
+function onRangeChange(val: string) {
+  range.value = val
+  emit('update:range', val)
+}
+
+// Which charts to show based on tracking type
+const charts = computed(() => {
+  const list: { title: string; key: keyof ExerciseStatsDataPoint; unit: string; color: string }[] = []
+
+  if (['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(props.trackingType)) {
+    list.push({ title: 'Weight', key: 'maxWeight', unit: 'kg', color: 'rgb(59, 130, 246)' })
+  }
+  if (props.trackingType === 'WEIGHT_REPS') {
+    list.push({ title: 'Estimated One Rep Max', key: 'estimated1RM', unit: 'kg', color: 'rgb(234, 179, 8)' })
+    list.push({ title: 'Set Volume', key: 'totalVolume', unit: 'kg', color: 'rgb(34, 197, 94)' })
+  }
+  if (['WEIGHT_REPS', 'REPS_ONLY'].includes(props.trackingType)) {
+    list.push({ title: 'Max Reps', key: 'maxReps', unit: 'reps', color: 'rgb(168, 85, 247)' })
+  }
+
+  return list
+})
+
+const labels = computed(() => {
+  if (!props.data?.dataPoints?.length) return []
+  return props.data.dataPoints.map((dp) => {
+    const d = new Date(dp.date)
+    return d.toLocaleDateString('en-US', { month: 'short', day: 'numeric' })
+  })
+})
+
+function buildChartData(key: keyof ExerciseStatsDataPoint, color: string) {
+  return {
+    labels: labels.value,
+    datasets: [
+      {
+        data: props.data?.dataPoints?.map((dp) => dp[key]) ?? [],
+        borderColor: color,
+        backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
+        tension: 0.3,
+        fill: true,
+        pointRadius: 3,
+        pointHoverRadius: 5,
+      },
+    ],
+  }
+}
+
+function buildChartOptions(unit: string) {
+  return {
+    responsive: true,
+    maintainAspectRatio: false,
+    plugins: {
+      legend: { display: false },
+      tooltip: {
+        callbacks: {
+          label: (ctx: any) => {
+            const val = ctx.parsed.y
+            if (unit === 'reps') return `${val} reps`
+            return `${val?.toLocaleString()} ${unit}`
+          },
+        },
+      },
+    },
+    scales: {
+      x: {
+        grid: { display: false },
+        border: { display: false },
+        ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { size: 11 } },
+      },
+      y: {
+        beginAtZero: true,
+        border: { display: false },
+        grid: { color: 'rgba(128, 128, 128, 0.15)', drawTicks: false },
+        ticks: {
+          font: { size: 11 },
+          padding: 8,
+          callback: (value: number) => {
+            if (value >= 1000) return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`
+            return value
+          },
+        },
+      },
+    },
+  }
+}
+</script>
+
+<template>
+  <div>
+    <!-- Range selector -->
+    <div class="flex justify-end mb-4">
+      <USelect
+        :model-value="range"
+        :items="rangeOptions"
+        value-key="value"
+        size="sm"
+        class="w-36"
+        @update:model-value="onRangeChange"
+      />
+    </div>
+
+    <!-- Loading -->
+    <template v-if="loading">
+      <div class="space-y-6">
+        <div v-for="i in charts.length || 2" :key="i">
+          <USkeleton class="h-4 w-32 mb-2" />
+          <USkeleton class="h-48 w-full rounded-lg" />
+        </div>
+      </div>
+    </template>
+
+    <!-- No data -->
+    <template v-else-if="!data?.dataPoints?.length">
+      <div class="h-48 flex items-center justify-center text-sm text-muted">
+        No data yet. Complete workouts with this exercise to see trends.
+      </div>
+    </template>
+
+    <!-- Separate charts per metric -->
+    <template v-else>
+      <div class="space-y-6">
+        <div v-for="chart in charts" :key="chart.key">
+          <h4 class="text-sm font-semibold mb-2">{{ chart.title }}</h4>
+          <div class="h-48">
+            <Line
+              :data="buildChartData(chart.key, chart.color)"
+              :options="buildChartOptions(chart.unit)"
+            />
+          </div>
+        </div>
+      </div>
+    </template>
+  </div>
+</template>

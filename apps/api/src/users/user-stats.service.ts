@@ -88,7 +88,7 @@ export class UserStatsService {
     userId: string,
     filter: ChartStatsFilter,
   ): Promise<ChartStatsResponse> {
-    // "12w" → weekly buckets; "year" / "all" → monthly buckets
+    // "12w" → weekly buckets; "6m" / "1y" / "all" → monthly buckets
     const useMonthly = filter.range !== '12w';
     const truncUnit = useMonthly ? 'month' : 'week';
     const startDate = await this.rangeToDate(filter.range, userId);
@@ -270,7 +270,7 @@ export class UserStatsService {
   ): Promise<Date> {
     const now = new Date();
     switch (range) {
-      case 'year':
+      case '1y':
         return new Date(
           Date.UTC(
             now.getUTCFullYear() - 1,

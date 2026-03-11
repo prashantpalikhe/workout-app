@@ -198,16 +198,16 @@ describe('UserStatsService', () => {
       expect(result.periodTotal).toBe(2.5);
     });
 
-    it('returns monthly buckets for year range', async () => {
+    it('returns monthly buckets for 1y range', async () => {
       prisma.$queryRaw.mockResolvedValue([]);
 
       const result = await service.getChartStats(userId, {
-        range: 'year',
+        range: '1y',
         metric: 'duration',
       });
 
       expect(result.metric).toBe('duration');
-      expect(result.range).toBe('year');
+      expect(result.range).toBe('1y');
       expect(Array.isArray(result.buckets)).toBe(true);
       // 1 year = ~12–13 months
       expect(result.buckets.length).toBeGreaterThanOrEqual(12);

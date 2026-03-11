@@ -25,6 +25,7 @@ export interface SessionSet {
   restSec: number | null
   completed: boolean
   notes: string | null
+  personalRecord: { id: string; prType: string; value: number } | null
 }
 
 export interface SessionExercise {

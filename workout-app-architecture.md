@@ -13,6 +13,7 @@
 | Cache / Queue Broker | Redis | Caching + BullMQ broker |
 | Background Jobs | BullMQ | Async tasks (PR calc, notifications) |
 | Auth | Passport + JWT | Email/password + OAuth (Google, Apple) |
+| Email | Resend SDK | Transactional email (password reset, notifications) |
 | Error Tracking | Sentry | Crash reporting, stack traces, user context |
 | Logging | Pino (nestjs-pino) | Structured JSON logs to stdout |
 | API Docs | @nestjs/swagger | Auto-generated OpenAPI/Swagger |
@@ -56,6 +57,7 @@ workout-app/
 │   │   │   │   ├── interceptors/  # Logging, transform
 │   │   │   │   └── pipes/         # Zod validation pipe
 │   │   │   ├── prisma/            # Prisma module + service
+│   │   │   ├── mail/              # Global MailModule + MailService (Resend SDK)
 │   │   │   ├── queue/             # BullMQ processors (PR calculation, notifications)
 │   │   │   └── main.ts
 │   │   ├── prisma/
@@ -71,6 +73,8 @@ workout-app/
 │       │   ├── index.vue
 │       │   ├── login.vue
 │       │   ├── register.vue
+│       │   ├── forgot-password.vue
+│       │   ├── reset-password.vue
 │       │   ├── programs/
 │       │   │   ├── index.vue      # Program list with folders
 │       │   │   └── [id].vue       # Edit program
@@ -164,17 +168,22 @@ volumes:
 ## Authentication Flow
 
 ### Email/Password
-1. Register → POST /auth/register → hash password (bcrypt) → create User → return JWT
+1. Register → POST /auth/register → hash password (argon2id) → create User → return JWT pair
 2. Login → POST /auth/login → verify password → return JWT access + refresh tokens
 3. All API calls → Bearer token in Authorization header
-4. Token refresh → POST /auth/refresh → validate refresh token → return new pair
+4. Token refresh → POST /auth/refresh → validate refresh token → return new pair (old token revoked)
 
 ### OAuth (Google / Apple)
-1. Frontend redirects to provider
-2. Provider callback hits POST /auth/oauth/callback
-3. Backend validates token with provider
-4. Find or create User by email
+1. Frontend obtains ID token from provider (Google Sign-In / Apple Sign-In JS)
+2. POST /auth/oauth/google (or /apple) with ID token
+3. Backend validates ID token with provider (google-auth-library / apple verify)
+4. Find or create User by email (findOrCreateOAuthUser)
 5. Return JWT pair (same as email/password from this point)
+
+### Forgot / Reset Password
+1. POST /auth/forgot-password → generate crypto.randomBytes(32) token, store SHA-256 hash in DB (15min expiry, rate limited 3/hr)
+2. Send reset email via Resend SDK (fire-and-forget)
+3. POST /auth/reset-password → validate token hash, update password (argon2id), revoke all refresh tokens
 
 ### Guards (Authorization)
 - **JwtAuthGuard** — is the user authenticated?
@@ -192,6 +201,8 @@ volumes:
 - POST /refresh
 - POST /oauth/google
 - POST /oauth/apple
+- POST /forgot-password
+- POST /reset-password
 - POST /logout
 
 ### Users `/users`
@@ -201,6 +212,9 @@ volumes:
 - PATCH /me/profile
 - GET /me/settings
 - PATCH /me/settings
+- GET /me/stats (overview: total workouts, volume, streak, exercises, PRs)
+- GET /me/stats/weekly (bar chart data by range + metric)
+- GET /me/stats/calendar (heatmap data by month/year)
 
 ### Exercises `/exercises`
 - GET / (paginated, filterable by equipment, muscle, search)

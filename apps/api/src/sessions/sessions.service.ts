@@ -11,10 +11,14 @@ import type {
   SessionHistoryFilter,
 } from '@workout/shared';
 import { PrismaService } from '../prisma';
+import { RecordsService } from '../records';
 
 @Injectable()
 export class SessionsService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly recordsService: RecordsService,
+  ) {}
 
   private readonly sessionInclude = {
     sessionExercises: {
@@ -30,7 +34,14 @@ export class SessionsService {
         prescribedExercise: {
           select: { restSec: true },
         },
-        sets: { orderBy: { setNumber: 'asc' as const } },
+        sets: {
+          orderBy: { setNumber: 'asc' as const },
+          include: {
+            personalRecord: {
+              select: { id: true, prType: true, value: true },
+            },
+          },
+        },
       },
       orderBy: { sortOrder: 'asc' as const },
     },
@@ -144,7 +155,7 @@ export class SessionsService {
     const session = await this.findById(userId, id);
     this.assertInProgress(session);
 
-    return this.prisma.workoutSession.update({
+    const completed = await this.prisma.workoutSession.update({
       where: { id },
       data: {
         ...dto,
@@ -153,6 +164,11 @@ export class SessionsService {
       },
       include: this.sessionInclude,
     });
+
+    // Detect personal records synchronously
+    const newPersonalRecords = await this.recordsService.detectPRs(userId, id);
+
+    return { ...completed, newPersonalRecords };
   }
 
   async abandon(userId: string, id: string) {

@@ -8,6 +8,7 @@ import { UsersModule } from './users';
 import { ExercisesModule } from './exercises';
 import { ProgramsModule } from './programs';
 import { SessionsModule } from './sessions';
+import { RecordsModule } from './records';
 import { MailModule } from './mail';
 import { envSchema, type Env } from './config';
 
@@ -64,6 +65,7 @@ import { envSchema, type Env } from './config';
     ExercisesModule,
     ProgramsModule,
     SessionsModule,
+    RecordsModule,
   ],
   controllers: [AppController],
 })

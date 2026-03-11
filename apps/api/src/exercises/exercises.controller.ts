@@ -25,9 +25,13 @@ import {
   createExerciseInputSchema,
   updateExerciseInputSchema,
   exerciseFilterSchema,
+  exerciseStatsFilterSchema,
+  exerciseHistoryFilterSchema,
   type CreateExerciseInput,
   type UpdateExerciseInput,
   type ExerciseFilter,
+  type ExerciseStatsFilter,
+  type ExerciseHistoryFilter,
 } from '@workout/shared';
 import { ExercisesService } from './exercises.service';
 import { CurrentUser, ZodValidationPipe, zodToOpenApi } from '../common';
@@ -52,6 +56,33 @@ export class ExercisesController {
     @Query(new ZodValidationPipe(exerciseFilterSchema)) filters: ExerciseFilter,
   ) {
     return this.exercisesService.findAll(userId, filters);
+  }
+
+  @Get(':id/statistics')
+  @ApiOperation({ summary: 'Get exercise statistics (time-series for charts)' })
+  @ApiQuery({ name: 'range', required: false, enum: ['12w', '6m', '1y', 'all'] })
+  @ApiOkResponse({ description: 'Exercise statistics data points' })
+  async getStatistics(
+    @CurrentUser('sub') userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query(new ZodValidationPipe(exerciseStatsFilterSchema))
+    filter: ExerciseStatsFilter,
+  ) {
+    return this.exercisesService.getStatistics(userId, id, filter);
+  }
+
+  @Get(':id/history')
+  @ApiOperation({ summary: 'Get exercise session history' })
+  @ApiQuery({ name: 'page', required: false, type: Number })
+  @ApiQuery({ name: 'limit', required: false, type: Number })
+  @ApiOkResponse({ description: 'Paginated exercise session history' })
+  async getHistory(
+    @CurrentUser('sub') userId: string,
+    @Param('id', ParseUUIDPipe) id: string,
+    @Query(new ZodValidationPipe(exerciseHistoryFilterSchema))
+    filter: ExerciseHistoryFilter,
+  ) {
+    return this.exercisesService.getHistory(userId, id, filter);
   }
 
   @Get(':id')
