@@ -1,5 +1,6 @@
 <script setup lang="ts">
 import type { CalendarStatsResponse, CalendarWorkoutDay } from '@workout/shared'
+import type { WorkoutSession } from '~/stores/sessions'
 
 const props = defineProps<{
   data: CalendarStatsResponse | null
@@ -10,9 +11,64 @@ const emit = defineEmits<{
   'update:month': [month: number, year: number]
 }>()
 
+const { api } = useApiClient()
+
 const now = new Date()
 const currentMonth = ref(now.getMonth() + 1)
 const currentYear = ref(now.getFullYear())
+
+// ── Popover state ──
+const openDay = ref<number | null>(null)
+const daySessions = ref<Record<string, WorkoutSession[]>>({})
+const dayLoading = ref<Record<string, boolean>>({})
+
+function onPopoverToggle(day: number, open: boolean) {
+  if (open) {
+    openDay.value = day
+    fetchDaySessions(day)
+  } else if (openDay.value === day) {
+    openDay.value = null
+  }
+}
+
+async function fetchDaySessions(day: number) {
+  const dateStr = getDateStr(day)
+  if (daySessions.value[dateStr]) return // already cached
+
+  dayLoading.value[dateStr] = true
+  try {
+    const result = await api<{ data: WorkoutSession[] }>('/sessions', {
+      query: { fromDate: dateStr, toDate: dateStr, status: 'COMPLETED', limit: 10 },
+    })
+    daySessions.value[dateStr] = result.data
+  } finally {
+    dayLoading.value[dateStr] = false
+  }
+}
+
+function getDateStr(day: number): string {
+  return `${currentYear.value}-${String(currentMonth.value).padStart(2, '0')}-${String(day).padStart(2, '0')}`
+}
+
+function formatDuration(session: WorkoutSession): string {
+  if (!session.completedAt) return ''
+  const mins = Math.round((new Date(session.completedAt).getTime() - new Date(session.startedAt).getTime()) / 60000)
+  if (mins < 60) return `${mins}min`
+  const h = Math.floor(mins / 60)
+  const m = mins % 60
+  return m > 0 ? `${h}h ${m}min` : `${h}h`
+}
+
+function formatDateLabel(dateStr: string): string {
+  return new Date(dateStr + 'T00:00:00').toLocaleDateString('en-US', { day: 'numeric', month: 'short', year: 'numeric' })
+}
+
+// Clear cache when month changes
+watch([currentMonth, currentYear], () => {
+  openDay.value = null
+  daySessions.value = {}
+  dayLoading.value = {}
+})
 
 const monthLabel = computed(() => {
   const date = new Date(currentYear.value, currentMonth.value - 1, 1)
@@ -142,19 +198,75 @@ function intensityClass(workout: CalendarWorkoutDay | null): string {
 
       <!-- Calendar grid -->
       <div class="grid grid-cols-7 gap-1">
-        <div
-          v-for="(cell, i) in calendarCells"
-          :key="i"
-          class="aspect-square flex items-center justify-center text-xs rounded-md transition-colors"
-          :class="[
-            cell.day ? 'cursor-default' : '',
-            cell.isToday ? 'ring-1 ring-primary' : '',
-            cell.workout ? intensityClass(cell.workout) : cell.day ? 'bg-elevated/30' : '',
-          ]"
-          :title="cell.workout ? `${cell.workout.sessionCount} workout(s)` : ''"
-        >
-          {{ cell.day ?? '' }}
-        </div>
+        <template v-for="(cell, i) in calendarCells" :key="i">
+          <!-- Workout day: clickable with popover -->
+          <UPopover
+            v-if="cell.day && cell.workout"
+            :open="openDay === cell.day"
+            @update:open="(open: boolean) => onPopoverToggle(cell.day!, open)"
+          >
+            <template #default>
+              <div
+                class="aspect-square flex items-center justify-center text-xs rounded-md transition-colors cursor-pointer hover:ring-1 hover:ring-primary/50"
+                :class="[
+                  cell.isToday ? 'ring-1 ring-primary' : '',
+                  intensityClass(cell.workout),
+                ]"
+              >
+                {{ cell.day }}
+              </div>
+            </template>
+            <template #content>
+              <div class="p-3 max-w-64">
+                <p class="text-xs text-muted mb-2">{{ formatDateLabel(getDateStr(cell.day)) }}</p>
+
+                <!-- Loading -->
+                <div v-if="dayLoading[getDateStr(cell.day)]" class="space-y-2">
+                  <USkeleton class="h-4 w-full" />
+                  <USkeleton class="h-4 w-3/4" />
+                </div>
+
+                <!-- Sessions list -->
+                <div v-else-if="daySessions[getDateStr(cell.day)]?.length" class="space-y-2">
+                  <div
+                    v-for="session in daySessions[getDateStr(cell.day)]"
+                    :key="session.id"
+                    class="space-y-1"
+                  >
+                    <p class="text-sm font-medium">{{ session.name }}</p>
+                    <div class="flex items-center gap-2 text-xs text-muted">
+                      <span v-if="formatDuration(session)">{{ formatDuration(session) }}</span>
+                      <span>{{ session.sessionExercises.length }} exercise{{ session.sessionExercises.length !== 1 ? 's' : '' }}</span>
+                    </div>
+                    <NuxtLink
+                      :to="`/sessions/${session.id}`"
+                      class="text-xs text-primary hover:underline"
+                    >
+                      See Workout
+                    </NuxtLink>
+                  </div>
+                </div>
+
+                <!-- Fallback -->
+                <p v-else class="text-xs text-muted">
+                  {{ cell.workout.sessionCount }} workout{{ cell.workout.sessionCount !== 1 ? 's' : '' }}
+                </p>
+              </div>
+            </template>
+          </UPopover>
+
+          <!-- Non-workout day or empty cell -->
+          <div
+            v-else
+            class="aspect-square flex items-center justify-center text-xs rounded-md transition-colors"
+            :class="[
+              cell.isToday ? 'ring-1 ring-primary' : '',
+              cell.day ? 'bg-elevated/30' : '',
+            ]"
+          >
+            {{ cell.day ?? '' }}
+          </div>
+        </template>
       </div>
 
       <!-- Legend -->
