@@ -43,6 +43,18 @@ function onSetCompleted(data: { setId: string, restSec: number | null }) {
   })
 }
 
+// Column headers based on tracking type
+const showWeight = computed(() =>
+  ['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(trackingType.value)
+)
+const showReps = computed(() =>
+  ['WEIGHT_REPS', 'REPS_ONLY'].includes(trackingType.value)
+)
+const showDuration = computed(() =>
+  ['DURATION', 'WEIGHT_DURATION', 'DISTANCE_DURATION'].includes(trackingType.value)
+)
+const showDistance = computed(() => trackingType.value === 'DISTANCE_DURATION')
+
 const dropdownItems = computed(() => [
   [
     {
@@ -92,8 +104,21 @@ const dropdownItems = computed(() => [
       </UDropdownMenu>
     </div>
 
+    <!-- Column headers -->
+    <div v-if="exercise.sets.length" class="flex items-center gap-1.5 px-1.5 py-1 text-[10px] uppercase tracking-wider text-muted font-medium">
+      <span class="w-5 shrink-0 text-center">Set</span>
+      <span class="w-24 shrink-0">Type</span>
+      <span v-if="showWeight" class="flex-1 min-w-0">kg</span>
+      <span v-if="showReps" class="flex-1 min-w-0">Reps</span>
+      <span v-if="showDuration" class="flex-1 min-w-0">Sec</span>
+      <span v-if="showDistance" class="flex-1 min-w-0">km</span>
+      <span class="w-14 shrink-0">RPE</span>
+      <span class="w-7 shrink-0" />
+      <span class="w-7 shrink-0" />
+    </div>
+
     <!-- Set rows -->
-    <div class="space-y-1">
+    <div class="space-y-0.5">
       <SessionsSessionSetRow
         v-for="(set, index) in exercise.sets"
         :key="set.id"

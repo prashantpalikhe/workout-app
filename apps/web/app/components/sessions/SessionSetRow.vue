@@ -121,6 +121,9 @@ const setTypeItems = SESSION_SET_TYPES.map((t) => ({
 
 function onInputEnter(event: Event) {
   ;(event.target as HTMLInputElement).blur()
+  if (!props.set.completed) {
+    toggleCompleted()
+  }
 }
 
 // Which data inputs to show
@@ -140,103 +143,105 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
 
 <template>
   <div
-    class="rounded-lg p-2 transition-colors"
+    class="flex items-center gap-1.5 rounded-md px-1.5 py-1 transition-colors"
     :class="set.completed ? 'opacity-50 bg-elevated/30' : 'hover:bg-elevated/50'"
   >
-    <!-- Row 1: Set info + actions -->
-    <div class="flex items-center gap-2">
-      <span class="text-sm font-semibold text-muted shrink-0 w-6 text-center">
-        {{ setIndex + 1 }}
-      </span>
-      <USelect
-        v-model="form.setType"
-        :items="setTypeItems"
-        size="sm"
-        class="flex-1"
-        @update:model-value="schedule()"
-      />
-      <button
-        class="flex items-center justify-center size-9 rounded-md transition-colors"
-        :class="set.completed
-          ? 'text-success bg-success/10'
-          : 'text-muted hover:text-default hover:bg-elevated'"
-        :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
-        @click="toggleCompleted"
-      >
-        <UIcon
-          :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
-          class="size-5"
-        />
-      </button>
-      <button
-        class="flex items-center justify-center size-9 rounded-md text-muted hover:text-error hover:bg-error/10 transition-colors"
-        aria-label="Delete set"
-        @click="deleteSet"
-      >
-        <UIcon name="i-lucide-x" class="size-4" />
-      </button>
-    </div>
+    <!-- Set number -->
+    <span class="text-xs font-semibold text-muted shrink-0 w-5 text-center">
+      {{ setIndex + 1 }}
+    </span>
 
-    <!-- Row 2: Data inputs -->
-    <div class="flex items-center gap-2 mt-2 pl-8">
-      <UInput
-        v-if="showWeight"
-        v-model.number="form.weight"
-        type="number"
-        placeholder="Weight"
-        size="lg"
-        :step="0.5"
-        :min="0"
-        class="flex-1"
-        @blur="schedule()"
-        @keyup.enter="onInputEnter"
+    <!-- Set type -->
+    <USelect
+      v-model="form.setType"
+      :items="setTypeItems"
+      size="xs"
+      class="w-24 shrink-0"
+      @update:model-value="schedule()"
+    />
+
+    <!-- Data inputs -->
+    <UInput
+      v-if="showWeight"
+      v-model.number="form.weight"
+      type="number"
+      placeholder="kg"
+      size="xs"
+      :step="0.5"
+      :min="0"
+      class="flex-1 min-w-0"
+      @blur="schedule()"
+      @keyup.enter="onInputEnter"
+    />
+    <UInput
+      v-if="showReps"
+      v-model.number="form.reps"
+      type="number"
+      placeholder="Reps"
+      size="xs"
+      :min="0"
+      class="flex-1 min-w-0"
+      @blur="schedule()"
+      @keyup.enter="onInputEnter"
+    />
+    <UInput
+      v-if="showDuration"
+      v-model.number="form.durationSec"
+      type="number"
+      placeholder="Sec"
+      size="xs"
+      :min="0"
+      class="flex-1 min-w-0"
+      @blur="schedule()"
+      @keyup.enter="onInputEnter"
+    />
+    <UInput
+      v-if="showDistance"
+      v-model.number="form.distance"
+      type="number"
+      placeholder="km"
+      size="xs"
+      :step="0.1"
+      :min="0"
+      class="flex-1 min-w-0"
+      @blur="schedule()"
+      @keyup.enter="onInputEnter"
+    />
+    <UInput
+      v-model.number="form.rpe"
+      type="number"
+      placeholder="RPE"
+      size="xs"
+      :min="1"
+      :max="10"
+      :step="0.5"
+      class="w-14 shrink-0"
+      @blur="schedule()"
+      @keyup.enter="onInputEnter"
+    />
+
+    <!-- Complete button -->
+    <button
+      class="flex items-center justify-center size-7 shrink-0 rounded-md transition-colors"
+      :class="set.completed
+        ? 'text-success bg-success/10'
+        : 'text-muted hover:text-default hover:bg-elevated'"
+      :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
+      @click="toggleCompleted"
+    >
+      <UIcon
+        :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
+        class="size-4"
       />
-      <UInput
-        v-if="showReps"
-        v-model.number="form.reps"
-        type="number"
-        placeholder="Reps"
-        size="lg"
-        :min="0"
-        class="flex-1"
-        @blur="schedule()"
-        @keyup.enter="onInputEnter"
-      />
-      <UInput
-        v-if="showDuration"
-        v-model.number="form.durationSec"
-        type="number"
-        placeholder="Dur (s)"
-        size="lg"
-        :min="0"
-        class="flex-1"
-        @blur="schedule()"
-        @keyup.enter="onInputEnter"
-      />
-      <UInput
-        v-if="showDistance"
-        v-model.number="form.distance"
-        type="number"
-        placeholder="Dist"
-        size="lg"
-        :step="0.1"
-        :min="0"
-        class="flex-1"
-        @blur="schedule()"
-        @keyup.enter="onInputEnter"
-      />
-      <UInput
-        v-model.number="form.rpe"
-        type="number"
-        placeholder="RPE"
-        size="lg"
-        :min="1"
-        :max="10"
-        :step="0.5"
-        class="w-16 shrink-0"
-        @blur="schedule()"
-        @keyup.enter="onInputEnter"
-      />
-    </div>
+    </button>
+
+    <!-- Delete button -->
+    <button
+      class="flex items-center justify-center size-7 shrink-0 rounded-md text-muted hover:text-error hover:bg-error/10 transition-colors"
+      aria-label="Delete set"
+      @click="deleteSet"
+    >
+      <UIcon name="i-lucide-x" class="size-3.5" />
+    </button>
   </div>
 </template>
