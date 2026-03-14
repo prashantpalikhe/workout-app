@@ -5,7 +5,7 @@ import {
   PR_TYPE_PRIORITY,
   PersonalRecordType,
 } from '@workout/shared';
-import type { PersonalRecordFilter } from '@workout/shared';
+import type { PersonalRecordFilter, CheckPRInput } from '@workout/shared';
 import type { PersonalRecordType as PrismaPersonalRecordType } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma';
 
@@ -220,6 +220,61 @@ export class RecordsService {
       achievedOn: pr.achievedOn.toISOString(),
       sessionSetId: pr.sessionSetId,
     }));
+  }
+
+  /** Check if set data would be a new PR (read-only, does not store) */
+  async checkPR(userId: string, input: CheckPRInput) {
+    const exercise = await this.prisma.exercise.findUnique({
+      where: { id: input.exerciseId },
+      select: { trackingType: true },
+    });
+    if (!exercise) return { isPR: false, prTypes: [] };
+
+    const applicablePRTypes =
+      PR_TYPES_BY_TRACKING_TYPE[exercise.trackingType] ?? [];
+    if (applicablePRTypes.length === 0) return { isPR: false, prTypes: [] };
+
+    // Build a fake set for computeCandidate
+    const fakeSet: SetWithExercise = {
+      id: 'check',
+      weight: input.weight ?? null,
+      reps: input.reps ?? null,
+      durationSec: input.durationSec ?? null,
+      distance: input.distance ?? null,
+      sessionExercise: {
+        exerciseId: input.exerciseId,
+        exercise: { trackingType: exercise.trackingType },
+      },
+    };
+
+    const prTypes: { type: string; label: string }[] = [];
+
+    for (const prType of applicablePRTypes) {
+      const candidate = this.computeCandidate(prType, [fakeSet]);
+      if (!candidate) continue;
+
+      const existingBest = await this.prisma.personalRecord.findFirst({
+        where: { athleteId: userId, exerciseId: input.exerciseId, prType },
+        orderBy: { value: 'desc' },
+        select: { value: true },
+      });
+
+      if (!existingBest || candidate.value > existingBest.value) {
+        const label =
+          prType === PersonalRecordType.ONE_REP_MAX
+            ? '1RM'
+            : prType === PersonalRecordType.MAX_WEIGHT
+              ? 'Weight'
+              : prType === PersonalRecordType.MAX_REPS
+                ? 'Reps'
+                : prType === PersonalRecordType.MAX_VOLUME
+                  ? 'Volume'
+                  : 'PR';
+        prTypes.push({ type: prType, label });
+      }
+    }
+
+    return { isPR: prTypes.length > 0, prTypes };
   }
 
   // ── Private helpers ────────────────────────────

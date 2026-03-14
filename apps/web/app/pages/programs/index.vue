@@ -53,12 +53,16 @@ function openDeleteProgram(program: Program) {
   showProgramDeleteDialog.value = true
 }
 
-function onProgramFormSuccess() {
+function onProgramFormSuccess(program?: Program) {
   showProgramFormModal.value = false
   toast.add({
     title: editingProgram.value ? 'Program updated' : 'Program created',
     color: 'success',
   })
+  // Navigate to the newly created program's detail page
+  if (!editingProgram.value && program?.id) {
+    navigateTo(`/programs/${program.id}`)
+  }
 }
 
 async function onProgramDeleteConfirm() {

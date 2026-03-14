@@ -56,8 +56,14 @@ watch(open, (val) => {
 async function addExercise(exercise: Exercise) {
   adding.value = exercise.id
   try {
-    await sessionStore.addExercise(props.sessionId, {
+    const created = await sessionStore.addExercise(props.sessionId, {
       exerciseId: exercise.id,
+    })
+    // Auto-add the first set so the user can start logging immediately
+    await sessionStore.addSet(props.sessionId, created.id, {
+      setNumber: 1,
+      setType: 'WORKING',
+      completed: false,
     })
     toast.add({ title: `${exercise.name} added`, color: 'success' })
     emit('success')

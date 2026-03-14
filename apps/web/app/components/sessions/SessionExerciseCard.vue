@@ -154,7 +154,6 @@ const dropdownItems = computed(() => [
       <span v-if="showDistance" class="flex-1 min-w-0">km</span>
       <span class="w-14 shrink-0">RPE</span>
       <span class="w-8 shrink-0" />
-      <span class="hidden md:block w-7 shrink-0" />
     </div>
 
     <!-- Set rows -->
@@ -164,6 +163,7 @@ const dropdownItems = computed(() => [
         :key="set.id"
         :session-id="sessionId"
         :exercise-id="exercise.id"
+        :global-exercise-id="exercise.exerciseId"
         :set="set"
         :set-index="index"
         :tracking-type="trackingType"

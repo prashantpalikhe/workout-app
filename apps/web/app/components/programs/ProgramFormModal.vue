@@ -9,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  success: []
+  success: [program?: Program]
 }>()
 
 const open = defineModel<boolean>({ default: false })
@@ -80,10 +80,11 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   try {
     if (isEditMode.value && props.program) {
       await programStore.updateProgram(props.program.id, payload)
+      emit('success')
     } else {
-      await programStore.createProgram(payload as any)
+      const created = await programStore.createProgram(payload as any)
+      emit('success', created)
     }
-    emit('success')
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
     error.value = fetchError?.data?.message || 'Something went wrong'

@@ -5,6 +5,7 @@ import type { SessionSet } from '~/stores/sessions'
 const props = defineProps<{
   sessionId: string
   exerciseId: string
+  globalExerciseId: string
   set: SessionSet
   setIndex: number
   trackingType: string
@@ -17,6 +18,8 @@ const emit = defineEmits<{
 const sessionStore = useSessionStore()
 const toast = useToast()
 const { formatEnum } = useFormatEnum()
+
+const prResult = ref<{ type: string; label: string }[] | null>(null)
 
 // Local form state initialized from prop
 const form = reactive({
@@ -94,6 +97,27 @@ async function toggleCompleted() {
     // Emit only when marking a set as complete (not when uncompleting)
     if (!wasCompleted) {
       emit('set-completed', { setId: props.set.id, restSec: props.set.restSec })
+
+      // Check for PRs in the background
+      sessionStore.checkPR(props.globalExerciseId, {
+        weight: form.weight || undefined,
+        reps: form.reps || undefined,
+        durationSec: form.durationSec || undefined,
+        distance: form.distance || undefined,
+      }).then((result) => {
+        if (result.isPR) {
+          prResult.value = result.prTypes
+          const labels = result.prTypes.map(p => p.label).join(', ')
+          toast.add({
+            title: 'New Personal Record!',
+            description: labels,
+            color: 'warning',
+            icon: 'i-lucide-trophy',
+          })
+        }
+      }).catch(() => {})
+    } else {
+      prResult.value = null
     }
   } catch {
     toast.add({ title: 'Failed to update set', color: 'error' })
@@ -118,6 +142,24 @@ const setTypeItems = SESSION_SET_TYPES.map((t) => ({
   label: formatEnum(t),
   value: t
 }))
+
+// Dropdown items for set number (set type + delete)
+const setDropdownItems = computed(() => [
+  SESSION_SET_TYPES.map((t) => ({
+    label: formatEnum(t),
+    icon: form.setType === t ? 'i-lucide-check' : undefined,
+    onSelect: () => {
+      form.setType = t
+      schedule()
+    },
+  })),
+  [{
+    label: 'Delete Set',
+    icon: 'i-lucide-trash-2',
+    color: 'error' as const,
+    onSelect: () => deleteSet(),
+  }],
+])
 
 function onInputEnter(event: Event) {
   ;(event.target as HTMLInputElement).blur()
@@ -146,10 +188,12 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
     class="flex items-center gap-1.5 rounded-md px-1.5 py-1 transition-colors"
     :class="set.completed ? 'opacity-50 bg-elevated/30' : 'hover:bg-elevated/50'"
   >
-    <!-- Set number -->
-    <span class="text-xs font-semibold text-muted shrink-0 w-5 text-center">
-      {{ setIndex + 1 }}
-    </span>
+    <!-- Set number (tap for set type + delete) -->
+    <UDropdownMenu :items="setDropdownItems" :content="{ align: 'start' as const }">
+      <button class="text-xs font-semibold text-muted shrink-0 w-5 text-center hover:text-default transition-colors">
+        {{ setIndex + 1 }}
+      </button>
+    </UDropdownMenu>
 
     <!-- Set type (hidden on mobile) -->
     <USelect
@@ -235,13 +279,11 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       />
     </button>
 
-    <!-- Delete button (hidden on mobile) -->
-    <button
-      class="hidden md:flex items-center justify-center size-7 shrink-0 rounded-md text-muted hover:text-error hover:bg-error/10 transition-colors"
-      aria-label="Delete set"
-      @click="deleteSet"
-    >
-      <UIcon name="i-lucide-x" class="size-3.5" />
-    </button>
+    <!-- PR icon -->
+    <UIcon
+      v-if="prResult"
+      name="i-lucide-trophy"
+      class="size-4 shrink-0 text-warning"
+    />
   </div>
 </template>

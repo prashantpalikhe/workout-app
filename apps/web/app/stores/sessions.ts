@@ -292,6 +292,13 @@ export const useSessionStore = defineStore('sessions', () => {
     }
   }
 
+  async function checkPR(exerciseId: string, setData: { weight?: number; reps?: number; durationSec?: number; distance?: number }) {
+    return api<{ isPR: boolean; prTypes: { type: string; label: string }[] }>(
+      '/records/check-pr',
+      { method: 'POST', body: { exerciseId, ...setData } }
+    )
+  }
+
   return {
     // State
     activeSession,
@@ -324,6 +331,7 @@ export const useSessionStore = defineStore('sessions', () => {
     // Sets
     addSet,
     updateSet,
-    deleteSet
+    deleteSet,
+    checkPR
   }
 })

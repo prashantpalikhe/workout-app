@@ -1,6 +1,8 @@
 import {
   Controller,
   Get,
+  Post,
+  Body,
   Param,
   Query,
   ParseUUIDPipe,
@@ -9,15 +11,18 @@ import {
   ApiTags,
   ApiOperation,
   ApiQuery,
+  ApiBody,
   ApiOkResponse,
   ApiBearerAuth,
 } from '@nestjs/swagger';
 import {
   personalRecordFilterSchema,
+  checkPRInputSchema,
   type PersonalRecordFilter,
+  type CheckPRInput,
 } from '@workout/shared';
 import { RecordsService } from './records.service';
-import { CurrentUser, ZodValidationPipe } from '../common';
+import { CurrentUser, ZodValidationPipe, zodToOpenApi } from '../common';
 
 @ApiTags('records')
 @ApiBearerAuth('access-token')
@@ -38,6 +43,17 @@ export class RecordsController {
     filter: PersonalRecordFilter,
   ) {
     return this.recordsService.findAll(userId, filter);
+  }
+
+  @Post('check-pr')
+  @ApiOperation({ summary: 'Check if set data would be a new PR' })
+  @ApiBody({ schema: zodToOpenApi(checkPRInputSchema) })
+  @ApiOkResponse({ description: 'PR check result' })
+  async checkPR(
+    @CurrentUser('sub') userId: string,
+    @Body(new ZodValidationPipe(checkPRInputSchema)) input: CheckPRInput,
+  ) {
+    return this.recordsService.checkPR(userId, input);
   }
 
   @Get('exercise/:exerciseId')

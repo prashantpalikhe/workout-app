@@ -10,6 +10,15 @@ export const personalRecordFilterSchema = paginationSchema.extend({
 });
 export type PersonalRecordFilter = z.infer<typeof personalRecordFilterSchema>;
 
+export const checkPRInputSchema = z.object({
+  exerciseId: uuidSchema,
+  weight: z.number().positive().optional(),
+  reps: z.number().int().positive().optional(),
+  durationSec: z.number().int().positive().optional(),
+  distance: z.number().positive().optional(),
+});
+export type CheckPRInput = z.infer<typeof checkPRInputSchema>;
+
 export const EXERCISE_STATS_RANGES = ['12w', '1y', 'all'] as const;
 
 export const exerciseStatsFilterSchema = z.object({
