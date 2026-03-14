@@ -111,6 +111,14 @@ export function useGroupSession() {
     }
   }
 
+  async function startAllSessions(input: StartSessionInput) {
+    await Promise.allSettled(
+      slots.value
+        .filter((s) => !s.session && !s.loading)
+        .map((slot) => startSession(slot.athleteId, input)),
+    )
+  }
+
   async function completeSession(
     athleteId: string,
     input: CompleteSessionInput,
@@ -215,14 +223,22 @@ export function useGroupSession() {
     const slot = getSlotOrThrow(athleteId)
     if (!slot.session) return
 
-    const created = await api<SessionSet>(
-      `${basePath(athleteId)}/${slot.session.id}/exercises/${exerciseId}/sets`,
-      { method: 'POST', body: input },
-    )
-
     const exercise = slot.session.sessionExercises.find(
       (e) => e.id === exerciseId,
     )
+
+    const body = {
+      setNumber: (exercise?.sets.length ?? 0) + 1,
+      setType: 'WORKING' as const,
+      completed: false,
+      ...input,
+    }
+
+    const created = await api<SessionSet>(
+      `${basePath(athleteId)}/${slot.session.id}/exercises/${exerciseId}/sets`,
+      { method: 'POST', body },
+    )
+
     if (exercise) exercise.sets.push(created)
 
     return created
@@ -350,6 +366,10 @@ export function useGroupSession() {
 
   const allDone = computed(() => slots.value.length === 0)
 
+  const needsStart = computed(() =>
+    slots.value.some((s) => !s.session && !s.loading),
+  )
+
   // Cleanup all rest timer intervals when the composable's parent scope is disposed
   onScopeDispose(() => {
     timerScope.stop()
@@ -363,6 +383,7 @@ export function useGroupSession() {
     // Computed
     activeSlots,
     allDone,
+    needsStart,
 
     // Init
     initSlots,
@@ -372,6 +393,7 @@ export function useGroupSession() {
 
     // Session lifecycle
     startSession,
+    startAllSessions,
     completeSession,
     abandonSession,
 

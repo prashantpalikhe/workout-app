@@ -177,7 +177,18 @@
       "Bash(pnpm --filter shared build)",
       "Bash(pnpm --filter api prisma:seed)",
       "Bash(pnpm --filter api add cloudinary)",
-      "Bash(pnpm --filter api add -D @types/multer)"
+      "Bash(pnpm --filter api add -D @types/multer)",
+      "Bash(grep -E \"\\\\.ts$\")",
+      "Bash(pnpm --filter web exec nuxi typecheck)",
+      "Bash(curl -s -o /dev/null -w \"%{http_code}\" http://localhost:3001/health)",
+      "Bash(curl -s -I -X OPTIONS http://localhost:3001/api/auth/login -H \"Origin: http://localhost:3000\" -H \"Access-Control-Request-Method: POST\" -H \"Access-Control-Request-Headers: content-type\")",
+      "Bash(ps -p 42464 -o command=)",
+      "Bash(kill 42464)",
+      "Bash(ps -p 43217 -o command=)",
+      "Bash(kill 43217)",
+      "Bash(ps -p 49514 -o command=)",
+      "Bash(ps -p 42333 -o command=)",
+      "Bash(kill 42333 49514 49280)"
     ]
   }
 }

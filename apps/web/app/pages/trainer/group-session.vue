@@ -39,8 +39,8 @@ const abandonFor = ref<string | null>(null) // athleteId
 const completeRpe = ref<number | undefined>(undefined)
 const completeNotes = ref('')
 
-// ── Start session modal state ──
-const startSessionFor = ref<string | null>(null)
+// ── Start all sessions modal state ──
+const showStartModal = ref(false)
 const startSessionName = ref('')
 const startingSession = ref(false)
 
@@ -61,6 +61,11 @@ onMounted(async () => {
   }))
 
   await groupSession.initSlots(athletes)
+
+  // Auto-show start modal if any athletes don't have active sessions
+  if (groupSession.needsStart.value) {
+    showStartModal.value = true
+  }
 })
 
 // ── Watch for all done ──
@@ -283,19 +288,18 @@ async function endAllAbandon() {
 
 // ── Start Session for athlete without active session ──
 
-async function confirmStartSession() {
-  if (!startSessionFor.value) return
+async function confirmStartAllSessions() {
   startingSession.value = true
   try {
-    await groupSession.startSession(startSessionFor.value, {
+    await groupSession.startAllSessions({
       name: startSessionName.value.trim() || undefined,
     })
-    toast.add({ title: 'Session started', color: 'success' })
+    showStartModal.value = false
+    toast.add({ title: 'Sessions started', color: 'success' })
   } catch {
-    toast.add({ title: 'Failed to start session', color: 'error' })
+    toast.add({ title: 'Failed to start sessions', color: 'error' })
   } finally {
     startingSession.value = false
-    startSessionFor.value = null
     startSessionName.value = ''
   }
 }
@@ -366,9 +370,9 @@ onBeforeRouteLeave((_to, _from, next) => {
           :exercise-index="slot.currentExerciseIndex"
           :exercise-count="groupSession.exerciseCount(slot.athleteId)"
           @add-set="onAddSet(slot.athleteId, $event)"
-          @update-set="onUpdateSet(slot.athleteId, $event[0], $event[1], $event[2])"
-          @toggle-set-completed="onToggleSetCompleted(slot.athleteId, $event[0], $event[1])"
-          @delete-set="onDeleteSet(slot.athleteId, $event[0], $event[1])"
+          @update-set="(...args: [string, string, Record<string, unknown>]) => onUpdateSet(slot.athleteId, ...args)"
+          @toggle-set-completed="(...args: [string, string]) => onToggleSetCompleted(slot.athleteId, ...args)"
+          @delete-set="(...args: [string, string]) => onDeleteSet(slot.athleteId, ...args)"
           @add-exercise="exercisePickerFor = slot.athleteId"
           @remove-exercise="onRemoveExercise(slot.athleteId, $event)"
           @next-exercise="groupSession.nextExercise(slot.athleteId)"
@@ -379,21 +383,6 @@ onBeforeRouteLeave((_to, _from, next) => {
           @set-completed-event="onSetCompletedEvent(slot.athleteId, $event)"
         />
 
-        <!-- Start session for athletes without active sessions -->
-        <UCard
-          v-for="slot in groupSession.slots.value.filter(s => !s.session && !s.loading)"
-          :key="`start-${slot.athleteId}`"
-          class="flex flex-col items-center justify-center py-8"
-        >
-          <p class="font-semibold mb-1">{{ slot.athleteName }}</p>
-          <p class="text-sm text-muted mb-4">No active session</p>
-          <UButton
-            label="Start Workout"
-            icon="i-lucide-play"
-            size="sm"
-            @click="startSessionFor = slot.athleteId; startSessionName = ''"
-          />
-        </UCard>
       </TrainerGroupSessionCardsView>
     </template>
 
@@ -500,23 +489,27 @@ onBeforeRouteLeave((_to, _from, next) => {
       </template>
     </UModal>
 
-    <!-- Start Session Modal -->
+    <!-- Start Group Session Modal -->
     <UModal
-      :open="!!startSessionFor"
-      title="Start Workout"
-      @update:open="(v: boolean) => { if (!v) startSessionFor = null }"
+      :open="showStartModal"
+      title="Start Group Session"
+      @update:open="(v: boolean) => { if (!v) showStartModal = false }"
     >
       <template #body>
-        <p class="text-sm text-muted mb-4">
-          Start a workout for
-          <strong>{{ groupSession.getSlot(startSessionFor!)?.athleteName }}</strong>
-        </p>
-        <UFormField label="Session Name (optional)">
-          <UInput
-            v-model="startSessionName"
-            placeholder="e.g. Upper Body Day"
-          />
-        </UFormField>
+        <div class="space-y-3">
+          <p class="text-sm text-muted">
+            Starting workout for
+            <strong>
+              {{ groupSession.slots.value.filter(s => !s.session).map(s => s.athleteName).join(', ') }}
+            </strong>
+          </p>
+          <UFormField label="Session Name (optional)">
+            <UInput
+              v-model="startSessionName"
+              placeholder="e.g. Upper Body Day"
+            />
+          </UFormField>
+        </div>
       </template>
       <template #footer>
         <div class="flex justify-end gap-2">
@@ -524,13 +517,13 @@ onBeforeRouteLeave((_to, _from, next) => {
             label="Cancel"
             color="neutral"
             variant="outline"
-            @click="startSessionFor = null"
+            @click="showStartModal = false"
           />
           <UButton
             label="Start"
             icon="i-lucide-play"
             :loading="startingSession"
-            @click="confirmStartSession"
+            @click="confirmStartAllSessions"
           />
         </div>
       </template>
