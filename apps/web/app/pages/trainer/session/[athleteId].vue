@@ -24,6 +24,28 @@ const restTimer = useRestTimer()
 
 const session = computed(() => sessionStore.activeSession)
 
+// Session-level notes
+const showSessionNotes = ref(false)
+const sessionNotesText = ref('')
+
+watch(session, (s) => {
+  if (s) {
+    sessionNotesText.value = s.notes ?? ''
+    showSessionNotes.value = !!s.notes
+  }
+}, { immediate: true })
+
+const { schedule: scheduleSessionNoteSave } = useAutoSave(
+  async () => {
+    if (session.value) {
+      await sessionStore.updateSession(session.value.id, {
+        notes: sessionNotesText.value.trim() || undefined,
+      })
+    }
+  },
+  { debounceMs: 600 },
+)
+
 onMounted(async () => {
   // Enter trainer mode — this makes the session store route through trainer endpoints
   sessionStore.enterTrainerMode(athleteId)
@@ -143,6 +165,13 @@ const dropdownItems = computed(() => [
         </template>
         <template #links>
           <UButton
+            icon="i-lucide-message-square"
+            :variant="showSessionNotes ? 'soft' : 'outline'"
+            color="neutral"
+            aria-label="Toggle session notes"
+            @click="showSessionNotes = !showSessionNotes"
+          />
+          <UButton
             label="Add Exercise"
             icon="i-lucide-plus"
             variant="outline"
@@ -163,6 +192,16 @@ const dropdownItems = computed(() => [
           </UDropdownMenu>
         </template>
       </UPageHeader>
+
+      <!-- Session Notes -->
+      <div v-if="showSessionNotes" class="mb-4">
+        <UTextarea
+          v-model="sessionNotesText"
+          placeholder="Session notes..."
+          :rows="2"
+          @blur="scheduleSessionNoteSave()"
+        />
+      </div>
 
       <!-- Exercise list -->
       <div

@@ -13,6 +13,12 @@ import type { WorkoutSession, SessionExercise, SessionSet } from '~/stores/sessi
 
 // ── Types ──
 
+export interface ProgramAssignment {
+  id: string
+  status: string
+  program: { id: string; name: string }
+}
+
 export interface AthleteSlot {
   athleteId: string
   athleteName: string
@@ -23,6 +29,7 @@ export interface AthleteSlot {
   restTimer: ReturnType<typeof useRestTimer>
   exerciseHistory: Map<string, ExerciseHistorySession[]>
   historyLoading: Set<string>
+  assignments: ProgramAssignment[]
 }
 
 // ── Composable ──
@@ -68,16 +75,21 @@ export function useGroupSession() {
       restTimer: timerScope.run(() => useRestTimer())!,
       exerciseHistory: new Map(),
       historyLoading: new Set(),
+      assignments: [],
     }))
 
-    // Fetch active sessions for all athletes in parallel
+    // Fetch active sessions and assignments for all athletes in parallel
     await Promise.allSettled(
       slots.value.map(async (slot) => {
         try {
-          const session = await api<WorkoutSession | null>(
-            `${basePath(slot.athleteId)}/active`,
-          )
+          const [session, assignmentsData] = await Promise.all([
+            api<WorkoutSession | null>(`${basePath(slot.athleteId)}/active`),
+            api<ProgramAssignment[]>(
+              `/trainer/athletes/${slot.athleteId}/assignments`,
+            ),
+          ])
           slot.session = session
+          slot.assignments = assignmentsData.filter((a) => a.status === 'ACTIVE')
         } catch {
           slot.error = 'Failed to load session'
         } finally {
@@ -111,11 +123,26 @@ export function useGroupSession() {
     }
   }
 
-  async function startAllSessions(input: StartSessionInput) {
+  async function startAllSessions(
+    baseInput: StartSessionInput,
+    assignmentMap?: Map<string, string>,
+  ) {
     await Promise.allSettled(
       slots.value
         .filter((s) => !s.session && !s.loading)
-        .map((slot) => startSession(slot.athleteId, input)),
+        .map((slot) => {
+          const assignmentId = assignmentMap?.get(slot.athleteId)
+          const input: StartSessionInput = {
+            ...baseInput,
+            ...(assignmentId && { programAssignmentId: assignmentId }),
+          }
+          // If starting from a program and no explicit name, use program name
+          if (assignmentId && !baseInput.name) {
+            const assignment = slot.assignments.find((a) => a.id === assignmentId)
+            if (assignment) input.name = assignment.program.name
+          }
+          return startSession(slot.athleteId, input)
+        }),
     )
   }
 
@@ -218,7 +245,7 @@ export function useGroupSession() {
   async function addSet(
     athleteId: string,
     exerciseId: string,
-    input: CreateSessionSetInput,
+    input: Partial<CreateSessionSetInput> = {},
   ) {
     const slot = getSlotOrThrow(athleteId)
     if (!slot.session) return
@@ -228,10 +255,10 @@ export function useGroupSession() {
     )
 
     const body = {
-      setNumber: (exercise?.sets.length ?? 0) + 1,
-      setType: 'WORKING' as const,
-      completed: false,
       ...input,
+      setNumber: input.setNumber ?? (exercise?.sets.length ?? 0) + 1,
+      setType: input.setType ?? 'WORKING',
+      completed: input.completed ?? false,
     }
 
     const created = await api<SessionSet>(

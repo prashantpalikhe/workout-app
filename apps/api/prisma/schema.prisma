@@ -431,6 +431,7 @@ model SessionExercise {
   sortOrder            Int     @default(0) @map("sort_order")
   isSubstitution       Boolean @default(false) @map("is_substitution")
   substitutionReason   String? @map("substitution_reason")
+  notes                String?
 
   workoutSession     WorkoutSession   @relation(fields: [workoutSessionId], references: [id], onDelete: Cascade)
   exercise           Exercise         @relation(fields: [exerciseId], references: [id], onDelete: Restrict)

@@ -54,6 +54,36 @@ export class SessionsService {
     },
   };
 
+  async listStartablePrograms(userId: string) {
+    // 1. Programs assigned to the athlete by a trainer
+    const assignments = await this.prisma.programAssignment.findMany({
+      where: { athleteId: userId, status: 'ACTIVE' },
+      include: { program: { select: { id: true, name: true } } },
+      orderBy: { assignedAt: 'desc' },
+    });
+
+    // 2. The athlete's own programs (not already covered by an assignment)
+    const assignedProgramIds = new Set(assignments.map((a) => a.programId));
+    const ownPrograms = await this.prisma.program.findMany({
+      where: { createdById: userId },
+      select: { id: true, name: true },
+      orderBy: { name: 'asc' },
+    });
+
+    // Return unified shape: assignments first, then own programs as pseudo-assignments
+    return [
+      ...assignments,
+      ...ownPrograms
+        .filter((p) => !assignedProgramIds.has(p.id))
+        .map((p) => ({
+          id: `own:${p.id}`,
+          status: 'ACTIVE' as const,
+          programId: p.id,
+          program: { id: p.id, name: p.name },
+        })),
+    ];
+  }
+
   async start(userId: string, dto: StartSessionInput, loggedById?: string) {
     // Enforce one active session per athlete
     const existing = await this.prisma.workoutSession.findFirst({
@@ -68,6 +98,10 @@ export class SessionsService {
 
     if (dto.programAssignmentId) {
       return this.startFromProgram(userId, dto, loggedById);
+    }
+
+    if (dto.programId) {
+      return this.startFromOwnProgram(userId, dto, loggedById);
     }
 
     return this.prisma.workoutSession.create({
@@ -258,5 +292,44 @@ export class SessionsService {
     });
 
     return session;
+  }
+
+  private async startFromOwnProgram(userId: string, dto: StartSessionInput, loggedById?: string) {
+    const program = await this.prisma.program.findUnique({
+      where: { id: dto.programId! },
+      include: {
+        exercises: {
+          include: { exercise: { select: { id: true } } },
+          orderBy: { sortOrder: 'asc' },
+        },
+      },
+    });
+
+    if (!program) {
+      throw new NotFoundException(`Program with id "${dto.programId}" not found`);
+    }
+
+    if (program.createdById !== userId) {
+      throw new ForbiddenException('You can only start sessions from your own programs');
+    }
+
+    const sessionName = dto.name || program.name;
+
+    return this.prisma.workoutSession.create({
+      data: {
+        athleteId: userId,
+        name: sessionName,
+        status: 'IN_PROGRESS',
+        ...(loggedById && { loggedById }),
+        sessionExercises: {
+          create: program.exercises.map((pe) => ({
+            exerciseId: pe.exerciseId,
+            prescribedExerciseId: pe.id,
+            sortOrder: pe.sortOrder,
+          })),
+        },
+      },
+      include: this.sessionInclude,
+    });
   }
 }

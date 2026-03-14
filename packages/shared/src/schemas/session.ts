@@ -4,6 +4,7 @@ import { WORKOUT_SESSION_STATUSES } from '../constants/session.js';
 
 export const startSessionInputSchema = z.object({
   programAssignmentId: uuidSchema.optional(),
+  programId: uuidSchema.optional(),
   name: z.string().min(1).max(200).trim().optional(),
 });
 export type StartSessionInput = z.infer<typeof startSessionInputSchema>;

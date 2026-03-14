@@ -188,7 +188,28 @@
       "Bash(kill 43217)",
       "Bash(ps -p 49514 -o command=)",
       "Bash(ps -p 42333 -o command=)",
-      "Bash(kill 42333 49514 49280)"
+      "Bash(kill 42333 49514 49280)",
+      "Bash(pnpm --filter @workout/api prisma:seed)",
+      "Bash(pnpm --filter @workout/api exec prisma migrate dev --name add-session-exercise-notes)",
+      "Bash(curl -s http://localhost:3001/api/sessions/assignments)",
+      "Bash(find /Users/prashantpalikhe/Projects/OpenSource/workout-app/node_modules/@nuxt/ui -name Select* -type f)",
+      "Bash(find /Users/prashantpalikhe/Projects/OpenSource/workout-app/node_modules/@nuxt/ui -name *elect* -type f)",
+      "Bash(find /Users/prashantpalikhe/Projects/OpenSource/workout-app -path */node_modules/@nuxt/ui -maxdepth 5 -type d)",
+      "Bash(find /Users/prashantpalikhe/Projects/OpenSource/workout-app -path */@nuxt/ui* -name package.json -maxdepth 7)",
+      "Bash(NUXT_UI_DIR=/Users/prashantpalikhe/Projects/OpenSource/workout-app/node_modules/.pnpm/@nuxt+ui@4.5.1_@tiptap+extensions@3.20.1_@tiptap+core@3.20.1_@tiptap+pm@3.20.1__@tiptap_797375d2d75fbf5fc0907086a006aad9/node_modules/@nuxt/ui)",
+      "Read(//Users/prashantpalikhe/Projects/OpenSource/workout-app/**)",
+      "Bash(pnpm --filter web vue-tsc --noEmit)",
+      "Bash(npx nuxi:*)",
+      "Bash(curl -s http://localhost:3001/api/auth/login -H 'Content-Type: application/json' -d '{\"\"\"\"email\"\"\"\":\"\"\"\"trainer1@workout.dev\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"Test1234!\"\"\"\"}')",
+      "Bash(curl -s http://localhost:3001/api/auth/login -H 'Content-Type: application/json' -d '{\"\"email\"\":\"\"trainer1@workout.dev\"\",\"\"password\"\":\"\"Test1234!\"\"}')",
+      "Bash(curl -s http://localhost:3001/api/auth/login -H 'Content-Type: application/json' --data-raw '{\"\"email\"\":\"\"trainer1@workout.dev\"\",\"\"password\"\":\"\"Test1234!\"\"}')",
+      "Bash(printf '{\"\"\"\"email\"\"\"\":\"\"\"\"trainer1@workout.dev\"\"\"\",\"\"\"\"password\"\"\"\":\"\"\"\"Test1234!\"\"\"\"}')",
+      "Bash(curl -s http://localhost:3001/api/auth/login -H 'Content-Type: application/json' -d @-)",
+      "Bash(xxd)",
+      "Bash(node -e 'const http=require\\(\"\"http\"\"\\);const data=JSON.stringify\\({email:\"\"athlete1@workout.dev\"\",password:\"\"Test1234!\"\"}\\);const req=http.request\\({hostname:\"\"localhost\"\",port:3001,path:\"\"/api/auth/login\"\",method:\"\"POST\"\",headers:{\"\"Content-Type\"\":\"\"application/json\"\",\"\"Content-Length\"\":data.length}},res=>{let body=\"\"\"\";res.on\\(\"\"data\"\",c=>body+=c\\);res.on\\(\"\"end\"\",\\(\\)=>{const j=JSON.parse\\(body\\);const token=j.tokens&&j.tokens.accessToken;if\\(token\\){const req2=http.request\\({hostname:\"\"localhost\"\",port:3001,path:\"\"/api/sessions/assignments\"\",headers:{\"\"Authorization\"\":\"\"Bearer \"\"+token}},res2=>{let b2=\"\"\"\";res2.on\\(\"\"data\"\",c=>b2+=c\\);res2.on\\(\"\"end\"\",\\(\\)=>{const items=JSON.parse\\(b2\\);items.forEach\\(a=>console.log\\(a.id,a.status,a.program.name\\)\\)}\\)}\\);req2.end\\(\\)}else{console.log\\(\"\"no token\"\",body\\)}}\\)}\\);req.write\\(data\\);req.end\\(\\)')",
+      "Bash(grep -n \"sessionExercise\\\\|exercise\\\\.\" /Users/prashantpalikhe/Projects/OpenSource/workout-app/apps/web/app/pages/sessions/[id].vue)",
+      "Bash(pnpm --filter api prisma migrate dev --name add-session-exercise-notes)",
+      "Bash(npx prisma:*)"
     ]
   }
 }

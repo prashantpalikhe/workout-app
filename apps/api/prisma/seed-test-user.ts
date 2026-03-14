@@ -182,6 +182,17 @@ async function cleanAllTestData(prisma: PrismaClient) {
     await prisma.trainerAthlete.deleteMany({
       where: { OR: [{ trainerId: userId }, { athleteId: userId }] },
     });
+
+    // Delete program assignments and programs created by this user
+    await prisma.programAssignment.deleteMany({
+      where: { OR: [{ athleteId: userId }, { assignedById: userId }] },
+    });
+    await prisma.programExercise.deleteMany({
+      where: { program: { createdById: userId } },
+    });
+    await prisma.program.deleteMany({
+      where: { createdById: userId },
+    });
   }
 
   // Delete all test user records (cascades handle profiles, settings, tokens)
@@ -644,6 +655,140 @@ async function createTrainerRelationships(prisma: PrismaClient) {
 }
 
 // ────────────────────────────────────────────
+// Program & Assignment Seeding
+// ────────────────────────────────────────────
+
+interface ProgramTemplate {
+  name: string;
+  description: string;
+  exercises: Array<{
+    name: string; // must match global exercise name
+    targetSets: number;
+    targetReps: string;
+    restSec: number;
+  }>;
+}
+
+const PROGRAM_TEMPLATES: ProgramTemplate[] = [
+  {
+    name: 'Push Pull Legs',
+    description: 'Classic 3-day split covering push, pull, and leg movements',
+    exercises: [
+      { name: 'Barbell Bench Press', targetSets: 4, targetReps: '5-8', restSec: 180 },
+      { name: 'Barbell Overhead Press', targetSets: 3, targetReps: '6-10', restSec: 120 },
+      { name: 'Incline Dumbbell Press', targetSets: 3, targetReps: '8-12', restSec: 90 },
+      { name: 'Conventional Deadlift', targetSets: 3, targetReps: '3-5', restSec: 180 },
+      { name: 'Cable Lat Pulldown', targetSets: 3, targetReps: '8-12', restSec: 90 },
+      { name: 'Barbell Bent-Over Row', targetSets: 3, targetReps: '6-10', restSec: 120 },
+      { name: 'Barbell Back Squat', targetSets: 4, targetReps: '5-8', restSec: 180 },
+      { name: 'Romanian Deadlift', targetSets: 3, targetReps: '8-10', restSec: 120 },
+      { name: 'Leg Press', targetSets: 3, targetReps: '10-12', restSec: 90 },
+    ],
+  },
+  {
+    name: 'Upper Lower Split',
+    description: 'Alternating upper and lower body sessions',
+    exercises: [
+      { name: 'Dumbbell Bench Press', targetSets: 3, targetReps: '8-12', restSec: 90 },
+      { name: 'Cable Lat Pulldown', targetSets: 3, targetReps: '8-12', restSec: 90 },
+      { name: 'Dumbbell Shoulder Press', targetSets: 3, targetReps: '8-12', restSec: 90 },
+      { name: 'Cable Bicep Curl', targetSets: 3, targetReps: '10-15', restSec: 60 },
+      { name: 'Cable Tricep Pushdown', targetSets: 3, targetReps: '10-15', restSec: 60 },
+      { name: 'Barbell Back Squat', targetSets: 4, targetReps: '6-10', restSec: 180 },
+      { name: 'Romanian Deadlift', targetSets: 3, targetReps: '8-12', restSec: 120 },
+      { name: 'Leg Press', targetSets: 3, targetReps: '10-15', restSec: 90 },
+      { name: 'Leg Curl', targetSets: 3, targetReps: '10-15', restSec: 60 },
+      { name: 'Calf Raise Machine', targetSets: 3, targetReps: '12-15', restSec: 60 },
+    ],
+  },
+  {
+    name: 'Full Body Basics',
+    description: 'Beginner-friendly full body routine with compound movements',
+    exercises: [
+      { name: 'Barbell Overhead Press', targetSets: 3, targetReps: '6-10', restSec: 120 },
+      { name: 'Barbell Bent-Over Row', targetSets: 3, targetReps: '8-12', restSec: 120 },
+      { name: 'Bulgarian Split Squat', targetSets: 3, targetReps: '8-12', restSec: 90 },
+      { name: 'Dumbbell Lateral Raise', targetSets: 3, targetReps: '12-15', restSec: 60 },
+      { name: 'Plank', targetSets: 3, targetReps: '30-60s', restSec: 60 },
+    ],
+  },
+];
+
+async function seedProgramsAndAssignments(prisma: PrismaClient) {
+  // Look up all exercise names used by program templates
+  const exerciseNames = new Set<string>();
+  for (const tmpl of PROGRAM_TEMPLATES) {
+    for (const ex of tmpl.exercises) exerciseNames.add(ex.name);
+  }
+
+  const dbExercises = await prisma.exercise.findMany({
+    where: { name: { in: [...exerciseNames] }, isGlobal: true },
+    select: { id: true, name: true },
+  });
+  const exerciseMap = new Map(dbExercises.map((e) => [e.name, e.id]));
+
+  for (const name of exerciseNames) {
+    if (!exerciseMap.has(name)) {
+      throw new Error(`Global exercise "${name}" not found for program seeding.`);
+    }
+  }
+
+  // Create programs owned by Trainer One
+  const programIds: string[] = [];
+  for (const tmpl of PROGRAM_TEMPLATES) {
+    const program = await prisma.program.create({
+      data: {
+        createdById: TRAINER1_ID,
+        name: tmpl.name,
+        description: tmpl.description,
+        exercises: {
+          create: tmpl.exercises.map((ex, i) => ({
+            exerciseId: exerciseMap.get(ex.name)!,
+            sortOrder: i,
+            targetSets: ex.targetSets,
+            targetReps: ex.targetReps,
+            restSec: ex.restSec,
+          })),
+        },
+      },
+    });
+    programIds.push(program.id);
+  }
+
+  // Assign programs to athletes
+  // Athlete 1 → "Push Pull Legs"
+  await prisma.programAssignment.create({
+    data: {
+      programId: programIds[0],
+      athleteId: ATHLETE1_ID,
+      assignedById: TRAINER1_ID,
+      status: 'ACTIVE',
+    },
+  });
+
+  // Athlete 2 → "Upper Lower Split" + "Full Body Basics"
+  await prisma.programAssignment.create({
+    data: {
+      programId: programIds[1],
+      athleteId: ATHLETE2_ID,
+      assignedById: TRAINER1_ID,
+      status: 'ACTIVE',
+    },
+  });
+
+  await prisma.programAssignment.create({
+    data: {
+      programId: programIds[2],
+      athleteId: ATHLETE2_ID,
+      assignedById: TRAINER1_ID,
+      status: 'ACTIVE',
+    },
+  });
+
+  console.log(`  ✓ ${PROGRAM_TEMPLATES.length} programs created with ${programIds.length} assignments`);
+}
+
+// ────────────────────────────────────────────
 // Public export
 // ────────────────────────────────────────────
 
@@ -721,6 +866,9 @@ export async function seedTestUser(prisma: PrismaClient) {
 
   // ── Relationships ──
   await createTrainerRelationships(prisma);
+
+  // ── Programs & Assignments ──
+  await seedProgramsAndAssignments(prisma);
 
   // ── Summary ──
   console.log('\n  Seed users summary:');

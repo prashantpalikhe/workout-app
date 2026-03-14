@@ -46,7 +46,7 @@ export function useAutoSave(
     }
   }
 
-  onUnmounted(() => cancel())
+  onUnmounted(() => flush())
 
   return { saving, error, schedule, cancel, flush }
 }

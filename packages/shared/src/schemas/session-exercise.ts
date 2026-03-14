@@ -12,5 +12,6 @@ export const updateSessionExerciseInputSchema = z.object({
   isSubstitution: z.boolean().optional(),
   substitutionReason: z.string().max(500).optional(),
   exerciseId: uuidSchema.optional(),
+  notes: z.string().max(1000).optional(),
 });
 export type UpdateSessionExerciseInput = z.infer<typeof updateSessionExerciseInputSchema>;

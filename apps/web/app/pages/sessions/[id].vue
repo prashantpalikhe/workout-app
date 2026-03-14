@@ -168,6 +168,12 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
             </UBadge>
           </div>
 
+          <!-- Exercise notes -->
+          <p v-if="exercise.notes" class="text-sm text-muted mb-3 flex items-center gap-1.5">
+            <UIcon name="i-lucide-message-square" class="size-3.5 shrink-0" />
+            {{ exercise.notes }}
+          </p>
+
           <!-- Sets table -->
           <div v-if="exercise.sets.length > 0" class="overflow-x-auto">
             <table class="w-full text-sm">
@@ -184,38 +190,48 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
                 </tr>
               </thead>
               <tbody>
-                <tr
+                <template
                   v-for="(set, i) in exercise.sets"
                   :key="set.id"
-                  class="border-b border-default last:border-0"
-                  :class="set.completed ? '' : 'opacity-50'"
                 >
-                  <td class="py-1.5 px-2">{{ i + 1 }}</td>
-                  <td class="py-1.5 px-2">{{ formatEnum(set.setType) }}</td>
-                  <td
-                    v-for="(val, vi) in getSetValues(set, exercise.exercise.trackingType)"
-                    :key="vi"
-                    class="py-1.5 px-2"
+                  <tr
+                    :class="[set.completed ? '' : 'opacity-50', set.notes ? '' : 'border-b border-default last:border-0']"
                   >
-                    {{ val }}
-                  </td>
-                  <td class="py-1.5 px-2 flex items-center gap-1">
-                    <UIcon
-                      :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
-                      class="size-4"
-                      :class="set.completed ? 'text-success' : 'text-muted'"
-                    />
-                    <UBadge
-                      v-if="set.personalRecord"
-                      color="warning"
-                      variant="subtle"
-                      size="xs"
+                    <td class="py-1.5 px-2">{{ i + 1 }}</td>
+                    <td class="py-1.5 px-2">{{ formatEnum(set.setType) }}</td>
+                    <td
+                      v-for="(val, vi) in getSetValues(set, exercise.exercise.trackingType)"
+                      :key="vi"
+                      class="py-1.5 px-2"
                     >
-                      <UIcon name="i-lucide-trophy" class="size-3" />
-                      PR
-                    </UBadge>
-                  </td>
-                </tr>
+                      {{ val }}
+                    </td>
+                    <td class="py-1.5 px-2 flex items-center gap-1">
+                      <UIcon
+                        :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
+                        class="size-4"
+                        :class="set.completed ? 'text-success' : 'text-muted'"
+                      />
+                      <UBadge
+                        v-if="set.personalRecord"
+                        color="warning"
+                        variant="subtle"
+                        size="xs"
+                      >
+                        <UIcon name="i-lucide-trophy" class="size-3" />
+                        PR
+                      </UBadge>
+                    </td>
+                  </tr>
+                  <tr v-if="set.notes" class="border-b border-default last:border-0">
+                    <td :colspan="getColumnLabels(exercise.exercise.trackingType).length + 1" class="py-1 px-2">
+                      <p class="text-xs text-muted flex items-center gap-1">
+                        <UIcon name="i-lucide-message-square" class="size-3 shrink-0" />
+                        {{ set.notes }}
+                      </p>
+                    </td>
+                  </tr>
+                </template>
               </tbody>
             </table>
           </div>

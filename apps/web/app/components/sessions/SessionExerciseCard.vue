@@ -17,8 +17,27 @@ const toast = useToast()
 const { formatEnum } = useFormatEnum()
 
 const addingSet = ref(false)
+const showNotes = ref(!!props.exercise.notes)
+const notesText = ref(props.exercise.notes ?? '')
 
 const trackingType = computed(() => props.exercise.exercise.trackingType)
+
+// Sync notes from prop
+watch(
+  () => props.exercise.notes,
+  (v) => { notesText.value = v ?? '' },
+)
+
+const { schedule: scheduleNoteSave } = useAutoSave(
+  async () => {
+    await sessionStore.updateExercise(
+      props.sessionId,
+      props.exercise.id,
+      { notes: notesText.value.trim() || undefined },
+    )
+  },
+  { debounceMs: 600 },
+)
 
 async function addSet() {
   addingSet.value = true
@@ -94,14 +113,35 @@ const dropdownItems = computed(() => [
           Substituted
         </UBadge>
       </div>
-      <UDropdownMenu :items="dropdownItems">
+      <div class="flex items-center gap-1 shrink-0">
         <UButton
-          icon="i-lucide-ellipsis-vertical"
+          icon="i-lucide-message-square"
           color="neutral"
-          variant="ghost"
+          :variant="showNotes ? 'soft' : 'ghost'"
           size="xs"
+          aria-label="Toggle notes"
+          @click="showNotes = !showNotes"
         />
-      </UDropdownMenu>
+        <UDropdownMenu :items="dropdownItems">
+          <UButton
+            icon="i-lucide-ellipsis-vertical"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+          />
+        </UDropdownMenu>
+      </div>
+    </div>
+
+    <!-- Notes -->
+    <div v-if="showNotes" class="mb-3">
+      <UTextarea
+        v-model="notesText"
+        placeholder="Add notes for this exercise..."
+        :rows="2"
+        size="sm"
+        @blur="scheduleNoteSave()"
+      />
     </div>
 
     <!-- Column headers -->

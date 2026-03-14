@@ -35,6 +35,7 @@ export interface SessionExercise {
   sortOrder: number
   isSubstitution: boolean
   substitutionReason: string | null
+  notes: string | null
   prescribedExerciseId: string | null
   prescribedExercise: { restSec: number | null } | null
   exercise: {

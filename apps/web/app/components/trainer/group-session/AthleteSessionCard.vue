@@ -16,6 +16,7 @@ const emit = defineEmits<{
   'delete-set': [exerciseId: string, setId: string]
   'add-exercise': []
   'remove-exercise': [exerciseId: string]
+  'update-exercise': [exerciseId: string, data: Record<string, unknown>]
   'next-exercise': []
   'prev-exercise': []
   'complete': []
@@ -25,6 +26,29 @@ const emit = defineEmits<{
 }>()
 
 const { formatEnum } = useFormatEnum()
+
+// Notes
+const showNotes = ref(!!props.currentExercise?.notes)
+const notesText = ref(props.currentExercise?.notes ?? '')
+
+watch(
+  () => props.currentExercise,
+  (ex) => {
+    showNotes.value = !!ex?.notes
+    notesText.value = ex?.notes ?? ''
+  },
+)
+
+const { schedule: scheduleNoteSave } = useAutoSave(
+  async () => {
+    if (props.currentExercise) {
+      emit('update-exercise', props.currentExercise.id, {
+        notes: notesText.value.trim() || undefined,
+      })
+    }
+  },
+  { debounceMs: 600 },
+)
 
 const dropdownItems = computed(() => [
   [
@@ -156,6 +180,15 @@ const isReady = computed(() => restTimer.value.isCompleted.value)
         </div>
 
         <UButton
+          icon="i-lucide-message-square"
+          size="xs"
+          :variant="showNotes ? 'soft' : 'ghost'"
+          color="neutral"
+          aria-label="Toggle notes"
+          @click="showNotes = !showNotes"
+        />
+
+        <UButton
           icon="i-lucide-clock-3"
           size="xs"
           variant="ghost"
@@ -171,6 +204,17 @@ const isReady = computed(() => restTimer.value.isCompleted.value)
           color="neutral"
           :disabled="exerciseIndex >= exerciseCount - 1"
           @click="emit('next-exercise')"
+        />
+      </div>
+
+      <!-- Notes -->
+      <div v-if="showNotes" class="mb-3">
+        <UTextarea
+          v-model="notesText"
+          placeholder="Exercise notes..."
+          :rows="2"
+          size="sm"
+          @blur="scheduleNoteSave()"
         />
       </div>
 

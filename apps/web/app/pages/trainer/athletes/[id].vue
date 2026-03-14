@@ -85,6 +85,7 @@ interface Assignment {
 
 const assignments = ref<Assignment[]>([])
 const assignmentsLoading = ref(false)
+const assignmentsLoaded = ref(false)
 const showAssignModal = ref(false)
 
 // ── Active session ──────────────────────────────
@@ -93,13 +94,16 @@ const activeSession = ref<Session | null>(null)
 // ── Initial load ────────────────────────────────
 onMounted(async () => {
   try {
-    const [profile, statsData, activeData] = await Promise.all([
+    const [profile, statsData, activeData, assignmentsData] = await Promise.all([
       trainerStore.fetchAthleteProfile(athleteId),
       api<OverviewStats>(`/trainer/athletes/${athleteId}/stats`),
       api<Session | null>(`/trainer/athletes/${athleteId}/sessions/active`),
+      api<Assignment[]>(`/trainer/athletes/${athleteId}/assignments`),
     ])
     stats.value = statsData
     activeSession.value = activeData
+    assignments.value = assignmentsData
+    assignmentsLoaded.value = true
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
     error.value = fetchError?.data?.message || 'Failed to load athlete data'
@@ -113,7 +117,7 @@ watch(activeTab, async (tab) => {
   if (tab === 'workouts' && sessions.value.length === 0) {
     await loadSessions()
   }
-  if (tab === 'programs' && assignments.value.length === 0) {
+  if (tab === 'programs' && !assignmentsLoaded.value) {
     await loadAssignments()
   }
   if (tab === 'records' && records.value.length === 0) {
@@ -153,6 +157,7 @@ async function loadAssignments() {
     assignments.value = await api<Assignment[]>(
       `/trainer/athletes/${athleteId}/assignments`,
     )
+    assignmentsLoaded.value = true
   } finally {
     assignmentsLoading.value = false
   }
@@ -172,18 +177,43 @@ async function cancelAssignment(assignmentId: string) {
 const showStartModal = ref(false)
 const startingSession = ref(false)
 const sessionName = ref('')
+const selectedAssignmentId = ref<string | null>(null)
+
+const activeAssignments = computed(() =>
+  assignments.value.filter((a) => a.status === 'ACTIVE'),
+)
+
+
+watch(selectedAssignmentId, (id) => {
+  if (id) {
+    const assignment = assignments.value.find((a) => a.id === id)
+    if (assignment) sessionName.value = assignment.program.name
+  } else {
+    sessionName.value = ''
+  }
+})
+
+watch(showStartModal, (open) => {
+  if (open) {
+    selectedAssignmentId.value = null
+    sessionName.value = ''
+  }
+})
 
 async function startSession() {
   startingSession.value = true
   try {
     await api(`/trainer/athletes/${athleteId}/sessions/start`, {
       method: 'POST',
-      body: { name: sessionName.value || undefined },
+      body: {
+        name: sessionName.value || undefined,
+        programAssignmentId: selectedAssignmentId.value || undefined,
+      },
     })
     toast.add({ title: 'Workout started for athlete', color: 'success' })
     showStartModal.value = false
     sessionName.value = ''
-    // Navigate to the trainer session page to log the workout
+    selectedAssignmentId.value = null
     router.push(`/trainer/session/${athleteId}`)
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
@@ -534,7 +564,23 @@ function formatPRValue(prType: string, value: number) {
             This will start a workout session on behalf of
             <span class="font-medium">{{ trainerStore.athleteProfile?.firstName }}</span>.
           </p>
-          <UFormField label="Session Name (optional)">
+          <UFormField v-if="activeAssignments.length > 0" label="Program">
+            <select
+              :value="selectedAssignmentId ?? ''"
+              class="w-full rounded-md bg-default ring ring-accented text-highlighted px-3 py-2 text-sm focus:outline-primary"
+              @change="selectedAssignmentId = ($event.target as HTMLSelectElement).value || null"
+            >
+              <option value="">Freestyle (no program)</option>
+              <option
+                v-for="a in activeAssignments"
+                :key="a.id"
+                :value="a.id"
+              >
+                {{ a.program.name }}
+              </option>
+            </select>
+          </UFormField>
+          <UFormField label="Session Name" :hint="selectedAssignmentId ? 'Auto-filled from program' : 'Optional'">
             <UInput
               v-model="sessionName"
               placeholder="e.g. Upper Body"

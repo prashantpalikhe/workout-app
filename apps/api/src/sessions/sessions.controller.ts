@@ -40,6 +40,13 @@ export class SessionsController {
 
   // IMPORTANT: literal paths must come before :id to avoid param collision
 
+  @Get('assignments')
+  @ApiOperation({ summary: 'List my active program assignments' })
+  @ApiOkResponse({ description: 'Active program assignments with program name' })
+  async myAssignments(@CurrentUser('sub') userId: string) {
+    return this.sessionsService.listStartablePrograms(userId);
+  }
+
   @Post('start')
   @ApiOperation({ summary: 'Start a new workout session' })
   @ApiBody({ schema: zodToOpenApi(startSessionInputSchema) })

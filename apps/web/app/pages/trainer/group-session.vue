@@ -43,6 +43,7 @@ const completeNotes = ref('')
 const showStartModal = ref(false)
 const startSessionName = ref('')
 const startingSession = ref(false)
+const selectedAssignments = ref(new Map<string, string>()) // athleteId → assignmentId
 
 // ── Initialization ──
 
@@ -56,7 +57,7 @@ onMounted(async () => {
   ])
 
   const athletes = profiles.map((p, i) => ({
-    id: athleteIds.value[i],
+    id: athleteIds.value[i]!,
     name: p ? `${p.firstName} ${p.lastName}` : `Athlete ${i + 1}`,
   }))
 
@@ -156,6 +157,18 @@ async function onDeleteSet(
     await groupSession.deleteSet(athleteId, exerciseId, setId)
   } catch {
     toast.add({ title: 'Failed to delete set', color: 'error' })
+  }
+}
+
+async function onUpdateExercise(
+  athleteId: string,
+  exerciseId: string,
+  data: Record<string, unknown>,
+) {
+  try {
+    await groupSession.updateExercise(athleteId, exerciseId, data as any)
+  } catch {
+    toast.add({ title: 'Failed to update exercise', color: 'error' })
   }
 }
 
@@ -291,9 +304,10 @@ async function endAllAbandon() {
 async function confirmStartAllSessions() {
   startingSession.value = true
   try {
-    await groupSession.startAllSessions({
-      name: startSessionName.value.trim() || undefined,
-    })
+    await groupSession.startAllSessions(
+      { name: startSessionName.value.trim() || undefined },
+      selectedAssignments.value.size > 0 ? selectedAssignments.value : undefined,
+    )
     showStartModal.value = false
     toast.add({ title: 'Sessions started', color: 'success' })
   } catch {
@@ -301,6 +315,7 @@ async function confirmStartAllSessions() {
   } finally {
     startingSession.value = false
     startSessionName.value = ''
+    selectedAssignments.value = new Map()
   }
 }
 
@@ -311,7 +326,7 @@ const earliestStartedAt = computed(() => {
     .filter((s) => s.session)
     .map((s) => s.session!.startedAt)
   if (dates.length === 0) return null
-  return dates.sort()[0]
+  return dates.sort()[0] ?? null
 })
 
 // Exercise picker helpers
@@ -374,6 +389,7 @@ onBeforeRouteLeave((_to, _from, next) => {
           @toggle-set-completed="(...args: [string, string]) => onToggleSetCompleted(slot.athleteId, ...args)"
           @delete-set="(...args: [string, string]) => onDeleteSet(slot.athleteId, ...args)"
           @add-exercise="exercisePickerFor = slot.athleteId"
+          @update-exercise="(...args: [string, Record<string, unknown>]) => onUpdateExercise(slot.athleteId, ...args)"
           @remove-exercise="onRemoveExercise(slot.athleteId, $event)"
           @next-exercise="groupSession.nextExercise(slot.athleteId)"
           @prev-exercise="groupSession.prevExercise(slot.athleteId)"
@@ -496,13 +512,35 @@ onBeforeRouteLeave((_to, _from, next) => {
       @update:open="(v: boolean) => { if (!v) showStartModal = false }"
     >
       <template #body>
-        <div class="space-y-3">
-          <p class="text-sm text-muted">
-            Starting workout for
-            <strong>
-              {{ groupSession.slots.value.filter(s => !s.session).map(s => s.athleteName).join(', ') }}
-            </strong>
-          </p>
+        <div class="space-y-4">
+          <div
+            v-for="slot in groupSession.slots.value.filter(s => !s.session)"
+            :key="slot.athleteId"
+            class="space-y-1"
+          >
+            <p class="text-sm font-medium">{{ slot.athleteName }}</p>
+            <select
+              v-if="slot.assignments.length > 0"
+              :value="selectedAssignments.get(slot.athleteId) ?? ''"
+              class="w-full rounded-md bg-default ring ring-accented text-highlighted px-2.5 py-1.5 text-sm focus:outline-primary"
+              @change="(e: Event) => {
+                const v = (e.target as HTMLSelectElement).value
+                if (v) selectedAssignments.set(slot.athleteId, v)
+                else selectedAssignments.delete(slot.athleteId)
+              }"
+            >
+              <option value="">Freestyle (no program)</option>
+              <option
+                v-for="a in slot.assignments"
+                :key="a.id"
+                :value="a.id"
+              >
+                {{ a.program.name }}
+              </option>
+            </select>
+            <p v-else class="text-xs text-muted">Freestyle (no programs assigned)</p>
+          </div>
+
           <UFormField label="Session Name (optional)">
             <UInput
               v-model="startSessionName"
