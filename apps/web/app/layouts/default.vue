@@ -30,18 +30,22 @@ const navItems = computed<NavigationMenuItem[]>(() => [
     to: '/sessions',
     active: route.path.startsWith('/sessions')
   },
-  {
-    label: 'Records',
-    icon: 'i-lucide-trophy',
-    to: '/records',
-    active: route.path === '/records'
-  },
-  ...(authStore.user?.isTrainer ? [{
-    label: 'Athletes',
-    icon: 'i-lucide-users',
-    to: '/trainer/athletes',
-    active: route.path.startsWith('/trainer')
-  }] : []),
+  // {
+  //   label: 'Records',
+  //   icon: 'i-lucide-trophy',
+  //   to: '/records',
+  //   active: route.path === '/records'
+  // },
+  ...(authStore.user?.isTrainer
+    ? [
+        {
+          label: 'Athletes',
+          icon: 'i-lucide-users',
+          to: '/trainer/athletes',
+          active: route.path.startsWith('/trainer')
+        }
+      ]
+    : []),
   {
     label: 'Profile',
     icon: 'i-lucide-user',
@@ -66,9 +70,15 @@ const navItems = computed<NavigationMenuItem[]>(() => [
       :ui="{ footer: 'border-t border-default' }"
     >
       <template #header="{ collapsed }">
-        <NuxtLink to="/dashboard" class="flex items-center gap-2" :class="collapsed ? 'justify-center w-full' : ''">
+        <NuxtLink
+          to="/dashboard"
+          class="flex items-center gap-2"
+          :class="collapsed ? 'justify-center w-full' : ''"
+        >
           <div class="size-8 rounded-full bg-primary shrink-0" />
-          <span v-if="!collapsed" class="font-semibold text-lg truncate">Workout</span>
+          <span v-if="!collapsed" class="font-semibold text-lg truncate"
+            >Workout</span
+          >
         </NuxtLink>
       </template>
 
@@ -83,7 +93,11 @@ const navItems = computed<NavigationMenuItem[]>(() => [
       </template>
 
       <template #footer="{ collapsed }">
-        <div v-if="authStore.user" class="flex items-center w-full" :class="collapsed ? 'justify-center' : 'gap-2'">
+        <div
+          v-if="authStore.user"
+          class="flex items-center w-full"
+          :class="collapsed ? 'justify-center' : 'gap-2'"
+        >
           <UAvatar
             :src="authStore.user?.avatarUrl || undefined"
             :alt="authStore.fullName"
@@ -91,7 +105,9 @@ const navItems = computed<NavigationMenuItem[]>(() => [
             class="shrink-0"
           />
           <template v-if="!collapsed">
-            <span class="text-sm font-medium truncate flex-1">{{ authStore.fullName }}</span>
+            <span class="text-sm font-medium truncate flex-1">{{
+              authStore.fullName
+            }}</span>
             <UButton
               icon="i-lucide-log-out"
               color="neutral"
@@ -102,7 +118,11 @@ const navItems = computed<NavigationMenuItem[]>(() => [
             />
           </template>
         </div>
-        <div v-else class="flex items-center w-full" :class="collapsed ? 'justify-center' : 'gap-2'">
+        <div
+          v-else
+          class="flex items-center w-full"
+          :class="collapsed ? 'justify-center' : 'gap-2'"
+        >
           <USkeleton class="size-8 rounded-full shrink-0" />
           <template v-if="!collapsed">
             <USkeleton class="h-4 flex-1 rounded" />
@@ -113,7 +133,9 @@ const navItems = computed<NavigationMenuItem[]>(() => [
 
     <div class="flex-1 overflow-y-auto min-h-svh">
       <!-- Mobile header with hamburger -->
-      <div class="lg:hidden flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default">
+      <div
+        class="lg:hidden flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default"
+      >
         <UButton
           icon="i-lucide-menu"
           color="neutral"

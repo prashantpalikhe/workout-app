@@ -10,6 +10,7 @@ const route = useRoute()
 const programStore = useProgramStore()
 const toast = useToast()
 
+const authStore = useAuthStore()
 const programId = computed(() => route.params.id as string)
 
 // Modal state
@@ -30,6 +31,7 @@ watch(programId, (id) => {
 })
 
 const program = computed(() => programStore.selectedProgram)
+const isOwner = computed(() => program.value?.createdById === authStore.user?.id)
 
 // Writable computed for vuedraggable v-model
 const exerciseList = computed({
@@ -116,7 +118,7 @@ async function onDeleteConfirm() {
         :title="program.name"
         :description="program.description || undefined"
       >
-        <template #links>
+        <template v-if="isOwner" #links>
           <UButton
             label="Edit"
             icon="i-lucide-pencil"
@@ -139,11 +141,15 @@ async function onDeleteConfirm() {
         </template>
       </UPageHeader>
 
-      <!-- Folder badge -->
-      <div v-if="program.folder" class="mb-6">
-        <UBadge variant="subtle" size="sm">
+      <!-- Badges -->
+      <div v-if="program.folder || program.assignedBy" class="flex items-center gap-2 mb-6">
+        <UBadge v-if="program.folder" variant="subtle" size="sm">
           <UIcon name="i-lucide-folder" class="size-3 mr-1" />
           {{ program.folder.name }}
+        </UBadge>
+        <UBadge v-if="program.assignedBy" color="primary" variant="subtle" size="sm">
+          <UIcon name="i-lucide-user-check" class="size-3 mr-1" />
+          Assigned by {{ program.assignedBy.firstName }} {{ program.assignedBy.lastName }}
         </UBadge>
       </div>
 
@@ -153,6 +159,7 @@ async function onDeleteConfirm() {
         v-model="exerciseList"
         item-key="id"
         handle=".drag-handle"
+        :disabled="!isOwner"
         :animation="200"
         ghost-class="opacity-50"
         class="space-y-3"
@@ -161,6 +168,7 @@ async function onDeleteConfirm() {
         <template #item="{ element }">
           <ProgramsProgramExerciseCard
             :exercise="element"
+            :readonly="!isOwner"
             @remove="onRemoveExercise(element)"
           />
         </template>
@@ -168,14 +176,15 @@ async function onDeleteConfirm() {
 
       <!-- Empty exercise state -->
       <div
-        v-else
+        v-if="!program.exercises.length"
         class="text-center py-12 border border-dashed border-default rounded-lg"
       >
         <UIcon name="i-lucide-dumbbell" class="size-10 text-muted mx-auto mb-3" />
         <p class="text-muted mb-4">
-          No exercises yet. Add exercises from the library.
+          {{ isOwner ? 'No exercises yet. Add exercises from the library.' : 'No exercises in this program.' }}
         </p>
         <UButton
+          v-if="isOwner"
           label="Add Exercise"
           icon="i-lucide-plus"
           @click="showExercisePicker = true"

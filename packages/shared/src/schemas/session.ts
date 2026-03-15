@@ -23,6 +23,7 @@ export const updateSessionInputSchema = z.object({
 export type UpdateSessionInput = z.infer<typeof updateSessionInputSchema>;
 
 export const sessionHistoryFilterSchema = paginationSchema.extend({
+  search: z.string().max(100).optional(),
   status: z.enum(WORKOUT_SESSION_STATUSES as [string, ...string[]]).optional(),
   fromDate: dateStringSchema.optional(),
   toDate: dateStringSchema.optional(),

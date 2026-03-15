@@ -100,6 +100,8 @@ async function toggleCompleted() {
 
       // Check for PRs in the background
       sessionStore.checkPR(props.globalExerciseId, {
+        sessionId: props.sessionId,
+        excludeSetId: props.set.id,
         weight: form.weight || undefined,
         reps: form.reps || undefined,
         durationSec: form.durationSec || undefined,
@@ -264,26 +266,21 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       @keyup.enter="onInputEnter"
     />
 
-    <!-- Complete button -->
+    <!-- Complete button (shows trophy instead of checkmark when PR) -->
     <button
       class="flex items-center justify-center size-8 shrink-0 rounded-md transition-colors"
-      :class="set.completed
-        ? 'text-success bg-success/10'
-        : 'text-muted hover:text-default hover:bg-elevated'"
+      :class="prResult
+        ? 'text-warning bg-warning/10'
+        : set.completed
+          ? 'text-success bg-success/10'
+          : 'text-muted hover:text-default hover:bg-elevated'"
       :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
       @click="toggleCompleted"
     >
       <UIcon
-        :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
+        :name="prResult ? 'i-lucide-trophy' : set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
         class="size-5"
       />
     </button>
-
-    <!-- PR icon -->
-    <UIcon
-      v-if="prResult"
-      name="i-lucide-trophy"
-      class="size-4 shrink-0 text-warning"
-    />
   </div>
 </template>

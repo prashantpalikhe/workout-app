@@ -12,6 +12,7 @@ import {
   UseGuards,
   ForbiddenException,
   NotFoundException,
+  ConflictException,
 } from '@nestjs/common';
 import {
   ApiTags,
@@ -30,6 +31,7 @@ import {
 } from '@workout/shared';
 import type { ProgramAssignmentStatus } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma';
+import { ProgramsService } from '../programs';
 import { CurrentUser, ZodValidationPipe, zodToOpenApi, IsTrainer } from '../common';
 import { TrainerGuard } from '../common/guards/trainer.guard';
 
@@ -39,7 +41,10 @@ import { TrainerGuard } from '../common/guards/trainer.guard';
 @UseGuards(TrainerGuard)
 @Controller('trainer')
 export class TrainerAssignmentsController {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    private readonly programsService: ProgramsService,
+  ) {}
 
   @Get('athletes/:athleteId/assignments')
   @ApiOperation({ summary: "List athlete's program assignments" })
@@ -54,7 +59,7 @@ export class TrainerAssignmentsController {
     return this.prisma.programAssignment.findMany({
       where: { athleteId, assignedById: trainerId },
       include: {
-        program: { select: { id: true, name: true } },
+        program: { select: { id: true, name: true, sourceProgramId: true } },
       },
       orderBy: { assignedAt: 'desc' },
     });
@@ -89,16 +94,39 @@ export class TrainerAssignmentsController {
       );
     }
 
+    // Prevent duplicate active assignment of the same program template
+    const existingAssignment = await this.prisma.programAssignment.findFirst({
+      where: {
+        athleteId: dto.athleteId,
+        assignedById: trainerId,
+        status: 'ACTIVE',
+        program: { sourceProgramId: dto.programId },
+      },
+    });
+
+    if (existingAssignment) {
+      throw new ConflictException(
+        'This program is already assigned to the athlete',
+      );
+    }
+
+    // Create an independent copy for the athlete
+    const copiedProgram = await this.programsService.copyProgram(
+      dto.programId,
+      dto.athleteId,
+      trainerId,
+    );
+
     return this.prisma.programAssignment.create({
       data: {
-        programId: dto.programId,
+        programId: copiedProgram.id,
         athleteId: dto.athleteId,
         assignedById: trainerId,
         startDate: dto.startDate ? new Date(dto.startDate) : undefined,
         allowSessionDeviations: dto.allowSessionDeviations,
       },
       include: {
-        program: { select: { id: true, name: true } },
+        program: { select: { id: true, name: true, sourceProgramId: true } },
         athlete: {
           select: { id: true, firstName: true, lastName: true },
         },
@@ -143,9 +171,21 @@ export class TrainerAssignmentsController {
   ) {
     const assignment = await this.findOwnedAssignment(id, trainerId);
 
+    // Get the program to check if it's a copy
+    const program = await this.prisma.program.findUnique({
+      where: { id: assignment.programId },
+    });
+
     await this.prisma.programAssignment.delete({
       where: { id: assignment.id },
     });
+
+    // Also delete the copied program (cascade removes ProgramExercises)
+    if (program?.sourceProgramId) {
+      await this.prisma.program.delete({
+        where: { id: program.id },
+      });
+    }
   }
 
   // ── Helpers ───────────────────────────────────

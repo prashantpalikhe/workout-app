@@ -38,12 +38,15 @@ export interface Program {
   id: string
   createdById: string
   folderId: string | null
+  sourceProgramId: string | null
+  assignedById: string | null
   name: string
   description: string | null
   createdAt: string
   updatedAt: string
   exercises: ProgramExercise[]
   folder: ProgramFolder | null
+  assignedBy: { id: string; firstName: string; lastName: string } | null
 }
 
 export const useProgramStore = defineStore('programs', () => {

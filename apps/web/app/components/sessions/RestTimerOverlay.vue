@@ -118,11 +118,19 @@ const strokeDashoffset = computed(() => circumference * (1 - props.progress))
         <div class="flex items-center gap-1.5 shrink-0">
           <UButton
             v-if="!isCompleted"
-            label="+30s"
+            label="-15s"
             size="xs"
             color="neutral"
             variant="soft"
-            @click="emit('add-time', 30)"
+            @click="emit('add-time', -15)"
+          />
+          <UButton
+            v-if="!isCompleted"
+            label="+15s"
+            size="xs"
+            color="neutral"
+            variant="soft"
+            @click="emit('add-time', 15)"
           />
           <UButton
             :label="isCompleted ? 'Dismiss' : 'Skip'"

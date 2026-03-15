@@ -84,6 +84,25 @@ export const useSessionStore = defineStore('sessions', () => {
   const selectedSession = ref<WorkoutSession | null>(null)
   const detailLoading = ref(false)
 
+  // ── Filters ──
+  const filters = reactive({
+    search: '',
+    status: undefined as string | undefined,
+    page: 1,
+    limit: 20,
+  })
+
+  const hasActiveFilters = computed(() =>
+    !!filters.search || !!filters.status
+  )
+
+  function resetFilters() {
+    filters.search = ''
+    filters.status = undefined
+    filters.page = 1
+    fetchSessions()
+  }
+
   // ── Trainer Mode ──
   // When set, all session API calls route through /trainer/athletes/:id/sessions/...
   const trainerAthleteId = ref<string | null>(null)
@@ -155,16 +174,19 @@ export const useSessionStore = defineStore('sessions', () => {
 
   // ── Session History ──
 
-  async function fetchSessions(filters: Partial<SessionHistoryFilter> = {}) {
+  async function fetchSessions(overrides: Partial<SessionHistoryFilter> = {}) {
     loading.value = true
     try {
       const query: Record<string, string | number> = {
-        page: filters.page ?? 1,
-        limit: filters.limit ?? 20
+        page: overrides.page ?? filters.page,
+        limit: overrides.limit ?? filters.limit,
       }
-      if (filters.status) query.status = filters.status
-      if (filters.fromDate) query.fromDate = filters.fromDate
-      if (filters.toDate) query.toDate = filters.toDate
+      const search = overrides.search ?? filters.search
+      const status = overrides.status ?? filters.status
+      if (search) query.search = search
+      if (status) query.status = status
+      if (overrides.fromDate) query.fromDate = overrides.fromDate
+      if (overrides.toDate) query.toDate = overrides.toDate
 
       const result = await api<PaginatedResponse>(sessionsBase(), { query })
       sessions.value = result.data
@@ -292,7 +314,7 @@ export const useSessionStore = defineStore('sessions', () => {
     }
   }
 
-  async function checkPR(exerciseId: string, setData: { weight?: number; reps?: number; durationSec?: number; distance?: number }) {
+  async function checkPR(exerciseId: string, setData: { sessionId?: string; excludeSetId?: string; weight?: number; reps?: number; durationSec?: number; distance?: number }) {
     return api<{ isPR: boolean; prTypes: { type: string; label: string }[] }>(
       '/records/check-pr',
       { method: 'POST', body: { exerciseId, ...setData } }
@@ -313,6 +335,10 @@ export const useSessionStore = defineStore('sessions', () => {
     isTrainerMode,
     enterTrainerMode,
     exitTrainerMode,
+    // Filters
+    filters,
+    hasActiveFilters,
+    resetFilters,
     // Getters
     hasActiveSession,
     // Session lifecycle

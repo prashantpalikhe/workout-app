@@ -65,7 +65,7 @@ export class SessionsService {
     // 2. The athlete's own programs (not already covered by an assignment)
     const assignedProgramIds = new Set(assignments.map((a) => a.programId));
     const ownPrograms = await this.prisma.program.findMany({
-      where: { createdById: userId },
+      where: { createdById: userId, assignedById: null },
       select: { id: true, name: true },
       orderBy: { name: 'asc' },
     });
@@ -123,12 +123,12 @@ export class SessionsService {
   }
 
   async findAll(userId: string, filters: SessionHistoryFilter) {
-    const { page, limit, status, fromDate, toDate } = filters;
+    const { page, limit, search, status, fromDate, toDate } = filters;
 
     const where: Record<string, unknown> = {
       athleteId: userId,
       status: status ? status : { not: 'IN_PROGRESS' as const },
-      ...(fromDate && { startedAt: { gte: new Date(fromDate) } }),
+      ...(search && { name: { contains: search, mode: 'insensitive' } }),
     };
 
     // Merge date filters on startedAt

@@ -31,11 +31,14 @@ export class ProgramsService {
       orderBy: { sortOrder: 'asc' as const },
     },
     folder: true,
+    assignedBy: {
+      select: { id: true, firstName: true, lastName: true },
+    },
   };
 
   async findAll(userId: string) {
     return this.prisma.program.findMany({
-      where: { createdById: userId },
+      where: { createdById: userId, assignedById: null },
       include: this.programInclude,
       orderBy: [{ updatedAt: 'desc' }],
     });
@@ -88,6 +91,46 @@ export class ProgramsService {
     this.assertOwnership(program, userId);
 
     await this.prisma.program.delete({ where: { id } });
+  }
+
+  async copyProgram(
+    sourceProgramId: string,
+    newOwnerId: string,
+    assignedById: string,
+  ) {
+    const source = await this.prisma.program.findUnique({
+      where: { id: sourceProgramId },
+      include: { exercises: true },
+    });
+
+    if (!source) {
+      throw new NotFoundException(
+        `Program with id "${sourceProgramId}" not found`,
+      );
+    }
+
+    return this.prisma.program.create({
+      data: {
+        name: source.name,
+        description: source.description,
+        createdById: newOwnerId,
+        sourceProgramId: source.id,
+        assignedById,
+        exercises: {
+          create: source.exercises.map((e) => ({
+            exerciseId: e.exerciseId,
+            sortOrder: e.sortOrder,
+            targetSets: e.targetSets,
+            targetReps: e.targetReps,
+            targetRpe: e.targetRpe,
+            targetTempo: e.targetTempo,
+            restSec: e.restSec,
+            notes: e.notes,
+          })),
+        },
+      },
+      include: this.programInclude,
+    });
   }
 
   // Program Exercise methods

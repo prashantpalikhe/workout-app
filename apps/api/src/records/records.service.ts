@@ -247,19 +247,55 @@ export class RecordsService {
       },
     };
 
+    // Also fetch completed sets from the current session for this exercise,
+    // so we compare against in-session bests (not just saved PR records)
+    let sessionSets: SetWithExercise[] = [];
+    if (input.sessionId) {
+      sessionSets = await this.prisma.sessionSet.findMany({
+        where: {
+          completed: true,
+          ...(input.excludeSetId && { id: { not: input.excludeSetId } }),
+          sessionExercise: {
+            workoutSessionId: input.sessionId,
+            exerciseId: input.exerciseId,
+            workoutSession: { athleteId: userId },
+          },
+        },
+        include: {
+          sessionExercise: {
+            select: {
+              exerciseId: true,
+              exercise: { select: { trackingType: true } },
+            },
+          },
+        },
+      });
+    }
+
     const prTypes: { type: string; label: string }[] = [];
 
     for (const prType of applicablePRTypes) {
       const candidate = this.computeCandidate(prType, [fakeSet]);
       if (!candidate) continue;
 
+      // Check against saved PR records
       const existingBest = await this.prisma.personalRecord.findFirst({
         where: { athleteId: userId, exerciseId: input.exerciseId, prType },
         orderBy: { value: 'desc' },
         select: { value: true },
       });
 
-      if (!existingBest || candidate.value > existingBest.value) {
+      // Check against in-session completed sets
+      const sessionBest = sessionSets.length > 0
+        ? this.computeCandidate(prType, sessionSets)
+        : null;
+
+      const bestValue = Math.max(
+        existingBest?.value ?? 0,
+        sessionBest?.value ?? 0,
+      );
+
+      if (bestValue === 0 || candidate.value > bestValue) {
         const label =
           prType === PersonalRecordType.ONE_REP_MAX
             ? '1RM'

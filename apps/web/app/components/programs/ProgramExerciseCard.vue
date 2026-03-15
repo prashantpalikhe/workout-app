@@ -3,6 +3,7 @@ import type { ProgramExercise } from '~/stores/programs'
 
 const props = defineProps<{
   exercise: ProgramExercise
+  readonly?: boolean
 }>()
 
 defineEmits<{
@@ -70,6 +71,7 @@ function onInputEnter(event: Event) {
   <div class="border border-default rounded-lg p-4 flex gap-3 items-start group">
     <!-- Drag handle -->
     <div
+      v-if="!readonly"
       class="drag-handle cursor-grab active:cursor-grabbing pt-1 text-muted opacity-50 group-hover:opacity-100 transition-opacity touch-none"
     >
       <UIcon name="i-lucide-grip-vertical" class="size-5" />
@@ -93,6 +95,7 @@ function onInputEnter(event: Event) {
           <span v-if="saving" class="text-xs text-muted animate-pulse">Saving...</span>
           <UIcon v-if="error" name="i-lucide-alert-circle" class="size-4 text-error" />
           <UButton
+            v-if="!readonly"
             icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
@@ -112,6 +115,7 @@ function onInputEnter(event: Event) {
             placeholder="3"
             size="xs"
             :min="1"
+            :disabled="readonly"
             @blur="schedule()"
             @keyup.enter="onInputEnter"
           />
@@ -122,6 +126,7 @@ function onInputEnter(event: Event) {
             v-model="form.targetReps"
             placeholder="8-12"
             size="xs"
+            :disabled="readonly"
             @blur="schedule()"
             @keyup.enter="onInputEnter"
           />
@@ -136,6 +141,7 @@ function onInputEnter(event: Event) {
             :min="1"
             :max="10"
             :step="0.5"
+            :disabled="readonly"
             @blur="schedule()"
             @keyup.enter="onInputEnter"
           />
@@ -146,6 +152,7 @@ function onInputEnter(event: Event) {
             v-model="form.targetTempo"
             placeholder="2-1-1-0"
             size="xs"
+            :disabled="readonly"
             @blur="schedule()"
             @keyup.enter="onInputEnter"
           />
@@ -158,6 +165,7 @@ function onInputEnter(event: Event) {
             placeholder="90"
             size="xs"
             :min="0"
+            :disabled="readonly"
             @blur="schedule()"
             @keyup.enter="onInputEnter"
           />
@@ -167,18 +175,19 @@ function onInputEnter(event: Event) {
       <!-- Notes: collapsible -->
       <div>
         <button
-          v-if="!showNotes"
+          v-if="!showNotes && !readonly"
           class="text-xs text-muted hover:text-default transition-colors"
           @click="showNotes = true"
         >
           + Add notes
         </button>
         <UTextarea
-          v-else
+          v-if="showNotes"
           v-model="form.notes"
           placeholder="Notes..."
           :rows="2"
           size="xs"
+          :disabled="readonly"
           @blur="schedule()"
         />
       </div>

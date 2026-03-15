@@ -56,6 +56,8 @@ function startWorkout() {
       />
     </NuxtLink>
 
+    <SessionsSessionFilters />
+
     <!-- Loading -->
     <div v-if="sessionStore.loading" class="space-y-3">
       <USkeleton class="h-24 w-full rounded-lg" />
@@ -80,7 +82,7 @@ function startWorkout() {
           :model-value="sessionStore.meta.page"
           :total="sessionStore.meta.total"
           :items-per-page="sessionStore.meta.limit"
-          @update:model-value="(page: number) => sessionStore.fetchSessions({ page })"
+          @update:model-value="(page: number) => { sessionStore.filters.page = page; sessionStore.fetchSessions() }"
         />
       </div>
     </div>

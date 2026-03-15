@@ -117,6 +117,7 @@ model User {
   userSettings       UserSettings?
   createdExercises   Exercise[]          @relation("ExerciseCreator")
   programs           Program[]           @relation("ProgramCreator")
+  assignedProgramsCopies Program[]       @relation("ProgramAssigner")
   programFolders     ProgramFolder[]
   trainerRelations   TrainerAthlete[]    @relation("TrainerSide")
   athleteRelations   TrainerAthlete[]    @relation("AthleteSide")
@@ -333,21 +334,28 @@ model ProgramFolder {
 }
 
 model Program {
-  id          String   @id @default(uuid()) @db.Uuid
-  createdById String   @map("created_by") @db.Uuid
-  folderId    String?  @map("folder_id") @db.Uuid
-  name        String
-  description String?
-  createdAt   DateTime @default(now()) @map("created_at")
-  updatedAt   DateTime @updatedAt @map("updated_at")
+  id               String   @id @default(uuid()) @db.Uuid
+  createdById      String   @map("created_by") @db.Uuid
+  folderId         String?  @map("folder_id") @db.Uuid
+  sourceProgramId  String?  @map("source_program_id") @db.Uuid
+  assignedById     String?  @map("assigned_by") @db.Uuid
+  name             String
+  description      String?
+  createdAt        DateTime @default(now()) @map("created_at")
+  updatedAt        DateTime @updatedAt @map("updated_at")
 
-  createdBy   User               @relation("ProgramCreator", fields: [createdById], references: [id], onDelete: Cascade)
-  folder      ProgramFolder?     @relation(fields: [folderId], references: [id], onDelete: SetNull)
-  exercises   ProgramExercise[]
-  assignments ProgramAssignment[]
+  createdBy      User               @relation("ProgramCreator", fields: [createdById], references: [id], onDelete: Cascade)
+  folder         ProgramFolder?     @relation(fields: [folderId], references: [id], onDelete: SetNull)
+  sourceProgram  Program?           @relation("ProgramCopy", fields: [sourceProgramId], references: [id], onDelete: SetNull)
+  copies         Program[]          @relation("ProgramCopy")
+  assignedBy     User?              @relation("ProgramAssigner", fields: [assignedById], references: [id], onDelete: SetNull)
+  exercises      ProgramExercise[]
+  assignments    ProgramAssignment[]
 
   @@index([createdById])
   @@index([folderId])
+  @@index([sourceProgramId])
+  @@index([assignedById])
   @@map("programs")
 }
 

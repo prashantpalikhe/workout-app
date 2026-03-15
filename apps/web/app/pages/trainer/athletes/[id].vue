@@ -58,10 +58,11 @@ const sessionsLoading = ref(false)
 // ── Records ─────────────────────────────────────
 interface PersonalRecord {
   id: string
+  exerciseId: string
+  exerciseName: string
   prType: string
   value: number
-  achievedAt: string
-  exercise: { id: string; name: string }
+  achievedOn: string
 }
 
 interface PaginatedRecords {
@@ -80,7 +81,7 @@ interface Assignment {
   startDate: string | null
   allowSessionDeviations: boolean
   assignedAt: string
-  program: { id: string; name: string }
+  program: { id: string; name: string; sourceProgramId: string | null }
 }
 
 const assignments = ref<Assignment[]>([])
@@ -507,6 +508,7 @@ function formatPRValue(prType: string, value: number) {
           v-model:open="showAssignModal"
           :athlete-id="athleteId"
           :athlete-name="`${trainerStore.athleteProfile?.firstName} ${trainerStore.athleteProfile?.lastName}`"
+          :assigned-program-ids="assignments.filter(a => a.status === 'ACTIVE').map(a => a.program.sourceProgramId).filter(Boolean) as string[]"
           @assigned="loadAssignments"
         />
       </div>
@@ -528,10 +530,10 @@ function formatPRValue(prType: string, value: number) {
           >
             <div class="flex items-center justify-between">
               <div class="min-w-0">
-                <p class="font-medium truncate">{{ pr.exercise.name }}</p>
+                <p class="font-medium truncate">{{ pr.exerciseName }}</p>
                 <p class="text-xs text-muted">
                   {{ pr.prType.replace(/_/g, ' ') }}
-                  · {{ formatDate(pr.achievedAt) }}
+                  · {{ formatDate(pr.achievedOn) }}
                 </p>
               </div>
               <p class="font-bold text-primary shrink-0 ml-3">

@@ -89,8 +89,8 @@ export function useRestTimer() {
       }, 1000)
       return
     }
-    remaining.value += seconds
-    total.value += seconds
+    remaining.value = Math.max(1, remaining.value + seconds)
+    total.value = Math.max(1, total.value + seconds)
   }
 
   /** Change the session-sticky default for all subsequent timers. */

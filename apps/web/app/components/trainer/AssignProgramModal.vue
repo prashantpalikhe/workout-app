@@ -2,6 +2,7 @@
 const props = defineProps<{
   athleteId: string
   athleteName: string
+  assignedProgramIds?: string[]
 }>()
 
 const open = defineModel<boolean>('open', { default: false })
@@ -33,8 +34,8 @@ watch(open, async (isOpen) => {
   if (isOpen && programs.value.length === 0) {
     loading.value = true
     try {
-      const data = await api<PaginatedPrograms>('/programs?limit=100')
-      programs.value = data.data
+      const data = await api<Program[]>('/programs?limit=100')
+      programs.value = data
     } catch {
       toast.add({ title: 'Failed to load programs', color: 'error' })
     } finally {
@@ -44,10 +45,12 @@ watch(open, async (isOpen) => {
 })
 
 const programOptions = computed(() =>
-  programs.value.map((p) => ({
-    label: p.name,
-    value: p.id,
-  })),
+  programs?.value
+    ?.filter((p) => !props.assignedProgramIds?.includes(p.id))
+    .map((p) => ({
+      label: p.name,
+      value: p.id
+    }))
 )
 
 async function assign() {
@@ -64,8 +67,8 @@ async function assign() {
         programId: selectedProgramId.value,
         athleteId: props.athleteId,
         startDate: startDate.value || undefined,
-        allowSessionDeviations: allowDeviations.value,
-      },
+        allowSessionDeviations: allowDeviations.value
+      }
     })
     toast.add({ title: 'Program assigned', color: 'success' })
     open.value = false
@@ -77,7 +80,7 @@ async function assign() {
     const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: fetchError?.data?.message || 'Failed to assign program',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     assigning.value = false
@@ -92,16 +95,20 @@ async function assign() {
         <div>
           <p class="font-semibold text-lg">Assign Program</p>
           <p class="text-sm text-muted mt-1">
-            Assign one of your programs to <span class="font-medium">{{ athleteName }}</span>
+            Assign one of your programs to
+            <span class="font-medium">{{ athleteName }}</span>
           </p>
         </div>
 
         <div v-if="loading" class="flex justify-center py-4">
-          <UIcon name="i-lucide-loader-2" class="size-5 animate-spin text-muted" />
+          <UIcon
+            name="i-lucide-loader-2"
+            class="size-5 animate-spin text-muted"
+          />
         </div>
 
         <template v-else>
-          <div v-if="programs.length === 0" class="text-center py-4">
+          <div v-if="programs?.length === 0" class="text-center py-4">
             <p class="text-sm text-muted">You don't have any programs yet.</p>
             <UButton
               label="Create a Program"
@@ -111,6 +118,10 @@ async function assign() {
               class="mt-2"
               @click="open = false"
             />
+          </div>
+
+          <div v-else-if="programOptions?.length === 0" class="text-center py-4">
+            <p class="text-sm text-muted">All your programs are already assigned to this athlete.</p>
           </div>
 
           <template v-else>
@@ -125,11 +136,7 @@ async function assign() {
             </UFormField>
 
             <UFormField label="Start Date (optional)">
-              <UInput
-                v-model="startDate"
-                type="date"
-                class="block"
-              />
+              <UInput v-model="startDate" type="date" class="block" />
             </UFormField>
 
             <div class="flex items-center justify-between">
@@ -152,7 +159,7 @@ async function assign() {
             @click="open = false"
           />
           <UButton
-            v-if="programs.length > 0"
+            v-if="programOptions?.length"
             label="Assign"
             icon="i-lucide-clipboard-check"
             :loading="assigning"

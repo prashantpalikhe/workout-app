@@ -120,23 +120,29 @@ This runs three seeders in order:
 | --- | --- |
 | Muscle Groups | 22 muscle groups (Chest, Quads, Lats, etc.) |
 | Global Exercises | 77 exercises with tracking types, equipment, and muscle group associations |
-| Test User | A pre-built user with ~6 months of workout data (see below) |
+| Test Users | 4 users with workout history, personal records, trainer relationships, and programs (see below) |
 
-### Test user
+### Test users
 
-The seed creates a test user you can log in with immediately:
+The seed creates four users you can log in with immediately:
 
-| Field | Value |
-| --- | --- |
-| Email | `test@workout.dev` |
-| Password | `Test1234!` |
-| User ID | `00000000-0000-4000-a000-000000000001` |
+| User | Email | Password | Role |
+| --- | --- | --- | --- |
+| Athlete One | `athlete1@workout.dev` | `Test1234!` | Athlete |
+| Athlete Two | `athlete2@workout.dev` | `Test1234!` | Athlete |
+| Trainer One | `trainer1@workout.dev` | `Test1234!` | Trainer |
+| Trainer Two | `trainer2@workout.dev` | `Test1234!` | Non-trainer |
 
-The test user comes with:
-- **~96 completed workout sessions** spanning ~6 months (Push/Pull/Legs/Upper split)
+**Athlete One** comes with:
+- **~94 completed workout sessions** spanning ~6 months (Push/Pull/Legs/Upper split)
 - **Progressive overload** — weights increase over time for realistic chart trends
 - **~74 personal records** computed from the best sets
-- **Calendar data** — workouts on Mon/Wed/Fri/Sat
+
+**Athlete Two** comes with:
+- **~69 completed workout sessions**
+- **~56 personal records**
+
+**Trainer One** manages both athletes (ACTIVE relationships) and has 3 programs with assignments.
 
 The data is **deterministic** (same output every run) and **idempotent** (safe to re-run — deletes existing test user data first).
 
@@ -154,10 +160,8 @@ To completely reset your local database and start fresh:
 # 2. Reset the database (drops all tables, re-runs migrations)
 pnpm --filter @workout/api exec prisma migrate reset
 
-# This automatically runs:
-#   - Drop all tables
-#   - Re-apply all migrations
-#   - Run prisma:seed (muscle groups + exercises + test user)
+# 3. Re-seed (migrate reset does NOT auto-seed)
+pnpm --filter @workout/api run prisma:seed
 ```
 
 If you also want to reset Docker volumes (removes all persisted Postgres data):
@@ -174,7 +178,7 @@ pnpm --filter @workout/api run prisma:seed      # seed data
 | Goal | Command |
 | --- | --- |
 | Re-seed without resetting | `pnpm --filter @workout/api run prisma:seed` |
-| Reset DB + re-seed | `pnpm --filter @workout/api exec prisma migrate reset` |
+| Reset DB + re-seed | `pnpm --filter @workout/api exec prisma migrate reset && pnpm --filter @workout/api run prisma:seed` |
 | Nuke everything (Docker volumes too) | `pnpm services:reset && pnpm services:up && pnpm --filter @workout/api run prisma:migrate && pnpm --filter @workout/api run prisma:seed` |
 | Open DB browser | `pnpm --filter @workout/api run prisma:studio` |
 

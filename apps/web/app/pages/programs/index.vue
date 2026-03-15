@@ -7,6 +7,20 @@ definePageMeta({
 
 const programStore = useProgramStore()
 const toast = useToast()
+const { api } = useApiClient()
+
+// Assigned programs
+interface Assignment {
+  id: string
+  status: string
+  startDate: string | null
+  assignedAt: string
+  allowSessionDeviations: boolean
+  program: { id: string; name: string; description: string | null }
+  assignedBy: { id: string; firstName: string; lastName: string }
+}
+
+const assignments = ref<Assignment[]>([])
 
 // Modal state
 const showProgramFormModal = ref(false)
@@ -17,6 +31,36 @@ const showFolderFormModal = ref(false)
 const editingFolder = ref<ProgramFolder | null>(null)
 const showFolderDeleteDialog = ref(false)
 const deletingFolder = ref<ProgramFolder | null>(null)
+
+// Search
+const searchQuery = ref('')
+
+function matchesSearch(name: string) {
+  if (!searchQuery.value) return true
+  return name.toLowerCase().includes(searchQuery.value.toLowerCase())
+}
+
+const filteredAssignments = computed(() =>
+  assignments.value.filter((a) => matchesSearch(a.program.name))
+)
+
+const filteredUnfiled = computed(() =>
+  programStore.programsByFolder.unfiled.filter((p) => matchesSearch(p.name))
+)
+
+function getFilteredFolderPrograms(folderId: string): Program[] {
+  const programs = programStore.programsByFolder.byFolder.get(folderId) || []
+  return programs.filter((p) => matchesSearch(p.name))
+}
+
+const filteredFolders = computed(() =>
+  programStore.folders.filter((f) => {
+    if (!searchQuery.value) return true
+    // Show folder if its name matches or any program inside matches
+    if (matchesSearch(f.name)) return true
+    return getFilteredFolderPrograms(f.id).length > 0
+  })
+)
 
 // Folder collapse state
 const collapsedFolders = ref(new Set<string>())
@@ -34,6 +78,9 @@ onMounted(async () => {
   await Promise.all([
     programStore.fetchPrograms(),
     programStore.fetchFolders(),
+    api<Assignment[]>('/assignments').then((data) => {
+      assignments.value = data
+    }).catch(() => {}),
   ])
 })
 
@@ -158,9 +205,40 @@ function getFolderPrograms(folderId: string): Program[] {
     </div>
 
     <div v-else>
+      <UInput
+        v-model="searchQuery"
+        placeholder="Search programs..."
+        icon="i-lucide-search"
+        class="mb-6"
+      />
+
+      <!-- Assigned Programs -->
+      <div v-if="filteredAssignments.length" class="mb-8">
+        <h3 class="text-sm font-medium text-muted mb-3 px-1">Assigned by Trainer</h3>
+        <div class="space-y-2">
+          <UCard
+            v-for="assignment in filteredAssignments"
+            :key="assignment.id"
+            class="cursor-pointer hover:bg-elevated transition-colors"
+            @click="navigateTo(`/programs/${assignment.program.id}`)"
+          >
+            <div class="flex items-center justify-between">
+              <div class="min-w-0">
+                <p class="font-medium truncate">{{ assignment.program.name }}</p>
+                <p class="text-xs text-muted">
+                  by {{ assignment.assignedBy.firstName }} {{ assignment.assignedBy.lastName }}
+                  · {{ new Date(assignment.assignedAt).toLocaleDateString() }}
+                </p>
+              </div>
+              <UBadge label="Assigned" color="primary" variant="subtle" size="xs" class="shrink-0" />
+            </div>
+          </UCard>
+        </div>
+      </div>
+
       <!-- Folders -->
       <div
-        v-for="folder in programStore.folders"
+        v-for="folder in filteredFolders"
         :key="folder.id"
         class="mb-6"
       >
@@ -177,7 +255,7 @@ function getFolderPrograms(folderId: string): Program[] {
           <UIcon name="i-lucide-folder" class="size-4 shrink-0 text-muted" />
           <span class="font-medium">{{ folder.name }}</span>
           <UBadge variant="subtle" size="xs">
-            {{ getFolderPrograms(folder.id).length }}
+            {{ getFilteredFolderPrograms(folder.id).length }}
           </UBadge>
 
           <div class="ml-auto">
@@ -214,7 +292,7 @@ function getFolderPrograms(folderId: string): Program[] {
           class="ml-6 space-y-2 mt-2"
         >
           <ProgramsProgramCard
-            v-for="program in getFolderPrograms(folder.id)"
+            v-for="program in getFilteredFolderPrograms(folder.id)"
             :key="program.id"
             :program="program"
             @click="navigateTo(`/programs/${program.id}`)"
@@ -222,7 +300,7 @@ function getFolderPrograms(folderId: string): Program[] {
             @delete="openDeleteProgram(program)"
           />
           <p
-            v-if="getFolderPrograms(folder.id).length === 0"
+            v-if="getFilteredFolderPrograms(folder.id).length === 0"
             class="text-sm text-muted italic py-2"
           >
             No programs in this folder
@@ -231,7 +309,7 @@ function getFolderPrograms(folderId: string): Program[] {
       </div>
 
       <!-- Unfiled Programs -->
-      <div v-if="programStore.programsByFolder.unfiled.length" class="mb-6">
+      <div v-if="filteredUnfiled.length" class="mb-6">
         <h3
           v-if="programStore.folders.length"
           class="text-sm font-medium text-muted mb-3 px-1"
@@ -240,7 +318,7 @@ function getFolderPrograms(folderId: string): Program[] {
         </h3>
         <div class="space-y-2">
           <ProgramsProgramCard
-            v-for="program in programStore.programsByFolder.unfiled"
+            v-for="program in filteredUnfiled"
             :key="program.id"
             :program="program"
             @click="navigateTo(`/programs/${program.id}`)"

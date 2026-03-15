@@ -12,6 +12,8 @@ export type PersonalRecordFilter = z.infer<typeof personalRecordFilterSchema>;
 
 export const checkPRInputSchema = z.object({
   exerciseId: uuidSchema,
+  sessionId: uuidSchema.optional(),
+  excludeSetId: uuidSchema.optional(),
   weight: z.number().positive().optional(),
   reps: z.number().int().positive().optional(),
   durationSec: z.number().int().positive().optional(),
