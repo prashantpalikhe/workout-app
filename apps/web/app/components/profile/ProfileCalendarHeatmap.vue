@@ -162,7 +162,7 @@ function intensityClass(workout: CalendarWorkoutDay | null): string {
 </script>
 
 <template>
-  <UCard>
+  <UCard class="max-w-md">
     <!-- Month navigation -->
     <div class="flex items-center justify-between mb-4">
       <UButton

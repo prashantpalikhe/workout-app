@@ -33,19 +33,20 @@ function onCalendarMonthChange(month: number, year: number) {
 </script>
 
 <template>
-  <UContainer>
+  <div class="max-w-2xl mx-auto p-4 sm:p-6">
     <UPageHeader title="Profile">
       <template #links>
         <UButton
           label="Edit Profile"
           icon="i-lucide-pencil"
           variant="outline"
+          size="sm"
           @click="editOpen = true"
         />
       </template>
     </UPageHeader>
 
-    <div class="mt-6 space-y-6 max-w-2xl">
+    <div class="mt-6 space-y-6">
       <!-- User Header -->
       <ProfileUserHeader :profile="profileStore.profile" />
 
@@ -82,5 +83,5 @@ function onCalendarMonthChange(month: number, year: number) {
       v-model:open="editOpen"
       :profile="profileStore.profile"
     />
-  </UContainer>
+  </div>
 </template>

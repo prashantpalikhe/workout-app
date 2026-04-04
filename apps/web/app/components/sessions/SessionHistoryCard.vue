@@ -34,34 +34,32 @@ const totalSets = computed(() =>
 
 <template>
   <NuxtLink :to="`/sessions/${session.id}`">
-    <UCard class="hover:bg-elevated transition-colors cursor-pointer">
-      <div class="flex items-start justify-between gap-3">
-        <div class="min-w-0 flex-1">
-          <div class="flex items-center gap-2 mb-1">
-            <span class="font-medium truncate">{{ session.name }}</span>
-            <SessionsSessionStatusBadge :status="session.status" />
-          </div>
-          <p class="text-sm text-muted">{{ formattedDate }}</p>
-          <div class="flex items-center gap-3 mt-2 text-xs text-muted">
-            <span v-if="duration" class="flex items-center gap-1">
-              <UIcon name="i-lucide-clock" class="size-3.5" />
-              {{ duration }}
-            </span>
-            <span class="flex items-center gap-1">
-              <UIcon name="i-lucide-dumbbell" class="size-3.5" />
-              {{ exerciseCount }} exercise{{ exerciseCount !== 1 ? 's' : '' }}
-            </span>
-            <span class="flex items-center gap-1">
-              <UIcon name="i-lucide-layers" class="size-3.5" />
-              {{ totalSets }} set{{ totalSets !== 1 ? 's' : '' }}
-            </span>
-            <span v-if="session.overallRpe" class="flex items-center gap-1">
-              RPE {{ session.overallRpe }}
-            </span>
-          </div>
+    <div class="flex items-center justify-between gap-3 p-4 border border-default rounded-lg hover:bg-elevated/50 transition-colors cursor-pointer">
+      <div class="min-w-0 flex-1">
+        <div class="flex items-center gap-2 mb-0.5">
+          <span class="font-medium truncate">{{ session.name }}</span>
+          <SessionsSessionStatusBadge :status="session.status" />
         </div>
-        <UIcon name="i-lucide-chevron-right" class="size-5 text-muted shrink-0 mt-1" />
+        <p class="text-sm text-muted">{{ formattedDate }}</p>
+        <div class="flex items-center gap-3 mt-1.5 text-xs text-muted">
+          <span v-if="duration" class="flex items-center gap-1">
+            <UIcon name="i-lucide-clock" class="size-3.5" />
+            {{ duration }}
+          </span>
+          <span class="flex items-center gap-1">
+            <UIcon name="i-lucide-dumbbell" class="size-3.5" />
+            {{ exerciseCount }} exercise{{ exerciseCount !== 1 ? 's' : '' }}
+          </span>
+          <span class="flex items-center gap-1">
+            <UIcon name="i-lucide-layers" class="size-3.5" />
+            {{ totalSets }} set{{ totalSets !== 1 ? 's' : '' }}
+          </span>
+          <span v-if="session.overallRpe" class="flex items-center gap-1">
+            RPE {{ session.overallRpe }}
+          </span>
+        </div>
       </div>
-    </UCard>
+      <UIcon name="i-lucide-chevron-right" class="size-5 text-muted shrink-0" />
+    </div>
   </NuxtLink>
 </template>
