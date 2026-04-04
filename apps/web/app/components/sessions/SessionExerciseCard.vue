@@ -42,9 +42,16 @@ const { schedule: scheduleNoteSave } = useAutoSave(
 async function addSet() {
   addingSet.value = true
   try {
+    // Prefill from the last set's values
+    const lastSet = props.exercise.sets[props.exercise.sets.length - 1]
     await sessionStore.addSet(props.sessionId, props.exercise.id, {
       setNumber: props.exercise.sets.length + 1,
-      setType: 'WORKING',
+      setType: lastSet?.setType ?? 'WORKING',
+      weight: lastSet?.weight ?? undefined,
+      reps: lastSet?.reps ?? undefined,
+      durationSec: lastSet?.durationSec ?? undefined,
+      distance: lastSet?.distance ?? undefined,
+      rpe: lastSet?.rpe ?? undefined,
       completed: false,
     })
   } catch (err: unknown) {
