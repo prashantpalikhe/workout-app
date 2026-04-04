@@ -14,6 +14,7 @@ interface UserSettings {
 }
 
 const loading = ref(true)
+const savedToastId = ref<string | number | undefined>()
 const restTimerEnabled = ref(true)
 const restMinutes = ref(1)
 const restSeconds = ref(30)
@@ -129,6 +130,14 @@ function debouncedSave() {
   saveTimeout = setTimeout(saveSettings, 600)
 }
 
+function showSavedToast() {
+  if (savedToastId.value) {
+    toast.remove(savedToastId.value)
+  }
+  const t = toast.add({ title: 'Settings saved', color: 'success' })
+  savedToastId.value = t.id
+}
+
 async function saveSettings() {
   try {
     const defaultRestSec = restMinutes.value * 60 + restSeconds.value
@@ -140,7 +149,7 @@ async function saveSettings() {
         theme: theme.value,
       },
     })
-    toast.add({ title: 'Settings saved', color: 'success' })
+    showSavedToast()
     // Refresh the global settings cache so other pages (e.g. active workout) see updated values
     await refreshUserSettings()
   } catch {
@@ -154,7 +163,7 @@ async function saveUnitPreference() {
       method: 'PATCH',
       body: { unitPreference: unitPreference.value },
     })
-    toast.add({ title: 'Settings saved', color: 'success' })
+    showSavedToast()
   } catch {
     toast.add({ title: 'Failed to save settings', color: 'error' })
   }
