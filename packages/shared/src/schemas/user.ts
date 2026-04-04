@@ -11,13 +11,13 @@ export const updateUserInputSchema = z.object({
 export type UpdateUserInput = z.infer<typeof updateUserInputSchema>;
 
 export const athleteProfileInputSchema = z.object({
-  weight: positiveFloat.optional(),
-  height: positiveFloat.optional(),
-  dateOfBirth: dateStringSchema.optional(),
+  weight: positiveFloat.nullable().optional(),
+  height: positiveFloat.nullable().optional(),
+  dateOfBirth: dateStringSchema.nullable().optional(),
   unitPreference: z.enum(UNIT_PREFERENCES as [string, ...string[]]).optional(),
-  gender: z.enum(GENDERS as [string, ...string[]]).optional(),
-  bio: z.string().max(500).optional(),
-  link: z.string().url().max(255).optional(),
+  gender: z.enum(GENDERS as [string, ...string[]]).nullable().optional(),
+  bio: z.string().max(500).nullable().optional(),
+  link: z.string().url().max(255).nullable().optional(),
 });
 export type AthleteProfileInput = z.infer<typeof athleteProfileInputSchema>;
 

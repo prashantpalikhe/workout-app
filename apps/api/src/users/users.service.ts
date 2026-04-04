@@ -104,12 +104,14 @@ export class UsersService {
     const data = {
       ...rest,
       ...(dateOfBirth !== undefined && {
-        dateOfBirth: new Date(dateOfBirth),
+        dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
       }),
       ...(unitPreference !== undefined && {
         unitPreference: unitPreference as UnitPreference,
       }),
-      ...(gender !== undefined && { gender: gender as Gender }),
+      ...(gender !== undefined && {
+        gender: gender ? (gender as Gender) : null,
+      }),
     };
 
     return this.prisma.athleteProfile.upsert({

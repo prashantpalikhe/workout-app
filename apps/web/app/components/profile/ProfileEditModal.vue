@@ -138,16 +138,15 @@ async function save() {
     }
 
     // Update profile (bio, link, dob, gender, weight, height)
-    // Only send fields that have values — schema uses .optional() not .nullable()
-    const profileChanges: Record<string, unknown> = {}
-    if (form.bio) profileChanges.bio = form.bio
-    if (form.link) profileChanges.link = form.link
-    if (form.dateOfBirth) profileChanges.dateOfBirth = form.dateOfBirth
-    if (form.gender) profileChanges.gender = form.gender
-    if (form.weight != null) profileChanges.weight = form.weight
-    if (form.height != null) profileChanges.height = form.height
-
-    await profileStore.updateProfile(profileChanges)
+    // Send null for cleared fields so the backend can unset them
+    await profileStore.updateProfile({
+      bio: form.bio || null,
+      link: form.link || null,
+      dateOfBirth: form.dateOfBirth || null,
+      gender: form.gender || null,
+      weight: form.weight ?? null,
+      height: form.height ?? null,
+    })
 
     toast.add({ title: 'Profile updated', color: 'success' })
     open.value = false
