@@ -99,25 +99,26 @@ const navItems = computed<NavigationMenuItem[]>(() => [
           class="flex items-center w-full"
           :class="collapsed ? 'justify-center' : 'gap-2'"
         >
-          <UAvatar
-            :src="authStore.user?.avatarUrl || undefined"
-            :alt="authStore.fullName"
-            size="sm"
-            class="shrink-0"
-          />
-          <template v-if="!collapsed">
-            <span class="text-sm font-medium truncate flex-1">{{
+          <NuxtLink to="/profile" class="flex items-center gap-2 min-w-0 flex-1" :class="collapsed ? 'justify-center' : ''">
+            <UAvatar
+              :src="authStore.user?.avatarUrl || undefined"
+              :alt="authStore.fullName"
+              size="sm"
+              class="shrink-0"
+            />
+            <span v-if="!collapsed" class="text-sm font-medium truncate">{{
               authStore.fullName
             }}</span>
-            <UButton
-              icon="i-lucide-log-out"
-              color="neutral"
-              variant="ghost"
-              size="xs"
-              aria-label="Logout"
-              @click="authStore.logout()"
-            />
-          </template>
+          </NuxtLink>
+          <UButton
+            v-if="!collapsed"
+            icon="i-lucide-log-out"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+            aria-label="Logout"
+            @click="authStore.logout()"
+          />
         </div>
         <div
           v-else

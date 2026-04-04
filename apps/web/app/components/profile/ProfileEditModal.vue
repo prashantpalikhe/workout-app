@@ -55,7 +55,7 @@ watch(open, (val) => {
     form.lastName = authStore.user?.lastName ?? ''
     form.bio = props.profile?.bio ?? ''
     form.link = props.profile?.link ?? ''
-    form.dateOfBirth = props.profile?.dateOfBirth ?? ''
+    form.dateOfBirth = props.profile?.dateOfBirth?.substring(0, 10) ?? ''
     form.gender = props.profile?.gender ?? ''
     form.weight = props.profile?.weight ?? null
     form.height = props.profile?.height ?? null
@@ -138,14 +138,16 @@ async function save() {
     }
 
     // Update profile (bio, link, dob, gender, weight, height)
-    await profileStore.updateProfile({
-      bio: form.bio || null,
-      link: form.link || null,
-      dateOfBirth: form.dateOfBirth || null,
-      gender: form.gender || null,
-      weight: form.weight,
-      height: form.height,
-    })
+    // Only send fields that have values — schema uses .optional() not .nullable()
+    const profileChanges: Record<string, unknown> = {}
+    if (form.bio) profileChanges.bio = form.bio
+    if (form.link) profileChanges.link = form.link
+    if (form.dateOfBirth) profileChanges.dateOfBirth = form.dateOfBirth
+    if (form.gender) profileChanges.gender = form.gender
+    if (form.weight != null) profileChanges.weight = form.weight
+    if (form.height != null) profileChanges.height = form.height
+
+    await profileStore.updateProfile(profileChanges)
 
     toast.add({ title: 'Profile updated', color: 'success' })
     open.value = false
