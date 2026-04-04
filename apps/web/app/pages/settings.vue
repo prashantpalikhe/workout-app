@@ -185,7 +185,7 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto p-4 sm:p-6">
+  <UContainer>
     <UPageHeader
       title="Settings"
       description="Configure your workout preferences"
@@ -195,7 +195,7 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
       <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
     </div>
 
-    <div v-else class="mt-6 space-y-6">
+    <div v-else class="mt-6 space-y-6 max-w-2xl">
       <!-- Appearance -->
       <UCard>
         <div class="space-y-5">
@@ -326,5 +326,5 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         </div>
       </UCard>
     </div>
-  </div>
+  </UContainer>
 </template>
