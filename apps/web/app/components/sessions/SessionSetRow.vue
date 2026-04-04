@@ -5,7 +5,6 @@ import type { SessionSet } from '~/stores/sessions'
 const props = defineProps<{
   sessionId: string
   exerciseId: string
-  globalExerciseId: string
   set: SessionSet
   setIndex: number
   trackingType: string
@@ -18,8 +17,6 @@ const emit = defineEmits<{
 const sessionStore = useSessionStore()
 const toast = useToast()
 const { formatEnum } = useFormatEnum()
-
-const prResult = ref<{ type: string; label: string }[] | null>(null)
 
 // Local form state initialized from prop
 const form = reactive({
@@ -97,29 +94,6 @@ async function toggleCompleted() {
     // Emit only when marking a set as complete (not when uncompleting)
     if (!wasCompleted) {
       emit('set-completed', { setId: props.set.id, restSec: props.set.restSec })
-
-      // Check for PRs in the background
-      sessionStore.checkPR(props.globalExerciseId, {
-        sessionId: props.sessionId,
-        excludeSetId: props.set.id,
-        weight: form.weight || undefined,
-        reps: form.reps || undefined,
-        durationSec: form.durationSec || undefined,
-        distance: form.distance || undefined,
-      }).then((result) => {
-        if (result.isPR) {
-          prResult.value = result.prTypes
-          const labels = result.prTypes.map(p => p.label).join(', ')
-          toast.add({
-            title: 'New Personal Record!',
-            description: labels,
-            color: 'warning',
-            icon: 'i-lucide-trophy',
-          })
-        }
-      }).catch(() => {})
-    } else {
-      prResult.value = null
     }
   } catch {
     toast.add({ title: 'Failed to update set', color: 'error' })
@@ -274,16 +248,14 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
     <!-- Complete button (shows trophy instead of checkmark when PR) -->
     <button
       class="flex items-center justify-center size-7 sm:size-8 shrink-0 rounded-md transition-colors"
-      :class="prResult
-        ? 'text-warning bg-warning/10'
-        : set.completed
-          ? 'text-success bg-success/10'
-          : 'text-muted hover:text-default hover:bg-elevated'"
+      :class="set.completed
+        ? 'text-success bg-success/10'
+        : 'text-muted hover:text-default hover:bg-elevated'"
       :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
       @click="toggleCompleted"
     >
       <UIcon
-        :name="prResult ? 'i-lucide-trophy' : set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
+        :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
         class="size-5"
       />
     </button>

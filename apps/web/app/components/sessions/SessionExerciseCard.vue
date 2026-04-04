@@ -170,7 +170,6 @@ const dropdownItems = computed(() => [
         :key="set.id"
         :session-id="sessionId"
         :exercise-id="exercise.id"
-        :global-exercise-id="exercise.exerciseId"
         :set="set"
         :set-index="index"
         :tracking-type="trackingType"
