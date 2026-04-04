@@ -32,26 +32,48 @@ onUnmounted(() => {
 })
 
 // Session-level notes
-const showSessionNotes = ref(false)
+const sessionNoteDialogOpen = ref(false)
 const sessionNotesText = ref('')
+const sessionNoteSaving = ref(false)
+const hasSessionNote = computed(() => !!session.value?.notes)
 
 watch(session, (s) => {
-  if (s) {
-    sessionNotesText.value = s.notes ?? ''
-    showSessionNotes.value = !!s.notes
-  }
+  if (s) sessionNotesText.value = s.notes ?? ''
 }, { immediate: true })
 
-const { schedule: scheduleSessionNoteSave } = useAutoSave(
-  async () => {
-    if (session.value) {
-      await sessionStore.updateSession(session.value.id, {
-        notes: sessionNotesText.value.trim() || undefined,
-      })
-    }
-  },
-  { debounceMs: 600 },
-)
+function openSessionNoteDialog() {
+  sessionNotesText.value = session.value?.notes ?? ''
+  sessionNoteDialogOpen.value = true
+}
+
+async function saveSessionNote() {
+  if (!session.value) return
+  sessionNoteSaving.value = true
+  try {
+    await sessionStore.updateSession(session.value.id, {
+      notes: sessionNotesText.value.trim() || undefined,
+    })
+    sessionNoteDialogOpen.value = false
+  } catch {
+    toast.add({ title: 'Failed to save note', color: 'error' })
+  } finally {
+    sessionNoteSaving.value = false
+  }
+}
+
+async function deleteSessionNote() {
+  if (!session.value) return
+  sessionNoteSaving.value = true
+  try {
+    await sessionStore.updateSession(session.value.id, { notes: undefined })
+    sessionNotesText.value = ''
+    sessionNoteDialogOpen.value = false
+  } catch {
+    toast.add({ title: 'Failed to delete note', color: 'error' })
+  } finally {
+    sessionNoteSaving.value = false
+  }
+}
 
 onMounted(async () => {
   await Promise.all([
@@ -111,9 +133,9 @@ function onAbandoned() {
 const dropdownItems = computed(() => [
   [
     {
-      label: 'Session Notes',
+      label: hasSessionNote.value ? 'View Session Note' : 'Add Session Note',
       icon: 'i-lucide-message-square',
-      onSelect: () => { showSessionNotes.value = !showSessionNotes.value },
+      onSelect: () => openSessionNoteDialog(),
     },
     {
       label: 'Abandon Workout',
@@ -149,6 +171,14 @@ const formattedVolume = computed(() => {
   const v = totalVolume.value
   if (v >= 1000) return `${(v / 1000).toFixed(1)}t`
   return `${Math.round(v)} kg`
+})
+
+// Can edit program exercises if session is from an own program (not trainer-assigned)
+const canEditProgram = computed(() => {
+  if (!session.value) return false
+  // Has prescribed exercises but no trainer assignment = own program
+  const hasPrescribed = session.value.sessionExercises.some(e => e.prescribedExerciseId)
+  return hasPrescribed && !session.value.programAssignmentId
 })
 </script>
 
@@ -251,15 +281,15 @@ const formattedVolume = computed(() => {
         </div>
       </div>
 
-      <!-- Session Notes -->
-      <div v-if="showSessionNotes" class="mb-4">
-        <UTextarea
-          v-model="sessionNotesText"
-          placeholder="Session notes..."
-          :rows="2"
-          size="sm"
-          @blur="scheduleSessionNoteSave()"
-        />
+      <!-- Session note indicator -->
+      <div v-if="hasSessionNote" class="mb-3">
+        <button
+          class="flex items-center gap-1.5 text-xs text-info hover:underline"
+          @click="openSessionNoteDialog"
+        >
+          <UIcon name="i-lucide-message-square" class="size-3.5" />
+          Session note
+        </button>
       </div>
 
       <!-- Exercise list -->
@@ -272,6 +302,7 @@ const formattedVolume = computed(() => {
           :key="exercise.id"
           :session-id="session.id"
           :exercise="exercise"
+          :can-edit-program="canEditProgram"
           @substitute="openSubstitute(exercise)"
           @remove="removeExercise(exercise)"
           @set-completed="onSetCompleted"
@@ -334,6 +365,36 @@ const formattedVolume = computed(() => {
       :session-id="session.id"
       :exercise="substitutingExercise"
     />
+
+    <!-- Session note dialog -->
+    <UModal v-model:open="sessionNoteDialogOpen" :title="hasSessionNote ? 'Session Note' : 'Add Session Note'">
+      <template #body>
+        <UTextarea
+          v-model="sessionNotesText"
+          placeholder="Write a note for this session..."
+          :rows="3"
+          autofocus
+        />
+      </template>
+      <template #footer>
+        <div class="flex items-center" :class="hasSessionNote ? 'justify-between' : 'justify-end'">
+          <UButton
+            v-if="hasSessionNote"
+            label="Delete Note"
+            color="error"
+            variant="ghost"
+            size="sm"
+            icon="i-lucide-trash-2"
+            :loading="sessionNoteSaving"
+            @click="deleteSessionNote"
+          />
+          <div class="flex gap-2">
+            <UButton label="Cancel" color="neutral" variant="outline" size="sm" @click="sessionNoteDialogOpen = false" />
+            <UButton label="Save" size="sm" :loading="sessionNoteSaving" @click="saveSessionNote" />
+          </div>
+        </div>
+      </template>
+    </UModal>
 
     <!-- Rest Timer Overlay -->
     <SessionsRestTimerOverlay

@@ -4,6 +4,7 @@ import type { SessionExercise } from '~/stores/sessions'
 const props = defineProps<{
   sessionId: string
   exercise: SessionExercise
+  canEditProgram?: boolean
 }>()
 
 const emit = defineEmits<{
@@ -14,30 +15,61 @@ const emit = defineEmits<{
 
 const sessionStore = useSessionStore()
 const toast = useToast()
-const { formatEnum } = useFormatEnum()
 
 const addingSet = ref(false)
-const showNotes = ref(!!props.exercise.notes)
-const notesText = ref(props.exercise.notes ?? '')
+const showHistory = ref(false)
+const showProgramEdit = ref(false)
 
 const trackingType = computed(() => props.exercise.exercise.trackingType)
 
-// Sync notes from prop
+// ── Note dialog state ──
+const noteDialogOpen = ref(false)
+const noteText = ref(props.exercise.notes ?? '')
+const noteSaving = ref(false)
+const hasNote = computed(() => !!props.exercise.notes)
+
 watch(
   () => props.exercise.notes,
-  (v) => { notesText.value = v ?? '' },
+  (v) => { noteText.value = v ?? '' },
 )
 
-const { schedule: scheduleNoteSave } = useAutoSave(
-  async () => {
+function openNoteDialog() {
+  noteText.value = props.exercise.notes ?? ''
+  noteDialogOpen.value = true
+}
+
+async function saveNote() {
+  noteSaving.value = true
+  try {
     await sessionStore.updateExercise(
       props.sessionId,
       props.exercise.id,
-      { notes: notesText.value.trim() || undefined },
+      { notes: noteText.value.trim() || undefined },
     )
-  },
-  { debounceMs: 600 },
-)
+    noteDialogOpen.value = false
+  } catch {
+    toast.add({ title: 'Failed to save note', color: 'error' })
+  } finally {
+    noteSaving.value = false
+  }
+}
+
+async function deleteNote() {
+  noteSaving.value = true
+  try {
+    await sessionStore.updateExercise(
+      props.sessionId,
+      props.exercise.id,
+      { notes: undefined },
+    )
+    noteText.value = ''
+    noteDialogOpen.value = false
+  } catch {
+    toast.add({ title: 'Failed to delete note', color: 'error' })
+  } finally {
+    noteSaving.value = false
+  }
+}
 
 async function addSet() {
   addingSet.value = true
@@ -81,8 +113,29 @@ const showDuration = computed(() =>
 )
 const showDistance = computed(() => trackingType.value === 'DISTANCE_DURATION')
 
-const dropdownItems = computed(() => [
-  [
+const dropdownItems = computed(() => {
+  const items = [
+    {
+      label: 'History',
+      icon: 'i-lucide-history',
+      onSelect: () => { showHistory.value = true },
+    },
+    {
+      label: hasNote.value ? 'View Note' : 'Add Note',
+      icon: 'i-lucide-message-square',
+      onSelect: () => openNoteDialog(),
+    },
+  ]
+
+  if (props.canEditProgram && props.exercise.prescribedExercise) {
+    items.push({
+      label: 'Update in Program',
+      icon: 'i-lucide-pencil',
+      onSelect: () => { showProgramEdit.value = true },
+    })
+  }
+
+  items.push(
     {
       label: 'Substitute Exercise',
       icon: 'i-lucide-repeat-2',
@@ -94,8 +147,10 @@ const dropdownItems = computed(() => [
       color: 'error' as const,
       onSelect: () => emit('remove'),
     },
-  ],
-])
+  )
+
+  return [items]
+})
 </script>
 
 <template>
@@ -103,14 +158,12 @@ const dropdownItems = computed(() => [
     <!-- Header -->
     <div class="flex items-center justify-between gap-2 mb-2">
       <div class="flex items-center gap-1.5 min-w-0">
-        <span class="text-sm font-medium truncate sm:text-base">{{ exercise.exercise.name }}</span>
-        <UBadge
-          v-if="exercise.exercise.equipment"
-          variant="subtle"
-          size="xs"
+        <button
+          class="text-sm font-medium truncate sm:text-base text-left hover:underline"
+          @click="showHistory = true"
         >
-          {{ formatEnum(exercise.exercise.equipment) }}
-        </UBadge>
+          {{ exercise.exercise.name }}
+        </button>
         <UBadge
           v-if="exercise.isSubstitution"
           color="warning"
@@ -119,16 +172,14 @@ const dropdownItems = computed(() => [
         >
           Substituted
         </UBadge>
+        <UIcon
+          v-if="hasNote"
+          name="i-lucide-message-square"
+          class="size-3.5 text-info shrink-0 cursor-pointer"
+          @click="openNoteDialog"
+        />
       </div>
       <div class="flex items-center gap-1 shrink-0">
-        <UButton
-          icon="i-lucide-message-square"
-          color="neutral"
-          :variant="showNotes ? 'soft' : 'ghost'"
-          size="xs"
-          aria-label="Toggle notes"
-          @click="showNotes = !showNotes"
-        />
         <UDropdownMenu :items="dropdownItems">
           <UButton
             icon="i-lucide-ellipsis-vertical"
@@ -157,17 +208,6 @@ const dropdownItems = computed(() => [
         <UIcon name="i-lucide-pause" class="size-3" />
         {{ exercise.prescribedExercise.restSec }}s rest
       </span>
-    </div>
-
-    <!-- Notes -->
-    <div v-if="showNotes" class="mb-2">
-      <UTextarea
-        v-model="notesText"
-        placeholder="Add notes for this exercise..."
-        :rows="2"
-        size="xs"
-        @blur="scheduleNoteSave()"
-      />
     </div>
 
     <!-- Column headers -->
@@ -206,5 +246,52 @@ const dropdownItems = computed(() => [
       :loading="addingSet"
       @click="addSet"
     />
+
+    <!-- Program exercise edit modal -->
+    <SessionsProgramExerciseEditModal
+      v-if="canEditProgram && exercise.prescribedExercise"
+      v-model:open="showProgramEdit"
+      :program-id="exercise.prescribedExercise.programId"
+      :prescribed-exercise-id="exercise.prescribedExercise.id"
+      :exercise-name="exercise.exercise.name"
+      :initial-values="exercise.prescribedExercise"
+    />
+
+    <!-- Exercise history slideover -->
+    <SessionsExerciseHistorySlideover
+      v-model:open="showHistory"
+      :exercise-id="exercise.exerciseId"
+      :exercise-name="exercise.exercise.name"
+    />
+
+    <!-- Exercise note dialog -->
+    <UModal v-model:open="noteDialogOpen" :title="hasNote ? 'Exercise Note' : 'Add Exercise Note'">
+      <template #body>
+        <UTextarea
+          v-model="noteText"
+          placeholder="Write a note for this exercise..."
+          :rows="3"
+          autofocus
+        />
+      </template>
+      <template #footer>
+        <div class="flex items-center" :class="hasNote ? 'justify-between' : 'justify-end'">
+          <UButton
+            v-if="hasNote"
+            label="Delete Note"
+            color="error"
+            variant="ghost"
+            size="sm"
+            icon="i-lucide-trash-2"
+            :loading="noteSaving"
+            @click="deleteNote"
+          />
+          <div class="flex gap-2">
+            <UButton label="Cancel" color="neutral" variant="outline" size="sm" @click="noteDialogOpen = false" />
+            <UButton label="Save" size="sm" :loading="noteSaving" @click="saveNote" />
+          </div>
+        </div>
+      </template>
+    </UModal>
   </UCard>
 </template>

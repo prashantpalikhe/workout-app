@@ -277,6 +277,8 @@ export class ExercisesService {
         durationSec: s.durationSec,
         distance: s.distance,
         rpe: s.rpe,
+        tempo: s.tempo,
+        restSec: s.restSec,
         completed: s.completed,
         personalRecord: s.personalRecord,
       })),

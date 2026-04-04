@@ -38,11 +38,14 @@ export interface SessionExercise {
   notes: string | null
   prescribedExerciseId: string | null
   prescribedExercise: {
+    id: string
+    programId: string
     restSec: number | null
     targetSets: number | null
     targetReps: string | null
     targetRpe: number | null
     targetTempo: string | null
+    notes: string | null
   } | null
   exercise: {
     id: string

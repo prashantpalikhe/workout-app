@@ -1,17 +1,34 @@
 <script setup lang="ts">
-import type { ExerciseHistorySession } from '@workout/shared'
+import type { ExerciseHistorySession, ExerciseHistoryResponse } from '@workout/shared'
 
-defineProps<{
-  athleteName: string
+const props = defineProps<{
+  exerciseId: string
   exerciseName: string
-  history: ExerciseHistorySession[]
-  loading: boolean
-  open: boolean
 }>()
 
-const emit = defineEmits<{
-  'update:open': [value: boolean]
-}>()
+const open = defineModel<boolean>('open', { default: false })
+
+const { api } = useApiClient()
+
+const history = ref<ExerciseHistorySession[]>([])
+const loading = ref(false)
+
+watch(open, async (isOpen) => {
+  if (isOpen) {
+    loading.value = true
+    try {
+      const res = await api<ExerciseHistoryResponse>(
+        `/exercises/${props.exerciseId}/history`,
+        { query: { page: 1, limit: 10 } },
+      )
+      history.value = res.data
+    } catch {
+      history.value = []
+    } finally {
+      loading.value = false
+    }
+  }
+})
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString(undefined, {
@@ -32,7 +49,7 @@ function formatSetSummary(set: ExerciseHistorySession['sets'][number]) {
 </script>
 
 <template>
-  <USlideover :open="open" :title="`${exerciseName} — ${athleteName}`" @update:open="emit('update:open', $event)">
+  <USlideover v-model:open="open" :title="`${exerciseName} History`" side="right">
     <template #body>
       <!-- Loading -->
       <div v-if="loading" class="space-y-4">

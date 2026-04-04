@@ -33,11 +33,14 @@ export class SessionsService {
         },
         prescribedExercise: {
           select: {
+            id: true,
+            programId: true,
             restSec: true,
             targetSets: true,
             targetReps: true,
             targetRpe: true,
             targetTempo: true,
+            notes: true,
           },
         },
         sets: {

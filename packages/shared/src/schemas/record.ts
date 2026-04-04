@@ -56,6 +56,8 @@ export interface ExerciseHistorySet {
   durationSec: number | null;
   distance: number | null;
   rpe: number | null;
+  tempo: string | null;
+  restSec: number | null;
   completed: boolean;
   personalRecord: { id: string; prType: string; value: number } | null;
 }

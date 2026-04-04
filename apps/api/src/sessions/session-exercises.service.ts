@@ -23,7 +23,26 @@ export class SessionExercisesService {
         trackingType: true,
       },
     },
-    sets: { orderBy: { setNumber: 'asc' as const } },
+    prescribedExercise: {
+      select: {
+        id: true,
+        programId: true,
+        restSec: true,
+        targetSets: true,
+        targetReps: true,
+        targetRpe: true,
+        targetTempo: true,
+        notes: true,
+      },
+    },
+    sets: {
+      orderBy: { setNumber: 'asc' as const },
+      include: {
+        personalRecord: {
+          select: { id: true, prType: true, value: true },
+        },
+      },
+    },
   };
 
   async add(
