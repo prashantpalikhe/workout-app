@@ -20,6 +20,17 @@ const restTimer = useRestTimer()
 
 const session = computed(() => sessionStore.activeSession)
 
+// ── Mobile header title override ───────────────
+const mobileHeaderTitle = useState<string>('mobile-header-title')
+
+watch(session, (s) => {
+  mobileHeaderTitle.value = s?.name ?? ''
+}, { immediate: true })
+
+onUnmounted(() => {
+  mobileHeaderTitle.value = ''
+})
+
 // Session-level notes
 const showSessionNotes = ref(false)
 const sessionNotesText = ref('')
@@ -100,6 +111,11 @@ function onAbandoned() {
 const dropdownItems = computed(() => [
   [
     {
+      label: 'Session Notes',
+      icon: 'i-lucide-message-square',
+      onSelect: () => { showSessionNotes.value = !showSessionNotes.value },
+    },
+    {
       label: 'Abandon Workout',
       icon: 'i-lucide-x-circle',
       color: 'error' as const,
@@ -107,6 +123,33 @@ const dropdownItems = computed(() => [
     },
   ],
 ])
+
+// ── Stats ──────────────────────────────────────
+const totalSets = computed(() => {
+  if (!session.value) return 0
+  return session.value.sessionExercises.reduce(
+    (sum, ex) => sum + ex.sets.filter(s => s.completed).length,
+    0,
+  )
+})
+
+const totalVolume = computed(() => {
+  if (!session.value) return 0
+  return session.value.sessionExercises.reduce(
+    (sum, ex) =>
+      sum +
+      ex.sets
+        .filter(s => s.completed && s.weight && s.reps)
+        .reduce((s, set) => s + (set.weight! * set.reps!), 0),
+    0,
+  )
+})
+
+const formattedVolume = computed(() => {
+  const v = totalVolume.value
+  if (v >= 1000) return `${(v / 1000).toFixed(1)}t`
+  return `${Math.round(v)} kg`
+})
 </script>
 
 <template>
@@ -138,24 +181,44 @@ const dropdownItems = computed(() => [
 
     <!-- Active session -->
     <div v-else>
-      <UPageHeader :title="session.name">
+      <!-- Teleport actions into mobile header bar -->
+      <Teleport to="#mobile-header-actions">
+        <UButton
+          label="Finish"
+          icon="i-lucide-check-circle"
+          color="success"
+          size="xs"
+          @click="showCompleteModal = true"
+        />
+        <UDropdownMenu :items="dropdownItems">
+          <UButton
+            icon="i-lucide-ellipsis-vertical"
+            color="neutral"
+            variant="ghost"
+            size="xs"
+          />
+        </UDropdownMenu>
+      </Teleport>
+
+      <!-- Desktop header -->
+      <UPageHeader :title="session.name" class="hidden lg:block">
         <template #description>
-          <SessionsSessionTimer :started-at="session.startedAt" />
+          <div class="flex items-center gap-4 text-sm">
+            <span class="flex items-center gap-1.5 text-muted">
+              <UIcon name="i-lucide-clock" class="size-4" />
+              <SessionsSessionTimer :started-at="session.startedAt" />
+            </span>
+            <span class="flex items-center gap-1.5 text-muted">
+              <UIcon name="i-lucide-dumbbell" class="size-4" />
+              {{ totalSets }} sets
+            </span>
+            <span class="flex items-center gap-1.5 text-muted">
+              <UIcon name="i-lucide-weight" class="size-4" />
+              {{ formattedVolume }}
+            </span>
+          </div>
         </template>
         <template #links>
-          <UButton
-            icon="i-lucide-message-square"
-            :variant="showSessionNotes ? 'soft' : 'outline'"
-            color="neutral"
-            aria-label="Toggle session notes"
-            @click="showSessionNotes = !showSessionNotes"
-          />
-          <UButton
-            label="Add Exercise"
-            icon="i-lucide-plus"
-            variant="outline"
-            @click="showExercisePicker = true"
-          />
           <UButton
             label="Finish"
             icon="i-lucide-check-circle"
@@ -172,12 +235,29 @@ const dropdownItems = computed(() => [
         </template>
       </UPageHeader>
 
+      <!-- Mobile stats bar -->
+      <div class="lg:hidden flex items-center justify-between py-3 mb-3 border-b border-default text-sm">
+        <div class="flex items-center gap-1.5 text-muted">
+          <UIcon name="i-lucide-clock" class="size-4" />
+          <SessionsSessionTimer :started-at="session.startedAt" />
+        </div>
+        <div class="flex items-center gap-1.5 text-muted">
+          <UIcon name="i-lucide-dumbbell" class="size-4" />
+          <span>{{ totalSets }} sets</span>
+        </div>
+        <div class="flex items-center gap-1.5 text-muted">
+          <UIcon name="i-lucide-weight" class="size-4" />
+          <span>{{ formattedVolume }}</span>
+        </div>
+      </div>
+
       <!-- Session Notes -->
       <div v-if="showSessionNotes" class="mb-4">
         <UTextarea
           v-model="sessionNotesText"
           placeholder="Session notes..."
           :rows="2"
+          size="sm"
           @blur="scheduleSessionNoteSave()"
         />
       </div>
@@ -185,7 +265,7 @@ const dropdownItems = computed(() => [
       <!-- Exercise list -->
       <div
         v-if="session.sessionExercises.length > 0"
-        class="space-y-4"
+        class="space-y-3 sm:space-y-4"
       >
         <SessionsSessionExerciseCard
           v-for="exercise in session.sessionExercises"
@@ -198,21 +278,24 @@ const dropdownItems = computed(() => [
         />
       </div>
 
-      <!-- Empty exercise state -->
+      <!-- Add Exercise button (below exercises, like Hevy) -->
+      <UButton
+        label="Add Exercise"
+        icon="i-lucide-plus"
+        variant="outline"
+        class="w-full mt-4 justify-center"
+        @click="showExercisePicker = true"
+      />
+
+      <!-- Empty exercise state (only when no exercises at all) -->
       <div
-        v-else
-        class="flex flex-col items-center justify-center py-12 text-center border border-dashed border-default rounded-lg"
+        v-if="session.sessionExercises.length === 0"
+        class="flex flex-col items-center justify-center py-12 text-center"
       >
         <UIcon name="i-lucide-plus-circle" class="size-10 text-muted mb-3" />
-        <p class="text-sm text-muted mb-4">
+        <p class="text-sm text-muted">
           Add your first exercise to get started
         </p>
-        <UButton
-          label="Add Exercise"
-          icon="i-lucide-plus"
-          variant="outline"
-          @click="showExercisePicker = true"
-        />
       </div>
 
       <!-- Bottom spacer so content scrolls past the rest timer overlay -->

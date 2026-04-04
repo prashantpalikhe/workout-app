@@ -187,12 +187,12 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
 
 <template>
   <div
-    class="flex items-center gap-1.5 rounded-md px-1.5 py-1 transition-colors"
-    :class="set.completed ? 'opacity-50 bg-elevated/30' : 'hover:bg-elevated/50'"
+    class="flex items-center gap-1 sm:gap-1.5 px-1 sm:px-1.5 py-0.5 transition-colors"
+    :class="set.completed ? 'bg-success/10' : 'hover:bg-elevated/50'"
   >
     <!-- Set number (tap for set type + delete) -->
     <UDropdownMenu :items="setDropdownItems" :content="{ align: 'start' as const }">
-      <button class="text-xs font-semibold text-muted shrink-0 w-5 text-center hover:text-default transition-colors">
+      <button class="text-xs font-semibold shrink-0 w-6 py-0.5 text-center rounded bg-elevated/60 hover:bg-elevated text-muted hover:text-default transition-colors">
         {{ setIndex + 1 }}
       </button>
     </UDropdownMenu>
@@ -216,6 +216,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       :step="0.5"
       :min="0"
       class="flex-1 min-w-0"
+      :ui="{ base: 'text-center' }"
       @blur="schedule()"
       @keyup.enter="onInputEnter"
     />
@@ -227,6 +228,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       size="xs"
       :min="0"
       class="flex-1 min-w-0"
+      :ui="{ base: 'text-center' }"
       @blur="schedule()"
       @keyup.enter="onInputEnter"
     />
@@ -238,6 +240,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       size="xs"
       :min="0"
       class="flex-1 min-w-0"
+      :ui="{ base: 'text-center' }"
       @blur="schedule()"
       @keyup.enter="onInputEnter"
     />
@@ -250,6 +253,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       :step="0.1"
       :min="0"
       class="flex-1 min-w-0"
+      :ui="{ base: 'text-center' }"
       @blur="schedule()"
       @keyup.enter="onInputEnter"
     />
@@ -261,14 +265,15 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       :min="1"
       :max="10"
       :step="0.5"
-      class="w-14 shrink-0"
+      class="w-12 sm:w-14 shrink-0"
+      :ui="{ base: 'text-center' }"
       @blur="schedule()"
       @keyup.enter="onInputEnter"
     />
 
     <!-- Complete button (shows trophy instead of checkmark when PR) -->
     <button
-      class="flex items-center justify-center size-8 shrink-0 rounded-md transition-colors"
+      class="flex items-center justify-center size-7 sm:size-8 shrink-0 rounded-md transition-colors"
       :class="prResult
         ? 'text-warning bg-warning/10'
         : set.completed

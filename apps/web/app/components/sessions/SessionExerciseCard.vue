@@ -99,11 +99,11 @@ const dropdownItems = computed(() => [
 </script>
 
 <template>
-  <UCard>
+  <UCard :ui="{ body: 'p-3 sm:p-4' }">
     <!-- Header -->
-    <div class="flex items-center justify-between gap-2 mb-3">
-      <div class="flex items-center gap-2 min-w-0">
-        <span class="font-medium truncate">{{ exercise.exercise.name }}</span>
+    <div class="flex items-center justify-between gap-2 mb-2">
+      <div class="flex items-center gap-1.5 min-w-0">
+        <span class="text-sm font-medium truncate sm:text-base">{{ exercise.exercise.name }}</span>
         <UBadge
           v-if="exercise.exercise.equipment"
           variant="subtle"
@@ -141,30 +141,30 @@ const dropdownItems = computed(() => [
     </div>
 
     <!-- Notes -->
-    <div v-if="showNotes" class="mb-3">
+    <div v-if="showNotes" class="mb-2">
       <UTextarea
         v-model="notesText"
         placeholder="Add notes for this exercise..."
         :rows="2"
-        size="sm"
+        size="xs"
         @blur="scheduleNoteSave()"
       />
     </div>
 
     <!-- Column headers -->
-    <div v-if="exercise.sets.length" class="flex items-center gap-1.5 px-1.5 py-1 text-[10px] uppercase tracking-wider text-muted font-medium">
-      <span class="w-5 shrink-0 text-center">Set</span>
+    <div v-if="exercise.sets.length" class="flex items-center gap-1 sm:gap-1.5 px-1 pb-1 text-[10px] uppercase tracking-wider text-muted font-medium border-b border-default/50 mb-0.5">
+      <span class="w-6 shrink-0 text-center">Set</span>
       <span class="hidden md:block w-24 shrink-0">Type</span>
-      <span v-if="showWeight" class="flex-1 min-w-0">kg</span>
-      <span v-if="showReps" class="flex-1 min-w-0">Reps</span>
-      <span v-if="showDuration" class="flex-1 min-w-0">Sec</span>
-      <span v-if="showDistance" class="flex-1 min-w-0">km</span>
-      <span class="w-14 shrink-0">RPE</span>
-      <span class="w-8 shrink-0" />
+      <span v-if="showWeight" class="flex-1 min-w-0 text-center">kg</span>
+      <span v-if="showReps" class="flex-1 min-w-0 text-center">Reps</span>
+      <span v-if="showDuration" class="flex-1 min-w-0 text-center">Sec</span>
+      <span v-if="showDistance" class="flex-1 min-w-0 text-center">km</span>
+      <span class="w-12 sm:w-14 shrink-0 text-center">RPE</span>
+      <span class="w-7 sm:w-8 shrink-0" />
     </div>
 
     <!-- Set rows -->
-    <div class="space-y-0.5">
+    <div>
       <SessionsSessionSetRow
         v-for="(set, index) in exercise.sets"
         :key="set.id"
@@ -183,8 +183,8 @@ const dropdownItems = computed(() => [
       label="Add Set"
       icon="i-lucide-plus"
       variant="ghost"
-      size="sm"
-      class="mt-2 w-full"
+      size="xs"
+      class="mt-1.5 w-full"
       :loading="addingSet"
       @click="addSet"
     />

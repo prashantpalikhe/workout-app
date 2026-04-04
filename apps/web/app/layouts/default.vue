@@ -4,6 +4,7 @@ import type { NavigationMenuItem } from '@nuxt/ui'
 const authStore = useAuthStore()
 const route = useRoute()
 const sidebarOpen = ref(false)
+const mobileHeaderTitle = useState<string>('mobile-header-title', () => '')
 
 const navItems = computed<NavigationMenuItem[]>(() => [
   {
@@ -144,8 +145,16 @@ const navItems = computed<NavigationMenuItem[]>(() => [
           aria-label="Open menu"
           @click="sidebarOpen = true"
         />
-        <div class="size-6 rounded-full bg-primary shrink-0" />
-        <span class="font-semibold">Workout</span>
+        <div class="flex-1 min-w-0 flex items-center gap-2">
+          <template v-if="mobileHeaderTitle">
+            <span class="font-semibold truncate">{{ mobileHeaderTitle }}</span>
+          </template>
+          <template v-else>
+            <div class="size-6 rounded-full bg-primary shrink-0" />
+            <span class="font-semibold">Workout</span>
+          </template>
+        </div>
+        <div id="mobile-header-actions" class="flex items-center gap-1 shrink-0" />
       </div>
 
       <slot />

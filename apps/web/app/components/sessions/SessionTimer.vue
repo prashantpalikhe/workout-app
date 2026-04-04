@@ -34,7 +34,5 @@ onUnmounted(() => {
 </script>
 
 <template>
-  <span class="font-mono text-sm text-muted tabular-nums">
-    <UIcon name="i-lucide-clock" class="size-4 align-text-bottom mr-1" />{{ elapsed }}
-  </span>
+  <span class="font-mono text-sm text-muted tabular-nums">{{ elapsed }}</span>
 </template>
