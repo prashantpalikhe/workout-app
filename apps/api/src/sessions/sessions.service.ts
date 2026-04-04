@@ -32,7 +32,13 @@ export class SessionsService {
           },
         },
         prescribedExercise: {
-          select: { restSec: true },
+          select: {
+            restSec: true,
+            targetSets: true,
+            targetReps: true,
+            targetRpe: true,
+            targetTempo: true,
+          },
         },
         sets: {
           orderBy: { setNumber: 'asc' as const },
@@ -272,7 +278,7 @@ export class SessionsService {
 
     const sessionName = dto.name || assignment.program.name;
 
-    // Atomically create session + pre-populate exercises
+    // Atomically create session + pre-populate exercises with prescribed sets
     const session = await this.prisma.workoutSession.create({
       data: {
         athleteId: userId,
@@ -285,6 +291,7 @@ export class SessionsService {
             exerciseId: pe.exerciseId,
             prescribedExerciseId: pe.id,
             sortOrder: pe.sortOrder,
+            ...this.buildPrescribedSets(pe),
           })),
         },
       },
@@ -326,10 +333,37 @@ export class SessionsService {
             exerciseId: pe.exerciseId,
             prescribedExerciseId: pe.id,
             sortOrder: pe.sortOrder,
+            ...this.buildPrescribedSets(pe),
           })),
         },
       },
       include: this.sessionInclude,
     });
+  }
+
+  /**
+   * Build nested `sets.create` data from a ProgramExercise's prescribed targets.
+   * Returns empty object if no targetSets is defined.
+   */
+  private buildPrescribedSets(pe: {
+    targetSets?: number | null;
+    targetRpe?: number | null;
+    targetTempo?: string | null;
+    restSec?: number | null;
+  }) {
+    if (!pe.targetSets || pe.targetSets <= 0) return {};
+
+    return {
+      sets: {
+        create: Array.from({ length: pe.targetSets }, (_, i) => ({
+          setNumber: i + 1,
+          setType: 'WORKING' as const,
+          rpe: pe.targetRpe ?? undefined,
+          tempo: pe.targetTempo ?? undefined,
+          restSec: pe.restSec ?? undefined,
+          completed: false,
+        })),
+      },
+    };
   }
 }

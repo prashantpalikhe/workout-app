@@ -140,6 +140,25 @@ const dropdownItems = computed(() => [
       </div>
     </div>
 
+    <!-- Prescribed info -->
+    <div v-if="exercise.prescribedExercise" class="flex items-center gap-3 text-xs text-muted mb-2">
+      <span v-if="exercise.prescribedExercise.targetReps" class="flex items-center gap-1">
+        <UIcon name="i-lucide-repeat" class="size-3" />
+        {{ exercise.prescribedExercise.targetReps }} reps
+      </span>
+      <span v-if="exercise.prescribedExercise.targetRpe" class="flex items-center gap-1">
+        RPE {{ exercise.prescribedExercise.targetRpe }}
+      </span>
+      <span v-if="exercise.prescribedExercise.targetTempo" class="flex items-center gap-1">
+        <UIcon name="i-lucide-timer" class="size-3" />
+        {{ exercise.prescribedExercise.targetTempo }}
+      </span>
+      <span v-if="exercise.prescribedExercise.restSec" class="flex items-center gap-1">
+        <UIcon name="i-lucide-pause" class="size-3" />
+        {{ exercise.prescribedExercise.restSec }}s rest
+      </span>
+    </div>
+
     <!-- Notes -->
     <div v-if="showNotes" class="mb-2">
       <UTextarea

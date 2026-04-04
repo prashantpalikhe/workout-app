@@ -37,7 +37,13 @@ export interface SessionExercise {
   substitutionReason: string | null
   notes: string | null
   prescribedExerciseId: string | null
-  prescribedExercise: { restSec: number | null } | null
+  prescribedExercise: {
+    restSec: number | null
+    targetSets: number | null
+    targetReps: string | null
+    targetRpe: number | null
+    targetTempo: string | null
+  } | null
   exercise: {
     id: string
     name: string
