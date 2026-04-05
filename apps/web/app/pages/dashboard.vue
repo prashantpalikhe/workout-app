@@ -21,7 +21,7 @@ function onSessionStarted() {
 <template>
   <UContainer>
     <AppPageHeader
-      :title="`Welcome, ${authStore.user?.firstName}!`"
+      :title="`Hey, ${authStore.user?.firstName}!`"
       description="Your workout dashboard"
     />
 
@@ -54,60 +54,27 @@ function onSessionStarted() {
     </NuxtLink>
 
     <!-- Start workout CTA -->
-    <UCard v-else>
-      <div class="grid items-center justify-between sm:grid-cols-2 gap-4">
+    <UCard
+      v-else
+      class="hover:bg-elevated transition-colors cursor-pointer border-primary/30"
+    >
+      <div class="flex items-center justify-between">
         <div class="flex items-center gap-3">
           <div
-            class="size-10 rounded-full bg-elevated flex items-center justify-center"
+            class="size-10 rounded-full bg-primary/10 flex items-center justify-center"
           >
-            <UIcon name="i-lucide-dumbbell" class="size-5 text-muted" />
+            <UIcon name="i-lucide-dumbbell" class="size-5 text-primary" />
           </div>
           <div>
             <p class="font-medium">Ready to work out?</p>
-            <p class="text-sm text-muted">Start a new workout session</p>
+            <p class="text-sm text-muted">Start a new session</p>
           </div>
         </div>
         <UButton
-          label="Start Workout"
+          label="Start"
           icon="i-lucide-play"
-          class="sm:w-max sm:justify-self-end"
+          size="sm"
           @click="showStartModal = true"
-        />
-      </div>
-    </UCard>
-
-    <!-- User info -->
-    <UCard class="mt-4">
-      <div class="flex items-center justify-between">
-        <div class="flex items-center gap-3">
-          <UAvatar
-            :src="authStore.user?.avatarUrl || undefined"
-            :alt="authStore.fullName"
-            size="lg"
-          />
-          <div>
-            <p class="text-lg font-medium">
-              {{ authStore.fullName }}
-            </p>
-            <p class="text-sm text-muted">
-              {{ authStore.user?.email }}
-            </p>
-            <p v-if="authStore.isTrainer" class="text-sm text-muted mt-1">
-              <UBadge
-                label="Trainer"
-                color="primary"
-                variant="subtle"
-                size="xs"
-              />
-            </p>
-          </div>
-        </div>
-        <UButton
-          label="Logout"
-          icon="i-lucide-log-out"
-          color="neutral"
-          variant="outline"
-          @click="authStore.logout"
         />
       </div>
     </UCard>
