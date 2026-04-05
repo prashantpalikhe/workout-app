@@ -24,7 +24,7 @@ export const useProfileStore = defineStore('profile', () => {
   // ── State ──
   const stats = ref<UserStatsResponse | null>(null)
   const weeklyData = ref<ChartStatsResponse | null>(null)
-  const calendarData = ref<CalendarStatsResponse | null>(null)
+  const calendarMonths = ref<Record<string, CalendarStatsResponse>>({})
   const profile = ref<AthleteProfile | null>(null)
   const recentSessions = ref<WorkoutSession[]>([])
 
@@ -59,13 +59,21 @@ export const useProfileStore = defineStore('profile', () => {
     }
   }
 
+  function calendarKey(month: number, year: number) {
+    return `${year}-${String(month).padStart(2, '0')}`
+  }
+
   async function fetchCalendarStats(month: number, year: number) {
     calendarLoading.value = true
     try {
-      calendarData.value = await api<CalendarStatsResponse>(
+      const data = await api<CalendarStatsResponse>(
         '/users/me/stats/calendar',
         { query: { month, year } }
       )
+      calendarMonths.value = {
+        ...calendarMonths.value,
+        [calendarKey(month, year)]: data
+      }
     } finally {
       calendarLoading.value = false
     }
@@ -127,7 +135,7 @@ export const useProfileStore = defineStore('profile', () => {
   return {
     stats,
     weeklyData,
-    calendarData,
+    calendarMonths,
     profile,
     recentSessions,
     statsLoading,

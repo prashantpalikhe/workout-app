@@ -5,13 +5,21 @@ const profileStore = useProfileStore()
 
 const editOpen = ref(false)
 
+function prevOf(month: number, year: number) {
+  return month === 1 ? { month: 12, year: year - 1 } : { month: month - 1, year }
+}
+
 // Fetch all data on mount
 onMounted(() => {
   const now = new Date()
+  const curMonth = now.getMonth() + 1
+  const curYear = now.getFullYear()
+  const prev = prevOf(curMonth, curYear)
   Promise.all([
     profileStore.fetchStats(),
     profileStore.fetchWeeklyStats('12w', 'duration'),
-    profileStore.fetchCalendarStats(now.getMonth() + 1, now.getFullYear()),
+    profileStore.fetchCalendarStats(curMonth, curYear),
+    profileStore.fetchCalendarStats(prev.month, prev.year),
     profileStore.fetchProfile(),
     profileStore.fetchRecentSessions()
   ])
@@ -28,7 +36,9 @@ function onRangeChange(range: string) {
 }
 
 function onCalendarMonthChange(month: number, year: number) {
+  const prev = prevOf(month, year)
   profileStore.fetchCalendarStats(month, year)
+  profileStore.fetchCalendarStats(prev.month, prev.year)
 }
 </script>
 
@@ -65,7 +75,7 @@ function onCalendarMonthChange(month: number, year: number) {
 
       <!-- Calendar Heatmap -->
       <ProfileCalendarHeatmap
-        :data="profileStore.calendarData"
+        :months-data="profileStore.calendarMonths"
         :loading="profileStore.calendarLoading"
         @update:month="onCalendarMonthChange"
       />
