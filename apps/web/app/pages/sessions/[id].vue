@@ -263,14 +263,10 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
     </div>
 
     <!-- Not found -->
-    <div v-else class="flex flex-col items-center justify-center py-16 text-center">
-      <UIcon name="i-lucide-search-x" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">
-        Session not found
-      </h3>
-      <NuxtLink to="/sessions">
-        <UButton label="Back to History" variant="outline" />
-      </NuxtLink>
-    </div>
+    <AppEmptyState
+      v-else
+      icon="i-lucide-search-x"
+      title="Session not found"
+    />
   </UContainer>
 </template>

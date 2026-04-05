@@ -109,18 +109,6 @@ function buildChartOptions(unit: string) {
 
 <template>
   <div>
-    <!-- Range selector -->
-    <div class="flex justify-end mb-4">
-      <USelect
-        :model-value="range"
-        :items="rangeOptions"
-        value-key="value"
-        size="sm"
-        class="w-36"
-        @update:model-value="onRangeChange"
-      />
-    </div>
-
     <!-- Loading -->
     <template v-if="loading">
       <div class="flex justify-center py-12">
@@ -129,14 +117,27 @@ function buildChartOptions(unit: string) {
     </template>
 
     <!-- No data -->
-    <template v-else-if="!data?.dataPoints?.length">
-      <div class="h-48 flex items-center justify-center text-sm text-muted">
-        No data yet. Complete workouts with this exercise to see trends.
-      </div>
-    </template>
+    <AppEmptyState
+      v-else-if="!data?.dataPoints?.length"
+      icon="i-lucide-bar-chart-3"
+      title="No statistics yet"
+      description="Complete workouts with this exercise to see trends."
+    />
 
     <!-- Separate charts per metric -->
     <template v-else>
+      <!-- Range selector -->
+      <div class="flex justify-end mb-4">
+        <USelect
+          :model-value="range"
+          :items="rangeOptions"
+          value-key="value"
+          size="sm"
+          class="w-36"
+          @update:model-value="onRangeChange"
+        />
+      </div>
+
       <div class="space-y-6">
         <div v-for="chart in charts" :key="chart.key">
           <h4 class="text-sm font-semibold mb-2">

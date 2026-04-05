@@ -190,15 +190,18 @@ function getRowActions(exercise: Exercise) {
           </UDropdownMenu>
         </button>
       </template>
-      <div v-else class="text-center py-8 rounded-lg border border-default">
-        <p class="text-muted mb-4">No exercises found</p>
+      <AppEmptyState
+        v-else
+        icon="i-lucide-search-x"
+        title="No exercises found"
+      >
         <UButton
           v-if="exerciseStore.hasActiveFilters"
           label="Clear Filters"
           variant="outline"
           @click="exerciseStore.resetFilters()"
         />
-      </div>
+      </AppEmptyState>
     </div>
 
     <!-- Desktop: full table -->
@@ -250,15 +253,17 @@ function getRowActions(exercise: Exercise) {
       </template>
 
       <template #empty>
-        <div class="text-center py-8">
-          <p class="text-muted mb-4">No exercises found</p>
+        <AppEmptyState
+          icon="i-lucide-search-x"
+          title="No exercises found"
+        >
           <UButton
             v-if="exerciseStore.hasActiveFilters"
             label="Clear Filters"
             variant="outline"
             @click="exerciseStore.resetFilters()"
           />
-        </div>
+        </AppEmptyState>
       </template>
     </UTable>
 

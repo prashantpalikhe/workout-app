@@ -21,11 +21,12 @@ defineProps<{
       />
     </div>
 
-    <template v-if="!sessions.length && !loading">
-      <div class="text-center py-8 text-sm text-muted">
-        No completed workouts yet. Start a workout to see it here!
-      </div>
-    </template>
+    <AppEmptyState
+      v-if="!sessions.length && !loading"
+      icon="i-lucide-dumbbell"
+      title="No completed workouts yet"
+      description="Start a workout to see it here."
+    />
     <template v-else>
       <div class="space-y-3">
         <SessionsSessionHistoryCard

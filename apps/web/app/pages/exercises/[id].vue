@@ -185,14 +185,10 @@ function onHistoryPage(page: number) {
     </div>
 
     <!-- Not found -->
-    <div v-else class="flex flex-col items-center justify-center py-16 text-center">
-      <UIcon name="i-lucide-search-x" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">
-        Exercise not found
-      </h3>
-      <NuxtLink to="/exercises">
-        <UButton label="Back to Library" variant="outline" />
-      </NuxtLink>
-    </div>
+    <AppEmptyState
+      v-else
+      icon="i-lucide-search-x"
+      title="Exercise not found"
+    />
   </UContainer>
 </template>

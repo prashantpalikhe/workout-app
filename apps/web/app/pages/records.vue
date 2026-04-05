@@ -71,21 +71,16 @@ function formatDate(dateStr: string): string {
     />
 
     <!-- Empty -->
-    <div
+    <AppEmptyState
       v-if="recordsStore.records.length === 0"
-      class="flex flex-col items-center justify-center py-16 text-center"
+      icon="i-lucide-trophy"
+      title="No personal records yet"
+      description="Complete workouts to start setting personal records."
     >
-      <UIcon name="i-lucide-trophy" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">
-        No personal records yet
-      </h3>
-      <p class="text-sm text-muted mb-4">
-        Complete workouts to start setting personal records.
-      </p>
       <NuxtLink to="/sessions">
         <UButton label="View Sessions" variant="outline" />
       </NuxtLink>
-    </div>
+    </AppEmptyState>
 
     <!-- Records grouped by exercise -->
     <div v-else class="space-y-4">

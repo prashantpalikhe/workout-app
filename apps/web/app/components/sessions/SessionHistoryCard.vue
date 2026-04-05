@@ -33,7 +33,7 @@ const totalSets = computed(() =>
 </script>
 
 <template>
-  <NuxtLink :to="`/sessions/${session.id}`">
+  <NuxtLink :to="`/sessions/${session.id}`" class="block">
     <div class="flex items-center justify-between gap-3 p-4 border border-default rounded-lg hover:bg-elevated/50 transition-colors cursor-pointer">
       <div class="min-w-0 flex-1">
         <div class="flex items-center gap-2 mb-0.5">

@@ -201,11 +201,12 @@ const chartOptions = computed(() => ({
         <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
       </div>
     </template>
-    <template v-else-if="!data?.buckets?.length">
-      <div class="h-52 flex items-center justify-center text-sm text-muted">
-        No workout data yet. Complete some workouts to see your stats!
-      </div>
-    </template>
+    <AppEmptyState
+      v-else-if="!data?.buckets?.length"
+      icon="i-lucide-bar-chart-3"
+      title="No workout data yet"
+      description="Complete some workouts to see your stats."
+    />
     <template v-else>
       <div class="h-52">
         <Bar :data="chartData" :options="chartOptions" />

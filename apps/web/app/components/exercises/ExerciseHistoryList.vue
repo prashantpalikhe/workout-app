@@ -88,12 +88,12 @@ function prLabel(prType: string): string {
       </div>
     </template>
 
-    <template v-else-if="sessions.length === 0">
-      <div class="h-48 flex items-center justify-center text-sm text-muted">
-        No session history yet. Complete workouts with this exercise to see
-        history.
-      </div>
-    </template>
+    <AppEmptyState
+      v-else-if="sessions.length === 0"
+      icon="i-lucide-history"
+      title="No session history yet"
+      description="Complete workouts with this exercise to see history."
+    />
 
     <template v-else>
       <div class="space-y-3">

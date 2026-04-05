@@ -190,24 +190,18 @@ const canEditProgram = computed(() => {
     </div>
 
     <!-- No active session -->
-    <div
+    <AppEmptyState
       v-else-if="!session"
-      class="flex flex-col items-center justify-center py-16 text-center"
+      icon="i-lucide-dumbbell"
+      title="No active workout"
+      description="Start a workout to begin tracking your exercises and sets."
     >
-      <UIcon name="i-lucide-dumbbell" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">
-        No active workout
-      </h3>
-      <p class="text-sm text-muted mb-6">
-        Start a workout to begin tracking your exercises and sets.
-      </p>
       <UButton
         label="Start Workout"
         icon="i-lucide-play"
-        size="lg"
         @click="showStartModal = true"
       />
-    </div>
+    </AppEmptyState>
 
     <!-- Active session -->
     <div v-else>
@@ -319,15 +313,12 @@ const canEditProgram = computed(() => {
       />
 
       <!-- Empty exercise state (only when no exercises at all) -->
-      <div
+      <AppEmptyState
         v-if="session.sessionExercises.length === 0"
-        class="flex flex-col items-center justify-center py-12 text-center"
-      >
-        <UIcon name="i-lucide-plus-circle" class="size-10 text-muted mb-3" />
-        <p class="text-sm text-muted">
-          Add your first exercise to get started
-        </p>
-      </div>
+        icon="i-lucide-plus-circle"
+        title="No exercises yet"
+        description="Add your first exercise to get started."
+      />
 
       <!-- Bottom spacer so content scrolls past the rest timer overlay -->
       <div

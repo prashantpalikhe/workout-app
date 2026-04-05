@@ -173,21 +173,19 @@ async function onDeleteConfirm() {
       </draggable>
 
       <!-- Empty exercise state -->
-      <div
+      <AppEmptyState
         v-if="!program.exercises.length"
-        class="text-center py-12 border border-dashed border-default rounded-lg"
+        icon="i-lucide-dumbbell"
+        :title="isOwner ? 'No exercises yet' : 'No exercises in this program'"
+        :description="isOwner ? 'Add exercises from the library to get started.' : undefined"
       >
-        <UIcon name="i-lucide-dumbbell" class="size-10 text-muted mx-auto mb-3" />
-        <p class="text-muted mb-4">
-          {{ isOwner ? 'No exercises yet. Add exercises from the library.' : 'No exercises in this program.' }}
-        </p>
         <UButton
           v-if="isOwner"
           label="Add Exercise"
           icon="i-lucide-plus"
           @click="showExercisePicker = true"
         />
-      </div>
+      </AppEmptyState>
     </div>
 
     <!-- Modals -->

@@ -228,7 +228,7 @@ function _getFolderPrograms(folderId: string): Program[] {
         <h3 class="text-sm font-medium text-muted mb-3 px-1">
           Assigned by Trainer
         </h3>
-        <div class="space-y-2">
+        <div class="space-y-3">
           <UCard
             v-for="assignment in filteredAssignments"
             :key="assignment.id"
@@ -304,7 +304,7 @@ function _getFolderPrograms(folderId: string): Program[] {
         <!-- Programs in folder -->
         <div
           v-show="!collapsedFolders.has(folder.id)"
-          class="ml-6 space-y-2 mt-2"
+          class="ml-6 space-y-3 mt-2"
         >
           <ProgramsProgramCard
             v-for="program in getFilteredFolderPrograms(folder.id)"
@@ -331,7 +331,7 @@ function _getFolderPrograms(folderId: string): Program[] {
         >
           Unfiled Programs
         </h3>
-        <div class="space-y-2">
+        <div class="space-y-3">
           <ProgramsProgramCard
             v-for="program in filteredUnfiled"
             :key="program.id"
@@ -344,23 +344,18 @@ function _getFolderPrograms(folderId: string): Program[] {
       </div>
 
       <!-- Empty state -->
-      <div
+      <AppEmptyState
         v-if="!programStore.loading && programStore.programs.length === 0 && programStore.folders.length === 0"
-        class="text-center py-12"
+        icon="i-lucide-clipboard-list"
+        title="No programs yet"
+        description="Create your first program to organize your workouts."
       >
-        <UIcon name="i-lucide-clipboard-list" class="size-12 text-muted mx-auto mb-4" />
-        <p class="text-lg font-medium mb-2">
-          No programs yet
-        </p>
-        <p class="text-muted mb-6">
-          Create your first program to organize your workouts
-        </p>
         <UButton
           label="Create Program"
           icon="i-lucide-plus"
           @click="openCreateProgram"
         />
-      </div>
+      </AppEmptyState>
     </div>
 
     <!-- Modals -->
