@@ -40,7 +40,7 @@ Migrations run automatically on each API deploy via `prisma migrate deploy`.
    - **Name**: `web`
    - **Root Directory**: empty
    - **Config Path**: `apps/web/railway.toml`
-3. Add env vars (see below) — `NUXT_PUBLIC_API_BASE_URL` points to the API URL from step 3 + `/api`.
+3. Add env vars (see below) — `NUXT_API_PROXY_URL` points to the API URL from step 3 + `/api`.
 4. Deploy.
 5. Copy the generated web URL.
 
@@ -82,7 +82,7 @@ railway run --service api pnpm --filter @workout/api prisma:seed
 
 | Variable | Value |
 |---|---|
-| `NUXT_PUBLIC_API_BASE_URL` | `https://<api>.up.railway.app/api` |
+| `NUXT_API_PROXY_URL` | `https://<api>.up.railway.app/api` (server-side; browser calls `/api/*` same-origin and Nitro proxies) |
 | `NUXT_PUBLIC_GOOGLE_CLIENT_ID` | same as API `GOOGLE_CLIENT_ID` (optional) |
 | `NUXT_PUBLIC_APPLE_CLIENT_ID` | optional |
 
@@ -111,7 +111,7 @@ railway run --service api pnpm --filter @workout/api prisma:seed
 
 ## Custom domain (later)
 
-Railway dashboard → service → **Settings** → **Domains** → **Add Custom Domain**. Point your DNS CNAME at the Railway-provided target. Update `CORS_ORIGIN`, `FRONTEND_URL`, `NUXT_PUBLIC_API_BASE_URL`, and the Google OAuth authorized origins after the domain is live.
+Railway dashboard → service → **Settings** → **Domains** → **Add Custom Domain**. Point your DNS CNAME at the Railway-provided target. Update `CORS_ORIGIN`, `FRONTEND_URL`, and the Google OAuth authorized origins after the domain is live. Because the browser hits the web origin (`/api/*`) and Nitro proxies server-side, you typically don't need to touch `NUXT_API_PROXY_URL` when changing the *web* domain.
 
 ---
 
@@ -137,6 +137,6 @@ curl http://localhost:3001/health
 # Web
 docker build -f apps/web/Dockerfile -t workout-web .
 docker run --rm -p 3000:3000 \
-  -e NUXT_PUBLIC_API_BASE_URL=http://localhost:3001/api \
+  -e NUXT_API_PROXY_URL=http://host.docker.internal:3001/api \
   workout-web
 ```

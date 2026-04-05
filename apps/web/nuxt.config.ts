@@ -20,8 +20,13 @@ export default defineNuxtConfig({
   css: ['~/assets/css/main.css'],
 
   runtimeConfig: {
+    // Server-only — target for the /api proxy handler. Read at request time,
+    // so the same Docker image works across environments (overridden by
+    // NUXT_API_PROXY_URL at runtime).
+    apiProxyUrl: process.env.NUXT_API_PROXY_URL || 'http://localhost:3001/api',
     public: {
-      apiBaseUrl: process.env.NUXT_PUBLIC_API_BASE_URL || 'http://localhost:3001/api',
+      // Browser calls /api/* same-origin; Nitro proxies to apiProxyUrl.
+      apiBaseUrl: '/api',
       googleClientId: process.env.NUXT_PUBLIC_GOOGLE_CLIENT_ID || '',
       appleClientId: process.env.NUXT_PUBLIC_APPLE_CLIENT_ID || ''
     }
