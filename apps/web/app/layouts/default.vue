@@ -69,7 +69,7 @@ const navItems = computed<NavigationMenuItem[]>(() => [
       v-model:open="sidebarOpen"
       collapsible
       resizable
-      :ui="{ footer: 'border-t border-default' }"
+      :ui="{ footer: 'border-t border-default pb-[max(0.75rem,env(safe-area-inset-bottom))]' }"
     >
       <template #header="{ collapsed }">
         <NuxtLink
@@ -87,6 +87,7 @@ const navItems = computed<NavigationMenuItem[]>(() => [
           :collapsed="collapsed"
           :items="navItems"
           orientation="vertical"
+          :ui="{ link: 'py-2.5' }"
         />
 
         <div class="mt-auto" />
