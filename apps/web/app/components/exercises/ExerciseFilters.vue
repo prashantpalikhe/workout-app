@@ -91,9 +91,8 @@ const filtersExpanded = ref(false)
         icon="i-lucide-search"
         class="flex-1"
       />
-      <!-- Mobile: filter toggle button -->
+      <!-- Filter toggle button -->
       <UButton
-        class="sm:hidden"
         :icon="filtersExpanded ? 'i-lucide-chevron-up' : 'i-lucide-sliders-horizontal'"
         color="neutral"
         variant="outline"
@@ -109,13 +108,10 @@ const filtersExpanded = ref(false)
       </UButton>
     </div>
 
-    <!-- Filters: collapsible on mobile, inline on desktop -->
+    <!-- Filters: collapsible on all sizes -->
     <div
-      class="gap-3 mt-3"
-      :class="[
-        filtersExpanded ? 'flex flex-col' : 'hidden',
-        'sm:flex sm:flex-row sm:flex-wrap sm:mt-3'
-      ]"
+      v-if="filtersExpanded"
+      class="flex flex-col sm:flex-row sm:flex-wrap gap-3 mt-3"
     >
       <USelect
         :model-value="selectedEquipment"

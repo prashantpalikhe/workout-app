@@ -37,14 +37,6 @@ const columns: TableColumn<Exercise>[] = [
     header: 'Equipment'
   },
   {
-    accessorKey: 'movementPattern',
-    header: 'Movement'
-  },
-  {
-    accessorKey: 'trackingType',
-    header: 'Tracking'
-  },
-  {
     accessorKey: 'muscleGroups',
     header: 'Muscles'
   },
@@ -236,15 +228,7 @@ function getRowActions(exercise: Exercise) {
         {{ formatEnum(row.original.equipment) }}
       </template>
 
-      <template #movementPattern-cell="{ row }">
-        {{ formatEnum(row.original.movementPattern) }}
-      </template>
-
-      <template #trackingType-cell="{ row }">
-        {{ formatEnum(row.original.trackingType) }}
-      </template>
-
-      <template #muscleGroups-cell="{ row }">
+<template #muscleGroups-cell="{ row }">
         <ExercisesExerciseMuscleGroupBadges
           :muscle-groups="row.original.muscleGroups"
         />
