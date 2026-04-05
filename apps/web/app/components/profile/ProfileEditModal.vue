@@ -18,6 +18,10 @@ const pendingAvatarFile = ref<File | null>(null)
 const avatarPreviewUrl = ref<string | null>(null)
 const fileInputRef = ref<HTMLInputElement | null>(null)
 
+// Cropper state
+const rawSelectedFile = ref<File | null>(null)
+const cropperOpen = ref(false)
+
 const form = reactive({
   firstName: '',
   lastName: '',
@@ -81,11 +85,23 @@ function onFileSelected(event: Event) {
     return
   }
 
-  pendingAvatarFile.value = file
-  avatarPreviewUrl.value = URL.createObjectURL(file)
+  // Open cropper with the raw file; cropped result is set in onCropped
+  rawSelectedFile.value = file
+  cropperOpen.value = true
 
   // Reset input so the same file can be re-selected
   input.value = ''
+}
+
+function onCropped(blob: Blob, dataUrl: string) {
+  // Replace any previous preview URL
+  if (avatarPreviewUrl.value) {
+    URL.revokeObjectURL(avatarPreviewUrl.value)
+  }
+  // Wrap blob as a File so the upload API treats it like a normal file
+  const name = rawSelectedFile.value?.name.replace(/\.[^.]+$/, '') ?? 'avatar'
+  pendingAvatarFile.value = new File([blob], `${name}.jpg`, { type: blob.type })
+  avatarPreviewUrl.value = dataUrl
 }
 
 function clearPendingAvatar() {
@@ -294,4 +310,13 @@ async function save() {
       </div>
     </template>
   </UModal>
+
+  <AppImageCropper
+    v-model:open="cropperOpen"
+    :file="rawSelectedFile"
+    shape="circle"
+    :aspect-ratio="1"
+    title="Adjust your photo"
+    @cropped="onCropped"
+  />
 </template>
