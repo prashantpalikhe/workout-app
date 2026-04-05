@@ -83,15 +83,6 @@ function onHistoryPage(page: number) {
             </UBadge>
           </div>
         </template>
-        <template #links>
-          <NuxtLink to="/exercises">
-            <UButton
-              label="Back to Library"
-              icon="i-lucide-arrow-left"
-              variant="outline"
-            />
-          </NuxtLink>
-        </template>
       </AppPageHeader>
 
       <!-- Exercise details -->

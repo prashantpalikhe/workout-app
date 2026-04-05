@@ -118,24 +118,24 @@ async function onDeleteConfirm() {
       >
         <template v-if="isOwner" #links>
           <UButton
-            label="Edit"
-            icon="i-lucide-pencil"
-            color="neutral"
-            variant="outline"
-            @click="showProgramFormModal = true"
-          />
-          <UButton
             label="Add Exercise"
             icon="i-lucide-plus"
             @click="showExercisePicker = true"
           />
-          <UButton
-            icon="i-lucide-trash-2"
-            color="error"
-            variant="outline"
-            aria-label="Delete program"
-            @click="showDeleteDialog = true"
-          />
+          <UDropdownMenu
+            :items="[[
+              { label: 'Edit', icon: 'i-lucide-pencil', onSelect: () => (showProgramFormModal = true) },
+              { label: 'Delete', icon: 'i-lucide-trash-2', color: 'error' as const, onSelect: () => (showDeleteDialog = true) }
+            ]]"
+            :content="{ align: 'end' as const }"
+          >
+            <UButton
+              icon="i-lucide-ellipsis-vertical"
+              color="neutral"
+              variant="outline"
+              aria-label="Program options"
+            />
+          </UDropdownMenu>
         </template>
       </AppPageHeader>
 
