@@ -38,3 +38,36 @@ export function useMobileHeaderTitle(title: Ref<string> | (() => string) | strin
     }
   })
 }
+
+/**
+ * Registers a back target for the mobile header. When set, the layout swaps
+ * the hamburger for a back arrow that calls goBack(fallback).
+ */
+export function useMobileHeaderBack(fallback: string) {
+  const headerBack = useState<string | null>('mobile-header-back', () => null)
+  const owner = useState<number>('mobile-header-back-owner', () => 0)
+
+  const id = ++nextId
+  owner.value = id
+  headerBack.value = fallback
+
+  onBeforeUnmount(() => {
+    if (owner.value === id) {
+      headerBack.value = null
+      owner.value = 0
+    }
+  })
+}
+
+/**
+ * Navigates "back": uses the SPA history's previous entry when available
+ * (preserves scroll/filter state on the list), otherwise pushes the fallback.
+ */
+export function goBack(fallback: string) {
+  const router = useRouter()
+  const back = (typeof window !== 'undefined'
+    ? (window.history.state?.back as string | undefined)
+    : undefined)
+  if (back) router.back()
+  else router.push(fallback)
+}

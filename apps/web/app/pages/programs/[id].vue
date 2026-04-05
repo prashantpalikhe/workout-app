@@ -114,6 +114,7 @@ async function onDeleteConfirm() {
       <AppPageHeader
         :title="program.name"
         :description="program.description || undefined"
+        back="/programs"
       >
         <template v-if="isOwner" #links>
           <UButton

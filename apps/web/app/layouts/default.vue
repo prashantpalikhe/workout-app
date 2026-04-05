@@ -5,6 +5,11 @@ const authStore = useAuthStore()
 const route = useRoute()
 const sidebarOpen = ref(false)
 const mobileHeaderTitle = useState<string>('mobile-header-title', () => '')
+const mobileHeaderBack = useState<string | null>('mobile-header-back', () => null)
+
+function onMobileBack() {
+  if (mobileHeaderBack.value) goBack(mobileHeaderBack.value)
+}
 
 const navItems = computed<NavigationMenuItem[]>(() => [
   {
@@ -143,6 +148,16 @@ const navItems = computed<NavigationMenuItem[]>(() => [
         "
       >
         <UButton
+          v-if="mobileHeaderBack"
+          icon="i-lucide-arrow-left"
+          color="neutral"
+          variant="ghost"
+          size="sm"
+          aria-label="Back"
+          @click="onMobileBack"
+        />
+        <UButton
+          v-else
           icon="i-lucide-menu"
           color="neutral"
           variant="ghost"

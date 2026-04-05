@@ -82,7 +82,7 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
     </div>
 
     <div v-else-if="session">
-      <AppPageHeader :title="session.name">
+      <AppPageHeader :title="session.name" back="/sessions">
         <template #description>
           <div class="flex items-center gap-3 flex-wrap">
             <SessionsSessionStatusBadge :status="session.status" />

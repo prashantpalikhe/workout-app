@@ -66,7 +66,7 @@ function onHistoryPage(page: number) {
     </div>
 
     <div v-else-if="exercise">
-      <AppPageHeader :title="exercise.name">
+      <AppPageHeader :title="exercise.name" back="/exercises">
         <template #description>
           <div class="flex items-center gap-2 flex-wrap">
             <UBadge variant="subtle" size="sm">
