@@ -24,7 +24,7 @@ export interface Exercise {
   trackingType: string
   equipment: string | null
   movementPattern: string | null
-  imageUrl: string | null
+  imageUrls: string[]
   instructions: string | null
   videoUrl: string | null
   isGlobal: boolean

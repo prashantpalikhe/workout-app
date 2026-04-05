@@ -11,7 +11,7 @@ export const createExerciseInputSchema = z.object({
   trackingType: z.enum(EXERCISE_TRACKING_TYPES as [string, ...string[]]),
   equipment: z.enum(EXERCISE_EQUIPMENT as [string, ...string[]]).optional(),
   movementPattern: z.enum(EXERCISE_MOVEMENT_PATTERNS as [string, ...string[]]).optional(),
-  imageUrl: z.string().url().optional(),
+  imageUrls: z.array(z.string().max(500)).max(10).optional(),
   instructions: z.string().max(2000).optional(),
   videoUrl: z.string().url().optional(),
 });
