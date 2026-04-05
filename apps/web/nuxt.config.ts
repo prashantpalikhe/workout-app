@@ -13,6 +13,11 @@ export default defineNuxtConfig({
 
   ssr: false,
 
+  colorMode: {
+    preference: 'light',
+    fallback: 'light'
+  },
+
   devtools: {
     enabled: true
   },
