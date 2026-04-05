@@ -149,6 +149,32 @@ export const useSessionStore = defineStore('sessions', () => {
     }
   }
 
+  // ── Assignments (cached for reuse by start-workout UIs) ──
+  interface Assignment {
+    id: string
+    status: string
+    program: { id: string, name: string }
+  }
+  const assignments = ref<Assignment[]>([])
+  const assignmentsLoaded = ref(false)
+  let assignmentsPromise: Promise<Assignment[]> | null = null
+
+  async function fetchAssignments(force = false): Promise<Assignment[]> {
+    if (!force && assignmentsLoaded.value) return assignments.value
+    if (assignmentsPromise) return assignmentsPromise
+    assignmentsPromise = (async () => {
+      try {
+        const data = await api<Assignment[]>('/sessions/assignments')
+        assignments.value = data
+        assignmentsLoaded.value = true
+        return data
+      } finally {
+        assignmentsPromise = null
+      }
+    })()
+    return assignmentsPromise
+  }
+
   async function startSession(input: StartSessionInput) {
     const session = await api<WorkoutSession>(`${sessionsBase()}/start`, {
       method: 'POST',
@@ -350,6 +376,9 @@ export const useSessionStore = defineStore('sessions', () => {
     resetFilters,
     // Getters
     hasActiveSession,
+    // Assignments
+    assignments,
+    fetchAssignments,
     // Session lifecycle
     fetchActive,
     startSession,

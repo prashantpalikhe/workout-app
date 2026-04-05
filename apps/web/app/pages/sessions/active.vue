@@ -7,7 +7,6 @@ const sessionStore = useSessionStore()
 const router = useRouter()
 const toast = useToast()
 
-const showStartModal = ref(false)
 const showExercisePicker = ref(false)
 const showCompleteModal = ref(false)
 const showAbandonDialog = ref(false)
@@ -102,10 +101,6 @@ function onTimerSetDuration(seconds: number) {
   restTimer.start(seconds)
 }
 
-function onSessionStarted() {
-  // Session already set in store by startSession action
-}
-
 function openSubstitute(exercise: SessionExercise) {
   substitutingExercise.value = exercise
   showSubstituteModal.value = true
@@ -196,11 +191,7 @@ const canEditProgram = computed(() => {
       title="No active workout"
       description="Start a workout to begin tracking your exercises and sets."
     >
-      <UButton
-        label="Start Workout"
-        icon="i-lucide-play"
-        @click="showStartModal = true"
-      />
+      <AppStartWorkoutButton label="Start Workout" />
     </AppEmptyState>
 
     <!-- Active session -->
@@ -328,10 +319,6 @@ const canEditProgram = computed(() => {
     </div>
 
     <!-- Modals -->
-    <SessionsSessionStartModal
-      v-model="showStartModal"
-      @started="onSessionStarted"
-    />
     <SessionsSessionExercisePicker
       v-if="session"
       v-model="showExercisePicker"

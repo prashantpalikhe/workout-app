@@ -5,17 +5,10 @@ definePageMeta({
 
 const authStore = useAuthStore()
 const sessionStore = useSessionStore()
-const router = useRouter()
-
-const showStartModal = ref(false)
 
 onMounted(() => {
   sessionStore.fetchActive()
 })
-
-function onSessionStarted() {
-  router.push('/sessions/active')
-}
 </script>
 
 <template>
@@ -48,7 +41,7 @@ function onSessionStarted() {
               </p>
             </div>
           </div>
-          <UButton label="Resume" icon="i-lucide-play" size="sm" />
+          <UButton label="Resume" icon="i-lucide-play" />
         </div>
       </UCard>
     </NuxtLink>
@@ -70,18 +63,8 @@ function onSessionStarted() {
             <p class="text-sm text-muted">Start a new session</p>
           </div>
         </div>
-        <UButton
-          label="Start"
-          icon="i-lucide-play"
-          size="sm"
-          @click="showStartModal = true"
-        />
+        <AppStartWorkoutButton />
       </div>
     </UCard>
-
-    <SessionsSessionStartModal
-      v-model="showStartModal"
-      @started="onSessionStarted"
-    />
   </UContainer>
 </template>

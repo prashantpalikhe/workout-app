@@ -2,9 +2,6 @@
 definePageMeta({ middleware: 'auth' })
 
 const sessionStore = useSessionStore()
-const router = useRouter()
-
-const showStartModal = ref(false)
 
 onMounted(async () => {
   await Promise.all([
@@ -12,18 +9,6 @@ onMounted(async () => {
     sessionStore.fetchSessions()
   ])
 })
-
-function onSessionStarted() {
-  router.push('/sessions/active')
-}
-
-function startWorkout() {
-  if (sessionStore.hasActiveSession) {
-    router.push('/sessions/active')
-  } else {
-    showStartModal.value = true
-  }
-}
 </script>
 
 <template>
@@ -34,10 +19,12 @@ function startWorkout() {
     >
       <template #links>
         <UButton
-          :label="sessionStore.hasActiveSession ? 'Resume Workout' : 'Start Workout'"
-          :icon="sessionStore.hasActiveSession ? 'i-lucide-play' : 'i-lucide-plus'"
-          @click="startWorkout"
+          v-if="sessionStore.hasActiveSession"
+          label="Resume Workout"
+          icon="i-lucide-play"
+          to="/sessions/active"
         />
+        <AppStartWorkoutButton v-else label="Start Workout" />
       </template>
     </AppPageHeader>
 
@@ -87,16 +74,7 @@ function startWorkout() {
       title="No workouts yet"
       description="Start your first workout to begin tracking your progress."
     >
-      <UButton
-        label="Start Workout"
-        icon="i-lucide-play"
-        @click="showStartModal = true"
-      />
+      <AppStartWorkoutButton label="Start Workout" />
     </AppEmptyState>
-
-    <SessionsSessionStartModal
-      v-model="showStartModal"
-      @started="onSessionStarted"
-    />
   </UContainer>
 </template>

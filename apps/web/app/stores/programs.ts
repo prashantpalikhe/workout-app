@@ -100,6 +100,7 @@ export const useProgramStore = defineStore('programs', () => {
       body: input
     })
     await fetchPrograms()
+    useSessionStore().fetchAssignments(true)
     return created
   }
 
@@ -111,6 +112,7 @@ export const useProgramStore = defineStore('programs', () => {
     const idx = programs.value.findIndex(p => p.id === id)
     if (idx !== -1) programs.value[idx] = updated
     if (selectedProgram.value?.id === id) selectedProgram.value = updated
+    useSessionStore().fetchAssignments(true)
     return updated
   }
 
@@ -118,6 +120,7 @@ export const useProgramStore = defineStore('programs', () => {
     await api(`/programs/${id}`, { method: 'DELETE' })
     programs.value = programs.value.filter(p => p.id !== id)
     if (selectedProgram.value?.id === id) selectedProgram.value = null
+    useSessionStore().fetchAssignments(true)
   }
 
   // ── Program Exercise Actions ──
