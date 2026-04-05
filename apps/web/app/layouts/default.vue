@@ -71,7 +71,7 @@ const navItems = computed<NavigationMenuItem[]>(() => [
       resizable
       :ui="{
         footer:
-          'border-t border-default pb-[max(1rem,env(safe-area-inset-bottom))]'
+          'border-t border-default pb-[max(1.5rem,env(safe-area-inset-bottom))]'
       }"
     >
       <template #header="{ collapsed }">
