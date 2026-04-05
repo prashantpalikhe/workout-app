@@ -60,7 +60,11 @@ export class ExercisesController {
 
   @Get(':id/statistics')
   @ApiOperation({ summary: 'Get exercise statistics (time-series for charts)' })
-  @ApiQuery({ name: 'range', required: false, enum: ['12w', '6m', '1y', 'all'] })
+  @ApiQuery({
+    name: 'range',
+    required: false,
+    enum: ['12w', '6m', '1y', 'all'],
+  })
   @ApiOkResponse({ description: 'Exercise statistics data points' })
   async getStatistics(
     @CurrentUser('sub') userId: string,

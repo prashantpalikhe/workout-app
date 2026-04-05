@@ -225,14 +225,9 @@ export class ProgramsService {
 
   // Private helpers
 
-  private assertOwnership(
-    program: { createdById: string },
-    userId: string,
-  ) {
+  private assertOwnership(program: { createdById: string }, userId: string) {
     if (program.createdById !== userId) {
-      throw new ForbiddenException(
-        'You can only modify your own programs',
-      );
+      throw new ForbiddenException('You can only modify your own programs');
     }
   }
 

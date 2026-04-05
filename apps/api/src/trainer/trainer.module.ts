@@ -14,7 +14,14 @@ import { TrainerAssignmentsController } from './trainer-assignments.controller';
 import { TrainerService } from './trainer.service';
 
 @Module({
-  imports: [PrismaModule, SessionsModule, RecordsModule, UsersModule, ExercisesModule, ProgramsModule],
+  imports: [
+    PrismaModule,
+    SessionsModule,
+    RecordsModule,
+    UsersModule,
+    ExercisesModule,
+    ProgramsModule,
+  ],
   controllers: [
     TrainerController,
     InviteController,

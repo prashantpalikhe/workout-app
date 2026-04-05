@@ -53,16 +53,22 @@ describe('CloudinaryService', () => {
     });
 
     it('should upload avatar and return secure_url', async () => {
-      const mockUrl = 'https://res.cloudinary.com/test-cloud/image/upload/v1/workout-app/avatars/uid.webp';
+      const mockUrl =
+        'https://res.cloudinary.com/test-cloud/image/upload/v1/workout-app/avatars/uid.webp';
       const mockStream = {
         end: vi.fn(),
       };
 
       vi.mocked(cloudinary.uploader.upload_stream).mockImplementation(
-        (_options: unknown, callback?: (error: unknown, result?: unknown) => void) => {
+        (
+          _options: unknown,
+          callback?: (error: unknown, result?: unknown) => void,
+        ) => {
           // Call callback with success
           setTimeout(() => callback?.(null, { secure_url: mockUrl }), 0);
-          return mockStream as unknown as ReturnType<typeof cloudinary.uploader.upload_stream>;
+          return mockStream as unknown as ReturnType<
+            typeof cloudinary.uploader.upload_stream
+          >;
         },
       );
 
@@ -80,9 +86,14 @@ describe('CloudinaryService', () => {
       const mockStream = { end: vi.fn() };
 
       vi.mocked(cloudinary.uploader.upload_stream).mockImplementation(
-        (_options: unknown, callback?: (error: unknown, result?: unknown) => void) => {
+        (
+          _options: unknown,
+          callback?: (error: unknown, result?: unknown) => void,
+        ) => {
           setTimeout(() => callback?.(new Error('Upload failed')), 0);
-          return mockStream as unknown as ReturnType<typeof cloudinary.uploader.upload_stream>;
+          return mockStream as unknown as ReturnType<
+            typeof cloudinary.uploader.upload_stream
+          >;
         },
       );
 
@@ -97,9 +108,9 @@ describe('CloudinaryService', () => {
     });
 
     it('should delete avatar by public_id', async () => {
-      vi.mocked(cloudinary.uploader.destroy).mockResolvedValue(
-        { result: 'ok' } as never,
-      );
+      vi.mocked(cloudinary.uploader.destroy).mockResolvedValue({
+        result: 'ok',
+      } as never);
 
       await service.deleteAvatar('uid');
       expect(cloudinary.uploader.destroy).toHaveBeenCalledWith(

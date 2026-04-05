@@ -196,9 +196,7 @@ export class UserStatsService {
     userId: string,
     filter: CalendarStatsFilter,
   ): Promise<CalendarStatsResponse> {
-    const monthStart = new Date(
-      Date.UTC(filter.year, filter.month - 1, 1),
-    );
+    const monthStart = new Date(Date.UTC(filter.year, filter.month - 1, 1));
     const monthEnd = new Date(Date.UTC(filter.year, filter.month, 1));
 
     const rows = await this.prisma.$queryRaw<
@@ -251,9 +249,7 @@ export class UserStatsService {
       prev.setUTCHours(0, 0, 0, 0);
       curr.setUTCHours(0, 0, 0, 0);
 
-      const diffDays = Math.round(
-        (prev.getTime() - curr.getTime()) / 86400000,
-      );
+      const diffDays = Math.round((prev.getTime() - curr.getTime()) / 86400000);
       if (diffDays === 1) {
         streak++;
       } else {
@@ -264,19 +260,12 @@ export class UserStatsService {
     return streak;
   }
 
-  private async rangeToDate(
-    range: string,
-    userId: string,
-  ): Promise<Date> {
+  private async rangeToDate(range: string, userId: string): Promise<Date> {
     const now = new Date();
     switch (range) {
       case '1y':
         return new Date(
-          Date.UTC(
-            now.getUTCFullYear() - 1,
-            now.getUTCMonth(),
-            1,
-          ),
+          Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), 1),
         );
       case 'all': {
         // Find the user's first completed workout

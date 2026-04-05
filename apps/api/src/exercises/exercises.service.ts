@@ -3,9 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
 } from '@nestjs/common';
-import {
-  estimate1RM,
-} from '@workout/shared';
+import { estimate1RM } from '@workout/shared';
 import type {
   CreateExerciseInput,
   UpdateExerciseInput,
@@ -153,7 +151,11 @@ export class ExercisesService {
     userId: string,
     exerciseId: string,
     filter: ExerciseStatsFilter,
-  ): Promise<{ exerciseId: string; range: string; dataPoints: ExerciseStatsDataPoint[] }> {
+  ): Promise<{
+    exerciseId: string;
+    range: string;
+    dataPoints: ExerciseStatsDataPoint[];
+  }> {
     const startDate = this.rangeToDate(filter.range);
 
     // Query per-session aggregates + individual sets for 1RM calculation
@@ -211,14 +213,21 @@ export class ExercisesService {
     const dataPoints: ExerciseStatsDataPoint[] = rows.map((row) => {
       let estimated1RM: number | null = null;
       if (row.best_weight_for_1rm && row.best_reps_for_1rm) {
-        estimated1RM = estimate1RM(row.best_weight_for_1rm, row.best_reps_for_1rm);
+        estimated1RM = estimate1RM(
+          row.best_weight_for_1rm,
+          row.best_reps_for_1rm,
+        );
       }
 
       return {
         date: row.session_date.toISOString().slice(0, 10),
-        maxWeight: row.max_weight ? Math.round(row.max_weight * 100) / 100 : null,
+        maxWeight: row.max_weight
+          ? Math.round(row.max_weight * 100) / 100
+          : null,
         estimated1RM,
-        totalVolume: row.total_volume ? Math.round(row.total_volume * 100) / 100 : null,
+        totalVolume: row.total_volume
+          ? Math.round(row.total_volume * 100) / 100
+          : null,
         maxReps: row.max_reps,
       };
     });
@@ -232,7 +241,10 @@ export class ExercisesService {
     userId: string,
     exerciseId: string,
     filter: ExerciseHistoryFilter,
-  ): Promise<{ data: ExerciseHistorySession[]; meta: { page: number; limit: number; total: number; totalPages: number } }> {
+  ): Promise<{
+    data: ExerciseHistorySession[];
+    meta: { page: number; limit: number; total: number; totalPages: number };
+  }> {
     const { page, limit } = filter;
 
     const where = {
@@ -301,11 +313,19 @@ export class ExercisesService {
     const now = new Date();
     switch (range) {
       case '1y':
-        return new Date(Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), 1));
+        return new Date(
+          Date.UTC(now.getUTCFullYear() - 1, now.getUTCMonth(), 1),
+        );
       case 'all':
         return new Date(0); // epoch
       default: // 12w
-        return new Date(Date.UTC(now.getUTCFullYear(), now.getUTCMonth(), now.getUTCDate() - 84));
+        return new Date(
+          Date.UTC(
+            now.getUTCFullYear(),
+            now.getUTCMonth(),
+            now.getUTCDate() - 84,
+          ),
+        );
     }
   }
 

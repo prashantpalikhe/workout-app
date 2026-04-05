@@ -80,21 +80,15 @@ export class SessionSetsService {
     });
 
     if (!session) {
-      throw new NotFoundException(
-        `Session with id "${sessionId}" not found`,
-      );
+      throw new NotFoundException(`Session with id "${sessionId}" not found`);
     }
 
     if (session.athleteId !== userId) {
-      throw new ForbiddenException(
-        'You can only access your own sessions',
-      );
+      throw new ForbiddenException('You can only access your own sessions');
     }
 
     if (session.status !== 'IN_PROGRESS') {
-      throw new ConflictException(
-        'This session is no longer in progress',
-      );
+      throw new ConflictException('This session is no longer in progress');
     }
 
     return session;

@@ -6,7 +6,11 @@ import { ProgramsService } from './programs.service';
 import { ProgramFoldersService } from './program-folders.service';
 
 @Module({
-  controllers: [ProgramsController, ProgramFoldersController, AssignmentsController],
+  controllers: [
+    ProgramsController,
+    ProgramFoldersController,
+    AssignmentsController,
+  ],
   providers: [ProgramsService, ProgramFoldersService],
   exports: [ProgramsService],
 })

@@ -39,10 +39,7 @@ describe('RecordsService', () => {
     };
 
     const module: TestingModule = await Test.createTestingModule({
-      providers: [
-        RecordsService,
-        { provide: PrismaService, useValue: prisma },
-      ],
+      providers: [RecordsService, { provide: PrismaService, useValue: prisma }],
     }).compile();
 
     service = module.get<RecordsService>(RecordsService);
@@ -68,11 +65,13 @@ describe('RecordsService', () => {
       prisma.$transaction.mockImplementation(async (calls: Promise<any>[]) => {
         return Promise.all(calls);
       });
-      prisma.personalRecord.create.mockImplementation(async ({ data }: any) => ({
-        id: 'pr-1',
-        ...data,
-        exercise: { name: 'Bench Press' },
-      }));
+      prisma.personalRecord.create.mockImplementation(
+        async ({ data }: any) => ({
+          id: 'pr-1',
+          ...data,
+          exercise: { name: 'Bench Press' },
+        }),
+      );
 
       const result = await service.detectPRs(userId, sessionId);
 
@@ -136,11 +135,13 @@ describe('RecordsService', () => {
       prisma.$transaction.mockImplementation(async (calls: Promise<any>[]) =>
         Promise.all(calls),
       );
-      prisma.personalRecord.create.mockImplementation(async ({ data }: any) => ({
-        id: 'pr-1',
-        ...data,
-        exercise: { name: 'Pull-ups' },
-      }));
+      prisma.personalRecord.create.mockImplementation(
+        async ({ data }: any) => ({
+          id: 'pr-1',
+          ...data,
+          exercise: { name: 'Pull-ups' },
+        }),
+      );
 
       const result = await service.detectPRs(userId, sessionId);
 
@@ -161,11 +162,13 @@ describe('RecordsService', () => {
       prisma.$transaction.mockImplementation(async (calls: Promise<any>[]) =>
         Promise.all(calls),
       );
-      prisma.personalRecord.create.mockImplementation(async ({ data }: any) => ({
-        id: 'pr-1',
-        ...data,
-        exercise: { name: 'Bench Press' },
-      }));
+      prisma.personalRecord.create.mockImplementation(
+        async ({ data }: any) => ({
+          id: 'pr-1',
+          ...data,
+          exercise: { name: 'Bench Press' },
+        }),
+      );
 
       const result = await service.detectPRs(userId, sessionId);
 
@@ -205,9 +208,30 @@ describe('RecordsService', () => {
   describe('findByExercise', () => {
     it('should return best PR per type', async () => {
       const records = [
-        { id: 'pr-1', exerciseId, prType: 'ONE_REP_MAX', value: 120, achievedOn: new Date(), sessionSetId: 'set-1' },
-        { id: 'pr-2', exerciseId, prType: 'ONE_REP_MAX', value: 110, achievedOn: new Date(), sessionSetId: null },
-        { id: 'pr-3', exerciseId, prType: 'MAX_WEIGHT', value: 100, achievedOn: new Date(), sessionSetId: 'set-2' },
+        {
+          id: 'pr-1',
+          exerciseId,
+          prType: 'ONE_REP_MAX',
+          value: 120,
+          achievedOn: new Date(),
+          sessionSetId: 'set-1',
+        },
+        {
+          id: 'pr-2',
+          exerciseId,
+          prType: 'ONE_REP_MAX',
+          value: 110,
+          achievedOn: new Date(),
+          sessionSetId: null,
+        },
+        {
+          id: 'pr-3',
+          exerciseId,
+          prType: 'MAX_WEIGHT',
+          value: 100,
+          achievedOn: new Date(),
+          sessionSetId: 'set-2',
+        },
       ];
       prisma.personalRecord.findMany.mockResolvedValue(records);
 
@@ -215,8 +239,12 @@ describe('RecordsService', () => {
 
       // Should have 2 entries (best ONE_REP_MAX and MAX_WEIGHT)
       expect(result).toHaveLength(2);
-      expect(result.find((r: any) => r.prType === 'ONE_REP_MAX')?.value).toBe(120);
-      expect(result.find((r: any) => r.prType === 'MAX_WEIGHT')?.value).toBe(100);
+      expect(result.find((r: any) => r.prType === 'ONE_REP_MAX')?.value).toBe(
+        120,
+      );
+      expect(result.find((r: any) => r.prType === 'MAX_WEIGHT')?.value).toBe(
+        100,
+      );
     });
   });
 });

@@ -82,9 +82,7 @@ export class TrainerSessionsController {
   @Get('active')
   @ApiOperation({ summary: "Get athlete's active session" })
   @ApiOkResponse({ description: 'Active session or null' })
-  async findActive(
-    @Param('athleteId', ParseUUIDPipe) athleteId: string,
-  ) {
+  async findActive(@Param('athleteId', ParseUUIDPipe) athleteId: string) {
     return this.sessionsService.findActive(athleteId);
   }
 

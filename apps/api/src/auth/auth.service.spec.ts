@@ -280,8 +280,15 @@ describe('AuthService', () => {
       mockVerifyIdToken.mockResolvedValue({
         getPayload: () => googlePayload,
       });
-      const existingUser = { ...mockUser, email: 'google@example.com', avatarUrl: null };
-      const updatedUser = { ...existingUser, avatarUrl: 'https://example.com/photo.jpg' };
+      const existingUser = {
+        ...mockUser,
+        email: 'google@example.com',
+        avatarUrl: null,
+      };
+      const updatedUser = {
+        ...existingUser,
+        avatarUrl: 'https://example.com/photo.jpg',
+      };
       usersService.findByEmail.mockResolvedValue(existingUser);
       usersService.update.mockResolvedValue(updatedUser);
 
@@ -335,7 +342,11 @@ describe('AuthService', () => {
       };
       usersService.create.mockResolvedValue(newUser);
 
-      const dto = { idToken: 'apple-id-token', firstName: 'Jane', lastName: 'Appleseed' };
+      const dto = {
+        idToken: 'apple-id-token',
+        firstName: 'Jane',
+        lastName: 'Appleseed',
+      };
       const result = await service.appleLogin(dto);
 
       expect(usersService.create).toHaveBeenCalledWith({

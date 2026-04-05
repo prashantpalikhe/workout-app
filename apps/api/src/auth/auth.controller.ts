@@ -52,9 +52,7 @@ export class AuthController {
   @ApiBody({ schema: zodToOpenApi(loginInputSchema) })
   @ApiOkResponse({ description: 'Login successful, tokens returned' })
   @ApiUnauthorizedResponse({ description: 'Invalid credentials' })
-  async login(
-    @Body(new ZodValidationPipe(loginInputSchema)) dto: LoginInput,
-  ) {
+  async login(@Body(new ZodValidationPipe(loginInputSchema)) dto: LoginInput) {
     return this.authService.login(dto);
   }
 
@@ -103,14 +101,19 @@ export class AuthController {
   @HttpCode(HttpStatus.OK)
   @ApiOperation({ summary: 'Request a password reset email' })
   @ApiBody({ schema: zodToOpenApi(forgotPasswordInputSchema) })
-  @ApiOkResponse({ description: 'If the email exists, a reset link has been sent' })
+  @ApiOkResponse({
+    description: 'If the email exists, a reset link has been sent',
+  })
   async forgotPassword(
     @Body(new ZodValidationPipe(forgotPasswordInputSchema))
     dto: ForgotPasswordInput,
   ) {
     await this.authService.forgotPassword(dto.email);
     // Always return the same response to prevent user enumeration
-    return { message: 'If an account with that email exists, a reset link has been sent' };
+    return {
+      message:
+        'If an account with that email exists, a reset link has been sent',
+    };
   }
 
   @Public()

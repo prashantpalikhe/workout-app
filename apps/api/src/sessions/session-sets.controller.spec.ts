@@ -42,12 +42,7 @@ describe('SessionSetsController', () => {
       reps: 8,
       completed: true,
     };
-    const result = await controller.create(
-      'user-1',
-      'session-1',
-      'se-1',
-      dto,
-    );
+    const result = await controller.create('user-1', 'session-1', 'se-1', dto);
     expect(sessionSetsService.create).toHaveBeenCalledWith(
       'user-1',
       'session-1',

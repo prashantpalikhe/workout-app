@@ -114,7 +114,12 @@ export class TrainerService {
           data: { status: 'ACTIVE', startedAt: new Date(), endedAt: null },
           include: {
             trainer: {
-              select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+              select: {
+                id: true,
+                firstName: true,
+                lastName: true,
+                avatarUrl: true,
+              },
             },
           },
         }),
@@ -137,7 +142,12 @@ export class TrainerService {
         },
         include: {
           trainer: {
-            select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+            select: {
+              id: true,
+              firstName: true,
+              lastName: true,
+              avatarUrl: true,
+            },
           },
         },
       }),
@@ -221,7 +231,12 @@ export class TrainerService {
       },
       include: {
         athlete: {
-          select: { id: true, firstName: true, lastName: true, avatarUrl: true },
+          select: {
+            id: true,
+            firstName: true,
+            lastName: true,
+            avatarUrl: true,
+          },
         },
       },
     });
@@ -297,7 +312,9 @@ export class TrainerService {
     }
 
     if (relationship.status === 'DISCONNECTED') {
-      throw new BadRequestException('This relationship is already disconnected');
+      throw new BadRequestException(
+        'This relationship is already disconnected',
+      );
     }
 
     return this.prisma.trainerAthlete.update({

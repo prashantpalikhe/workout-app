@@ -10,7 +10,9 @@ import { DocumentBuilder } from '@nestjs/swagger';
  */
 export const swaggerConfig = new DocumentBuilder()
   .setTitle('Workout App API')
-  .setDescription('API for the workout tracking platform for athletes and trainers')
+  .setDescription(
+    'API for the workout tracking platform for athletes and trainers',
+  )
   .setVersion('0.1.0')
   .addBearerAuth(
     {

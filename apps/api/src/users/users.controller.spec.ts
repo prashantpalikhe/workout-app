@@ -54,7 +54,9 @@ describe('UsersController', () => {
     };
 
     cloudinaryService = {
-      uploadAvatar: vi.fn().mockResolvedValue('https://res.cloudinary.com/test/avatar.webp'),
+      uploadAvatar: vi
+        .fn()
+        .mockResolvedValue('https://res.cloudinary.com/test/avatar.webp'),
       deleteAvatar: vi.fn().mockResolvedValue(undefined),
     };
 
@@ -138,7 +140,10 @@ describe('UsersController', () => {
       } as Express.Multer.File;
 
       const result = await controller.uploadAvatar('uid', mockFile);
-      expect(cloudinaryService.uploadAvatar).toHaveBeenCalledWith(mockFile, 'uid');
+      expect(cloudinaryService.uploadAvatar).toHaveBeenCalledWith(
+        mockFile,
+        'uid',
+      );
       expect(usersService.setAvatarUrl).toHaveBeenCalledWith(
         'uid',
         'https://res.cloudinary.com/test/avatar.webp',
@@ -150,7 +155,10 @@ describe('UsersController', () => {
 
     it('should throw if no file provided', async () => {
       await expect(
-        controller.uploadAvatar('uid', undefined as unknown as Express.Multer.File),
+        controller.uploadAvatar(
+          'uid',
+          undefined as unknown as Express.Multer.File,
+        ),
       ).rejects.toThrow('No file provided');
     });
   });

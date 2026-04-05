@@ -38,8 +38,18 @@ const mockAssignment = {
     id: 'prog-1',
     name: 'Push Pull Legs',
     exercises: [
-      { id: 'pe-1', exerciseId: 'ex-1', sortOrder: 0, exercise: { id: 'ex-1' } },
-      { id: 'pe-2', exerciseId: 'ex-2', sortOrder: 1, exercise: { id: 'ex-2' } },
+      {
+        id: 'pe-1',
+        exerciseId: 'ex-1',
+        sortOrder: 0,
+        exercise: { id: 'ex-1' },
+      },
+      {
+        id: 'pe-2',
+        exerciseId: 'ex-2',
+        sortOrder: 1,
+        exercise: { id: 'ex-2' },
+      },
     ],
   },
 };
@@ -79,7 +89,10 @@ describe('SessionsService', () => {
       providers: [
         SessionsService,
         { provide: PrismaService, useValue: prisma },
-        { provide: RecordsService, useValue: { detectPRs: vi.fn().mockResolvedValue([]) } },
+        {
+          provide: RecordsService,
+          useValue: { detectPRs: vi.fn().mockResolvedValue([]) },
+        },
       ],
     }).compile();
 
@@ -146,7 +159,7 @@ describe('SessionsService', () => {
       ).rejects.toThrow(NotFoundException);
     });
 
-    it('should throw ForbiddenException for another user\'s assignment', async () => {
+    it("should throw ForbiddenException for another user's assignment", async () => {
       prisma.workoutSession.findFirst.mockResolvedValue(null);
       prisma.programAssignment.findUnique.mockResolvedValue({
         ...mockAssignment,
@@ -235,17 +248,17 @@ describe('SessionsService', () => {
     it('should throw NotFoundException when not found', async () => {
       prisma.workoutSession.findUnique.mockResolvedValue(null);
 
-      await expect(
-        service.findById('user-1', 'missing'),
-      ).rejects.toThrow(NotFoundException);
+      await expect(service.findById('user-1', 'missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
 
     it('should throw ForbiddenException for another user', async () => {
       prisma.workoutSession.findUnique.mockResolvedValue(mockSession);
 
-      await expect(
-        service.findById('other-user', 'session-1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.findById('other-user', 'session-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 
@@ -295,9 +308,9 @@ describe('SessionsService', () => {
     it('should throw ConflictException when session already completed', async () => {
       prisma.workoutSession.findUnique.mockResolvedValue(mockCompletedSession);
 
-      await expect(
-        service.complete('user-1', 'session-2', {}),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.complete('user-1', 'session-2', {})).rejects.toThrow(
+        ConflictException,
+      );
     });
   });
 
@@ -320,17 +333,17 @@ describe('SessionsService', () => {
     it('should throw ConflictException when session not in progress', async () => {
       prisma.workoutSession.findUnique.mockResolvedValue(mockCompletedSession);
 
-      await expect(
-        service.abandon('user-1', 'session-2'),
-      ).rejects.toThrow(ConflictException);
+      await expect(service.abandon('user-1', 'session-2')).rejects.toThrow(
+        ConflictException,
+      );
     });
 
     it('should throw ForbiddenException for another user', async () => {
       prisma.workoutSession.findUnique.mockResolvedValue(mockSession);
 
-      await expect(
-        service.abandon('other-user', 'session-1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.abandon('other-user', 'session-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

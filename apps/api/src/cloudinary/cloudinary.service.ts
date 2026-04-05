@@ -1,8 +1,4 @@
-import {
-  Injectable,
-  BadRequestException,
-  Logger,
-} from '@nestjs/common';
+import { Injectable, BadRequestException, Logger } from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { v2 as cloudinary, type UploadApiResponse } from 'cloudinary';
 import type { Env } from '../config';
@@ -64,9 +60,7 @@ export class CloudinaryService {
         (error, result?: UploadApiResponse) => {
           if (error) {
             this.logger.error('Cloudinary upload failed', error);
-            reject(
-              new BadRequestException('Failed to upload avatar'),
-            );
+            reject(new BadRequestException('Failed to upload avatar'));
           } else {
             resolve(result!.secure_url);
           }

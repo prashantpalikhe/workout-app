@@ -279,12 +279,9 @@ describe('ProgramsService', () => {
         targetSets: 5,
       });
 
-      const result = await service.updateExercise(
-        'user-1',
-        'prog-1',
-        'pe-1',
-        { targetSets: 5 },
-      );
+      const result = await service.updateExercise('user-1', 'prog-1', 'pe-1', {
+        targetSets: 5,
+      });
 
       expect(result.targetSets).toBe(5);
     });

@@ -42,7 +42,9 @@ export class SessionsController {
 
   @Get('assignments')
   @ApiOperation({ summary: 'List my active program assignments' })
-  @ApiOkResponse({ description: 'Active program assignments with program name' })
+  @ApiOkResponse({
+    description: 'Active program assignments with program name',
+  })
   async myAssignments(@CurrentUser('sub') userId: string) {
     return this.sessionsService.listStartablePrograms(userId);
   }

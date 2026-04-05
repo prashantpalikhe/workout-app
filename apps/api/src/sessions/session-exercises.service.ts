@@ -45,11 +45,7 @@ export class SessionExercisesService {
     },
   };
 
-  async add(
-    userId: string,
-    sessionId: string,
-    dto: AddSessionExerciseInput,
-  ) {
+  async add(userId: string, sessionId: string, dto: AddSessionExerciseInput) {
     await this.findSession(sessionId, userId);
 
     // Auto-calculate sortOrder if not provided
@@ -94,11 +90,7 @@ export class SessionExercisesService {
     });
   }
 
-  async remove(
-    userId: string,
-    sessionId: string,
-    sessionExerciseId: string,
-  ) {
+  async remove(userId: string, sessionId: string, sessionExerciseId: string) {
     await this.findSession(sessionId, userId);
     await this.findSessionExercise(sessionExerciseId, sessionId);
 
@@ -115,21 +107,15 @@ export class SessionExercisesService {
     });
 
     if (!session) {
-      throw new NotFoundException(
-        `Session with id "${sessionId}" not found`,
-      );
+      throw new NotFoundException(`Session with id "${sessionId}" not found`);
     }
 
     if (session.athleteId !== userId) {
-      throw new ForbiddenException(
-        'You can only access your own sessions',
-      );
+      throw new ForbiddenException('You can only access your own sessions');
     }
 
     if (session.status !== 'IN_PROGRESS') {
-      throw new ConflictException(
-        'This session is no longer in progress',
-      );
+      throw new ConflictException('This session is no longer in progress');
     }
 
     return session;

@@ -55,7 +55,11 @@ export class AuthService {
       lastName: dto.lastName,
     });
 
-    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
+    const tokens = await this.generateTokens(
+      user.id,
+      user.email,
+      user.isTrainer,
+    );
     this.logger.log(`User registered: ${user.email}`);
 
     return this.buildAuthResponse(user, tokens);
@@ -73,7 +77,11 @@ export class AuthService {
       throw new UnauthorizedException('Invalid email or password');
     }
 
-    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
+    const tokens = await this.generateTokens(
+      user.id,
+      user.email,
+      user.isTrainer,
+    );
     this.logger.log(`User logged in: ${user.email}`);
 
     return this.buildAuthResponse(user, tokens);
@@ -110,7 +118,11 @@ export class AuthService {
       avatarUrl: payload.picture,
     });
 
-    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
+    const tokens = await this.generateTokens(
+      user.id,
+      user.email,
+      user.isTrainer,
+    );
     this.logger.log(`User logged in via Google: ${user.email}`);
 
     return this.buildAuthResponse(user, tokens);
@@ -145,7 +157,11 @@ export class AuthService {
       lastName: dto.lastName || '',
     });
 
-    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
+    const tokens = await this.generateTokens(
+      user.id,
+      user.email,
+      user.isTrainer,
+    );
     this.logger.log(`User logged in via Apple: ${user.email}`);
 
     return this.buildAuthResponse(user, tokens);
@@ -175,7 +191,11 @@ export class AuthService {
     });
 
     const { user } = stored;
-    const tokens = await this.generateTokens(user.id, user.email, user.isTrainer);
+    const tokens = await this.generateTokens(
+      user.id,
+      user.email,
+      user.isTrainer,
+    );
 
     return this.buildAuthResponse(user, tokens);
   }
@@ -215,9 +235,7 @@ export class AuthService {
     // Generate token: 32 random bytes → hex string, store SHA-256 hash
     const rawToken = randomBytes(32).toString('hex');
     const tokenHash = this.hashToken(rawToken);
-    const expiresAt = new Date(
-      Date.now() + AuthService.RESET_TOKEN_EXPIRY_MS,
-    );
+    const expiresAt = new Date(Date.now() + AuthService.RESET_TOKEN_EXPIRY_MS);
 
     await this.prisma.passwordResetToken.create({
       data: { userId: user.id, tokenHash, expiresAt },
@@ -312,7 +330,13 @@ export class AuthService {
   }
 
   private buildAuthResponse(
-    user: { id: string; email: string; firstName: string; lastName: string; isTrainer: boolean },
+    user: {
+      id: string;
+      email: string;
+      firstName: string;
+      lastName: string;
+      isTrainer: boolean;
+    },
     tokens: { accessToken: string; refreshToken: string },
   ) {
     return {
@@ -327,7 +351,11 @@ export class AuthService {
     };
   }
 
-  private async generateTokens(userId: string, email: string, isTrainer: boolean) {
+  private async generateTokens(
+    userId: string,
+    email: string,
+    isTrainer: boolean,
+  ) {
     const payload: JwtPayload = { sub: userId, email, isTrainer };
 
     // Access token: short-lived JWT signed with JWT_SECRET

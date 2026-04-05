@@ -24,14 +24,10 @@ describe('ProgramFoldersController', () => {
 
     const module: TestingModule = await Test.createTestingModule({
       controllers: [ProgramFoldersController],
-      providers: [
-        { provide: ProgramFoldersService, useValue: foldersService },
-      ],
+      providers: [{ provide: ProgramFoldersService, useValue: foldersService }],
     }).compile();
 
-    controller = module.get<ProgramFoldersController>(
-      ProgramFoldersController,
-    );
+    controller = module.get<ProgramFoldersController>(ProgramFoldersController);
   });
 
   it('findAll delegates to programFoldersService.findAll', async () => {

@@ -11,7 +11,9 @@ export class MailService {
   private readonly frontendUrl: string;
 
   constructor(private readonly config: ConfigService<Env, true>) {
-    this.resend = new Resend(this.config.get('RESEND_API_KEY', { infer: true }));
+    this.resend = new Resend(
+      this.config.get('RESEND_API_KEY', { infer: true }),
+    );
     this.from = this.config.get('MAIL_FROM', { infer: true });
     this.frontendUrl = this.config.get('FRONTEND_URL', { infer: true });
   }
@@ -27,7 +29,9 @@ export class MailService {
     });
 
     if (error) {
-      this.logger.error(`Failed to send password reset email to ${to}: ${error.message}`);
+      this.logger.error(
+        `Failed to send password reset email to ${to}: ${error.message}`,
+      );
       throw new Error(`Failed to send email: ${error.message}`);
     }
 

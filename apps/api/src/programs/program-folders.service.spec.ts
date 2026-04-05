@@ -146,9 +146,9 @@ describe('ProgramFoldersService', () => {
     it('should throw ForbiddenException for another user', async () => {
       prisma.programFolder.findUnique.mockResolvedValue(mockFolder);
 
-      await expect(
-        service.delete('other-user', 'folder-1'),
-      ).rejects.toThrow(ForbiddenException);
+      await expect(service.delete('other-user', 'folder-1')).rejects.toThrow(
+        ForbiddenException,
+      );
     });
   });
 });

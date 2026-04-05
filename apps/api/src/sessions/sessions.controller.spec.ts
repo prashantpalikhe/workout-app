@@ -28,8 +28,12 @@ describe('SessionsController', () => {
       findAll: vi.fn().mockResolvedValue(mockPaginatedResult),
       findById: vi.fn().mockResolvedValue(mockSession),
       update: vi.fn().mockResolvedValue(mockSession),
-      complete: vi.fn().mockResolvedValue({ ...mockSession, status: 'COMPLETED' }),
-      abandon: vi.fn().mockResolvedValue({ ...mockSession, status: 'ABANDONED' }),
+      complete: vi
+        .fn()
+        .mockResolvedValue({ ...mockSession, status: 'COMPLETED' }),
+      abandon: vi
+        .fn()
+        .mockResolvedValue({ ...mockSession, status: 'ABANDONED' }),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -62,21 +66,32 @@ describe('SessionsController', () => {
 
   it('findById delegates to sessionsService.findById', async () => {
     const result = await controller.findById('user-1', 'session-1');
-    expect(sessionsService.findById).toHaveBeenCalledWith('user-1', 'session-1');
+    expect(sessionsService.findById).toHaveBeenCalledWith(
+      'user-1',
+      'session-1',
+    );
     expect(result).toEqual(mockSession);
   });
 
   it('update delegates to sessionsService.update', async () => {
     const dto = { name: 'Updated' };
     const result = await controller.update('user-1', 'session-1', dto);
-    expect(sessionsService.update).toHaveBeenCalledWith('user-1', 'session-1', dto);
+    expect(sessionsService.update).toHaveBeenCalledWith(
+      'user-1',
+      'session-1',
+      dto,
+    );
     expect(result).toEqual(mockSession);
   });
 
   it('complete delegates to sessionsService.complete', async () => {
     const dto = { overallRpe: 8 };
     const result = await controller.complete('user-1', 'session-1', dto);
-    expect(sessionsService.complete).toHaveBeenCalledWith('user-1', 'session-1', dto);
+    expect(sessionsService.complete).toHaveBeenCalledWith(
+      'user-1',
+      'session-1',
+      dto,
+    );
     expect(result.status).toBe('COMPLETED');
   });
 

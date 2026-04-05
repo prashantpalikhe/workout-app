@@ -92,11 +92,7 @@ describe('ProgramsController', () => {
 
   it('reorderExercises delegates to programsService.reorderExercises', async () => {
     const items = [{ id: 'pe-1', sortOrder: 1 }];
-    const result = await controller.reorderExercises(
-      'user-1',
-      'prog-1',
-      items,
-    );
+    const result = await controller.reorderExercises('user-1', 'prog-1', items);
     expect(programsService.reorderExercises).toHaveBeenCalledWith(
       'user-1',
       'prog-1',

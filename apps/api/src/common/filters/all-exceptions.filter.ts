@@ -51,7 +51,10 @@ export class AllExceptionsFilter implements ExceptionFilter {
 
     // Log: 500s are errors (with stack), 4xx are warnings
     if (errorResponse.statusCode >= 500) {
-      this.logger.error(exception, `Unhandled exception: ${errorResponse.message}`);
+      this.logger.error(
+        exception,
+        `Unhandled exception: ${errorResponse.message}`,
+      );
     } else {
       this.logger.warn(
         `Client error [${errorResponse.statusCode}]: ${errorResponse.message}`,
@@ -91,8 +94,9 @@ export class AllExceptionsFilter implements ExceptionFilter {
       const message =
         typeof exceptionResponse === 'string'
           ? exceptionResponse
-          : (exceptionResponse as Record<string, unknown>).message?.toString() ??
-            exception.message;
+          : ((
+              exceptionResponse as Record<string, unknown>
+            ).message?.toString() ?? exception.message);
 
       return {
         statusCode: status,

@@ -30,9 +30,7 @@ import { CurrentUser, ZodValidationPipe, zodToOpenApi } from '../common';
 @ApiBearerAuth('access-token')
 @Controller('program-folders')
 export class ProgramFoldersController {
-  constructor(
-    private readonly programFoldersService: ProgramFoldersService,
-  ) {}
+  constructor(private readonly programFoldersService: ProgramFoldersService) {}
 
   @Get()
   @ApiOperation({ summary: 'List user program folders' })

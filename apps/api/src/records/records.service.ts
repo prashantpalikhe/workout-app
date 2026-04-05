@@ -78,7 +78,8 @@ export class RecordsService {
     });
 
     for (const [exerciseId, exerciseSets] of setsByExercise) {
-      const trackingType = exerciseSets[0].sessionExercise.exercise.trackingType;
+      const trackingType =
+        exerciseSets[0].sessionExercise.exercise.trackingType;
       const applicablePRTypes = PR_TYPES_BY_TRACKING_TYPE[trackingType] ?? [];
 
       for (const prType of applicablePRTypes) {
@@ -111,7 +112,10 @@ export class RecordsService {
     const prData = newPRs
       .sort((a, b) => {
         // Sort by priority so higher-priority PR types claim the setId first
-        return PR_TYPE_PRIORITY.indexOf(a.prType) - PR_TYPE_PRIORITY.indexOf(b.prType);
+        return (
+          PR_TYPE_PRIORITY.indexOf(a.prType) -
+          PR_TYPE_PRIORITY.indexOf(b.prType)
+        );
       })
       .map((pr) => {
         const canAssignSet = !assignedSetIds.has(pr.setId);
@@ -286,9 +290,10 @@ export class RecordsService {
       });
 
       // Check against in-session completed sets
-      const sessionBest = sessionSets.length > 0
-        ? this.computeCandidate(prType, sessionSets)
-        : null;
+      const sessionBest =
+        sessionSets.length > 0
+          ? this.computeCandidate(prType, sessionSets)
+          : null;
 
       const bestValue = Math.max(
         existingBest?.value ?? 0,

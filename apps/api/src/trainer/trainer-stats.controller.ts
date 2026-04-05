@@ -74,9 +74,7 @@ export class TrainerStatsController {
   @Get('stats')
   @ApiOperation({ summary: "Get athlete's profile statistics overview" })
   @ApiOkResponse({ description: 'Stats (totals, streak, etc.)' })
-  async getStats(
-    @Param('athleteId', ParseUUIDPipe) athleteId: string,
-  ) {
+  async getStats(@Param('athleteId', ParseUUIDPipe) athleteId: string) {
     return this.userStatsService.getStats(athleteId);
   }
 

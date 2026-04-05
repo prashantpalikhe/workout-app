@@ -32,7 +32,12 @@ import {
 import type { ProgramAssignmentStatus } from '../generated/prisma/client.js';
 import { PrismaService } from '../prisma';
 import { ProgramsService } from '../programs';
-import { CurrentUser, ZodValidationPipe, zodToOpenApi, IsTrainer } from '../common';
+import {
+  CurrentUser,
+  ZodValidationPipe,
+  zodToOpenApi,
+  IsTrainer,
+} from '../common';
 import { TrainerGuard } from '../common/guards/trainer.guard';
 
 @ApiTags('trainer-assignments')
@@ -89,9 +94,7 @@ export class TrainerAssignmentsController {
     }
 
     if (program.createdById !== trainerId) {
-      throw new ForbiddenException(
-        'You can only assign your own programs',
-      );
+      throw new ForbiddenException('You can only assign your own programs');
     }
 
     // Prevent duplicate active assignment of the same program template
@@ -190,10 +193,7 @@ export class TrainerAssignmentsController {
 
   // ── Helpers ───────────────────────────────────
 
-  private async assertActiveRelationship(
-    trainerId: string,
-    athleteId: string,
-  ) {
+  private async assertActiveRelationship(trainerId: string, athleteId: string) {
     const relationship = await this.prisma.trainerAthlete.findFirst({
       where: { trainerId, athleteId, status: 'ACTIVE' },
     });
@@ -213,15 +213,11 @@ export class TrainerAssignmentsController {
     });
 
     if (!assignment) {
-      throw new NotFoundException(
-        `Assignment with id "${id}" not found`,
-      );
+      throw new NotFoundException(`Assignment with id "${id}" not found`);
     }
 
     if (assignment.assignedById !== trainerId) {
-      throw new ForbiddenException(
-        'You can only manage your own assignments',
-      );
+      throw new ForbiddenException('You can only manage your own assignments');
     }
 
     return assignment;

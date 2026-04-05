@@ -42,7 +42,9 @@ export class ProgramsController {
 
   @Get()
   @ApiOperation({ summary: 'List user programs' })
-  @ApiOkResponse({ description: 'List of programs with exercises and folder info' })
+  @ApiOkResponse({
+    description: 'List of programs with exercises and folder info',
+  })
   async findAll(@CurrentUser('sub') userId: string) {
     return this.programsService.findAll(userId);
   }

@@ -123,10 +123,7 @@ describe('ExercisesService', () => {
       await service.findAll('user-1', { page: 1, limit: 20 });
 
       const where = prisma.exercise.findMany.mock.calls[0][0].where;
-      expect(where.OR).toEqual([
-        { isGlobal: true },
-        { createdById: 'user-1' },
-      ]);
+      expect(where.OR).toEqual([{ isGlobal: true }, { createdById: 'user-1' }]);
     });
   });
 

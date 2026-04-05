@@ -231,26 +231,23 @@ export class SessionsService {
 
   // Private helpers
 
-  private assertOwnership(
-    session: { athleteId: string },
-    userId: string,
-  ) {
+  private assertOwnership(session: { athleteId: string }, userId: string) {
     if (session.athleteId !== userId) {
-      throw new ForbiddenException(
-        'You can only access your own sessions',
-      );
+      throw new ForbiddenException('You can only access your own sessions');
     }
   }
 
   private assertInProgress(session: { status: string }) {
     if (session.status !== 'IN_PROGRESS') {
-      throw new ConflictException(
-        'This session is no longer in progress',
-      );
+      throw new ConflictException('This session is no longer in progress');
     }
   }
 
-  private async startFromProgram(userId: string, dto: StartSessionInput, loggedById?: string) {
+  private async startFromProgram(
+    userId: string,
+    dto: StartSessionInput,
+    loggedById?: string,
+  ) {
     const assignment = await this.prisma.programAssignment.findUnique({
       where: { id: dto.programAssignmentId! },
       include: {
@@ -304,7 +301,11 @@ export class SessionsService {
     return session;
   }
 
-  private async startFromOwnProgram(userId: string, dto: StartSessionInput, loggedById?: string) {
+  private async startFromOwnProgram(
+    userId: string,
+    dto: StartSessionInput,
+    loggedById?: string,
+  ) {
     const program = await this.prisma.program.findUnique({
       where: { id: dto.programId! },
       include: {
@@ -316,11 +317,15 @@ export class SessionsService {
     });
 
     if (!program) {
-      throw new NotFoundException(`Program with id "${dto.programId}" not found`);
+      throw new NotFoundException(
+        `Program with id "${dto.programId}" not found`,
+      );
     }
 
     if (program.createdById !== userId) {
-      throw new ForbiddenException('You can only start sessions from your own programs');
+      throw new ForbiddenException(
+        'You can only start sessions from your own programs',
+      );
     }
 
     const sessionName = dto.name || program.name;
