@@ -127,37 +127,34 @@ const summary = computed(() => {
       <!-- Expanded: inline input fields + notes + remove -->
       <div v-if="expanded" class="mt-3">
         <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-2">
-          <UFormField label="Sets" size="xs">
+          <UFormField label="Sets">
             <UInput
               v-model.number="form.targetSets"
               type="number"
               placeholder="3"
-              size="xs"
-              :min="1"
+                            :min="1"
               :disabled="readonly"
               @blur="schedule()"
               @keyup.enter="onInputEnter"
             />
           </UFormField>
 
-          <UFormField label="Reps" size="xs">
+          <UFormField label="Reps">
             <UInput
               v-model="form.targetReps"
               placeholder="8-12"
-              size="xs"
-              :disabled="readonly"
+                            :disabled="readonly"
               @blur="schedule()"
               @keyup.enter="onInputEnter"
             />
           </UFormField>
 
-          <UFormField label="RPE" size="xs">
+          <UFormField label="RPE">
             <UInput
               v-model.number="form.targetRpe"
               type="number"
               placeholder="8"
-              size="xs"
-              :min="1"
+                            :min="1"
               :max="10"
               :step="0.5"
               :disabled="readonly"
@@ -166,24 +163,22 @@ const summary = computed(() => {
             />
           </UFormField>
 
-          <UFormField label="Tempo" size="xs">
+          <UFormField label="Tempo">
             <UInput
               v-model="form.targetTempo"
               placeholder="2-1-1-0"
-              size="xs"
-              :disabled="readonly"
+                            :disabled="readonly"
               @blur="schedule()"
               @keyup.enter="onInputEnter"
             />
           </UFormField>
 
-          <UFormField label="Rest (s)" size="xs">
+          <UFormField label="Rest (s)">
             <UInput
               v-model.number="form.restSec"
               type="number"
               placeholder="90"
-              size="xs"
-              :min="0"
+                            :min="0"
               :disabled="readonly"
               @blur="schedule()"
               @keyup.enter="onInputEnter"
@@ -205,8 +200,7 @@ const summary = computed(() => {
             v-model="form.notes"
             placeholder="Notes..."
             :rows="2"
-            size="xs"
-            :disabled="readonly"
+                        :disabled="readonly"
             class="w-full"
             @blur="schedule()"
           />
@@ -219,8 +213,7 @@ const summary = computed(() => {
             icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
-            size="xs"
-            @click="$emit('remove')"
+                        @click="$emit('remove')"
           />
         </div>
       </div>

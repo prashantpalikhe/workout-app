@@ -143,7 +143,6 @@ const filtersExpanded = ref(false)
           icon="i-lucide-x"
           color="neutral"
           variant="subtle"
-          size="sm"
           @click="clearFilters"
         />
       </div>

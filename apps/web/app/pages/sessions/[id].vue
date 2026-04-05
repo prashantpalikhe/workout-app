@@ -93,15 +93,6 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
             </span>
           </div>
         </template>
-        <template #links>
-          <NuxtLink to="/sessions">
-            <UButton
-              label="Back to History"
-              icon="i-lucide-arrow-left"
-              variant="outline"
-            />
-          </NuxtLink>
-        </template>
       </AppPageHeader>
 
       <!-- Summary stats -->
