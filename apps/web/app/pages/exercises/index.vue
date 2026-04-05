@@ -101,11 +101,13 @@ async function onDeleteConfirm() {
 
 function getRowActions(exercise: Exercise) {
   const items = [
-    [{
-      label: 'View Details',
-      icon: 'i-lucide-eye',
-      onSelect: () => openDetail(exercise)
-    }]
+    [
+      {
+        label: 'View Details',
+        icon: 'i-lucide-eye',
+        onSelect: () => openDetail(exercise)
+      }
+    ]
   ]
 
   if (!exercise.isGlobal) {
@@ -130,7 +132,7 @@ function getRowActions(exercise: Exercise) {
 <template>
   <UContainer>
     <AppPageHeader
-      title="Exercise Library"
+      title="Exercises"
       description="Browse, search, and manage your exercises"
     >
       <template #links>
@@ -167,10 +169,14 @@ function getRowActions(exercise: Exercise) {
               </UBadge>
             </div>
             <div class="mt-0.5 text-xs text-muted truncate">
-              {{ [
-                formatEnum(exercise.equipment),
-                formatEnum(exercise.movementPattern)
-              ].filter(Boolean).join(' · ') || '—' }}
+              {{
+                [
+                  formatEnum(exercise.equipment),
+                  formatEnum(exercise.movementPattern)
+                ]
+                  .filter(Boolean)
+                  .join(' · ') || '—'
+              }}
             </div>
             <div v-if="exercise.muscleGroups?.length" class="mt-2">
               <ExercisesExerciseMuscleGroupBadges
@@ -192,13 +198,8 @@ function getRowActions(exercise: Exercise) {
           </UDropdownMenu>
         </button>
       </template>
-      <div
-        v-else
-        class="text-center py-8 rounded-lg border border-default"
-      >
-        <p class="text-muted mb-4">
-          No exercises found
-        </p>
+      <div v-else class="text-center py-8 rounded-lg border border-default">
+        <p class="text-muted mb-4">No exercises found</p>
         <UButton
           v-if="exerciseStore.hasActiveFilters"
           label="Clear Filters"
@@ -266,9 +267,7 @@ function getRowActions(exercise: Exercise) {
 
       <template #empty>
         <div class="text-center py-8">
-          <p class="text-muted mb-4">
-            No exercises found
-          </p>
+          <p class="text-muted mb-4">No exercises found</p>
           <UButton
             v-if="exerciseStore.hasActiveFilters"
             label="Clear Filters"
@@ -279,10 +278,7 @@ function getRowActions(exercise: Exercise) {
       </template>
     </UTable>
 
-    <div
-      v-if="exerciseStore.meta.totalPages > 1"
-      class="flex justify-center"
-    >
+    <div v-if="exerciseStore.meta.totalPages > 1" class="flex justify-center">
       <UPagination
         :page="exerciseStore.meta.page"
         :total="exerciseStore.meta.total"

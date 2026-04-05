@@ -69,48 +69,88 @@ function clearFilters() {
   selectedMuscleGroup.value = ''
   exerciseStore.resetFilters()
 }
+
+const activeFilterCount = computed(() => {
+  let n = 0
+  if (selectedEquipment.value) n++
+  if (selectedMovement.value) n++
+  if (selectedMuscleGroup.value) n++
+  return n
+})
+
+const filtersExpanded = ref(false)
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row flex-wrap gap-3 mb-6">
-    <UInput
-      v-model="searchQuery"
-      placeholder="Search exercises..."
-      icon="i-lucide-search"
-      class="flex-1 min-w-48"
-    />
+  <div class="mb-6">
+    <!-- Search row -->
+    <div class="flex items-center gap-2">
+      <UInput
+        v-model="searchQuery"
+        placeholder="Search exercises..."
+        icon="i-lucide-search"
+        class="flex-1"
+      />
+      <!-- Mobile: filter toggle button -->
+      <UButton
+        class="sm:hidden"
+        :icon="filtersExpanded ? 'i-lucide-chevron-up' : 'i-lucide-sliders-horizontal'"
+        color="neutral"
+        variant="outline"
+        :aria-label="filtersExpanded ? 'Hide filters' : 'Show filters'"
+        @click="filtersExpanded = !filtersExpanded"
+      >
+        <span
+          v-if="activeFilterCount && !filtersExpanded"
+          class="ml-1 inline-flex items-center justify-center size-5 rounded-full bg-primary text-inverted text-xs font-medium"
+        >
+          {{ activeFilterCount }}
+        </span>
+      </UButton>
+    </div>
 
-    <USelect
-      :model-value="selectedEquipment"
-      :items="equipmentItems"
-      placeholder="All Equipment"
-      class="w-full sm:w-48"
-      @update:model-value="onEquipmentChange"
-    />
+    <!-- Filters: collapsible on mobile, inline on desktop -->
+    <div
+      class="gap-3 mt-3"
+      :class="[
+        filtersExpanded ? 'flex flex-col' : 'hidden',
+        'sm:flex sm:flex-row sm:flex-wrap sm:mt-3'
+      ]"
+    >
+      <USelect
+        :model-value="selectedEquipment"
+        :items="equipmentItems"
+        placeholder="All Equipment"
+        class="w-full sm:w-48"
+        @update:model-value="onEquipmentChange"
+      />
 
-    <USelect
-      :model-value="selectedMovement"
-      :items="movementItems"
-      placeholder="All Movements"
-      class="w-full sm:w-48"
-      @update:model-value="onMovementChange"
-    />
+      <USelect
+        :model-value="selectedMovement"
+        :items="movementItems"
+        placeholder="All Movements"
+        class="w-full sm:w-48"
+        @update:model-value="onMovementChange"
+      />
 
-    <USelect
-      :model-value="selectedMuscleGroup"
-      :items="muscleGroupItems"
-      placeholder="All Muscle Groups"
-      class="w-full sm:w-48"
-      @update:model-value="onMuscleGroupChange"
-    />
+      <USelect
+        :model-value="selectedMuscleGroup"
+        :items="muscleGroupItems"
+        placeholder="All Muscle Groups"
+        class="w-full sm:w-48"
+        @update:model-value="onMuscleGroupChange"
+      />
 
-    <UButton
-      v-if="exerciseStore.hasActiveFilters"
-      label="Clear"
-      icon="i-lucide-x"
-      color="neutral"
-      variant="ghost"
-      @click="clearFilters"
-    />
+      <div v-if="exerciseStore.hasActiveFilters" class="flex justify-end sm:block">
+        <UButton
+          label="Clear"
+          icon="i-lucide-x"
+          color="neutral"
+          variant="subtle"
+          size="sm"
+          @click="clearFilters"
+        />
+      </div>
+    </div>
   </div>
 </template>
