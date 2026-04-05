@@ -28,26 +28,30 @@ function onBack() {
 
 <template>
   <!-- Desktop header (hidden on mobile) -->
-  <div class="hidden lg:block">
-    <UButton
-      v-if="back"
-      label="Back"
-      icon="i-lucide-arrow-left"
-      color="neutral"
-      variant="ghost"
-      size="sm"
-      class="-ml-2 mb-2"
-      @click="onBack"
-    />
-    <UPageHeader
-      :title="title"
-      :description="description"
-      class="border-none"
-    >
-      <template v-if="$slots.links" #links>
-        <slot name="links" />
-      </template>
-    </UPageHeader>
+  <div class="hidden lg:flex items-start justify-between gap-4 mb-6">
+    <div class="flex items-start gap-2 min-w-0">
+      <UButton
+        v-if="back"
+        icon="i-lucide-arrow-left"
+        color="neutral"
+        variant="ghost"
+        size="sm"
+        class="-ml-2 mt-0.5 shrink-0"
+        :aria-label="`Back`"
+        @click="onBack"
+      />
+      <div class="min-w-0">
+        <h1 class="text-2xl font-bold truncate">
+          {{ title }}
+        </h1>
+        <p v-if="description" class="text-sm text-muted mt-1">
+          {{ description }}
+        </p>
+      </div>
+    </div>
+    <div v-if="$slots.links" class="flex items-center gap-2 shrink-0">
+      <slot name="links" />
+    </div>
   </div>
 
   <!-- Mobile: teleport actions into the sticky header (title is set via useState) -->
