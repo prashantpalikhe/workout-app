@@ -309,15 +309,17 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
     <div class="relative md:hidden overflow-hidden">
       <!-- Delete background (swipe left) -->
       <div
-        class="absolute inset-0 flex items-center justify-end px-4 bg-error/15 text-error transition-opacity"
-        :class="swipeAction === 'delete' ? 'opacity-100' : 'opacity-0'"
+        v-show="swipeOffset < 0"
+        class="absolute inset-0 flex items-center justify-end px-4 text-error"
+        :class="swipeAction === 'delete' ? 'bg-error/25' : 'bg-error/10'"
       >
         <UIcon name="i-lucide-trash-2" class="size-5" />
       </div>
       <!-- Note background (swipe right) -->
       <div
-        class="absolute inset-0 flex items-center justify-start px-4 bg-info/15 text-info transition-opacity"
-        :class="swipeAction === 'note' ? 'opacity-100' : 'opacity-0'"
+        v-show="swipeOffset > 0"
+        class="absolute inset-0 flex items-center justify-start px-4 text-info"
+        :class="swipeAction === 'note' ? 'bg-info/25' : 'bg-info/10'"
       >
         <UIcon name="i-lucide-message-square" class="size-5" />
       </div>
