@@ -15,7 +15,7 @@ useMobileHeaderTitle(() => props.title)
 
 <template>
   <!-- Desktop header (hidden on mobile) -->
-  <UPageHeader :title="title" :description="description" class="hidden lg:flex">
+  <UPageHeader :title="title" :description="description" class="hidden lg:block">
     <template v-if="$slots.links" #links>
       <slot name="links" />
     </template>
