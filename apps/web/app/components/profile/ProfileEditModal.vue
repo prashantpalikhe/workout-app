@@ -299,11 +299,12 @@ async function save() {
       <div class="flex justify-end gap-2">
         <UButton
           label="Cancel"
-          variant="ghost"
+          color="neutral"
+          variant="outline"
           @click="open = false"
         />
         <UButton
-          label="Save"
+          label="Save Changes"
           :loading="saving"
           @click="save"
         />

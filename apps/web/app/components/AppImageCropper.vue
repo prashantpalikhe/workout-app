@@ -109,7 +109,7 @@ function onCancel() {
 
     <template #footer>
       <div class="flex justify-end gap-2 w-full">
-        <UButton label="Cancel" variant="ghost" @click="onCancel" />
+        <UButton label="Cancel" color="neutral" variant="outline" @click="onCancel" />
         <UButton label="Save" :loading="saving" @click="onSave" />
       </div>
     </template>

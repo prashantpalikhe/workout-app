@@ -126,7 +126,7 @@ async function save() {
     <template #footer>
       <div class="flex justify-end gap-2">
         <UButton label="Cancel" color="neutral" variant="outline" size="sm" @click="open = false" />
-        <UButton label="Save to Program" size="sm" :loading="saving" @click="save" />
+        <UButton label="Save Changes" size="sm" :loading="saving" @click="save" />
       </div>
     </template>
   </UModal>
