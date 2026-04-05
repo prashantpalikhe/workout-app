@@ -10,7 +10,6 @@ defineEmits<{
   remove: []
 }>()
 
-const { formatEnum } = useFormatEnum()
 const programStore = useProgramStore()
 const toast = useToast()
 
@@ -59,137 +58,171 @@ const { saving, error, schedule } = useAutoSave(
   }
 )
 
-// Notes expand/collapse
+// Expand/collapse
+const expanded = ref(false)
+
+// Notes expand/collapse (within the expanded card)
 const showNotes = ref(!!props.exercise.notes)
 
 function onInputEnter(event: Event) {
   (event.target as HTMLInputElement).blur()
 }
+
+// One-line summary of the targets
+const summary = computed(() => {
+  const parts: string[] = []
+  if (form.targetSets && form.targetReps) {
+    parts.push(`${form.targetSets} × ${form.targetReps}`)
+  } else if (form.targetSets) {
+    parts.push(`${form.targetSets} sets`)
+  } else if (form.targetReps) {
+    parts.push(`${form.targetReps} reps`)
+  }
+  if (form.targetRpe) parts.push(`RPE ${form.targetRpe}`)
+  if (form.targetTempo) parts.push(`tempo ${form.targetTempo}`)
+  if (form.restSec) parts.push(`${form.restSec}s rest`)
+  return parts.join(' · ')
+})
 </script>
 
 <template>
-  <div class="border border-default rounded-lg p-4 flex gap-3 items-start group">
+  <div class="border border-default rounded-lg flex gap-3 items-start group">
     <!-- Drag handle -->
     <div
       v-if="!readonly"
-      class="drag-handle cursor-grab active:cursor-grabbing pt-1 text-muted opacity-50 group-hover:opacity-100 transition-opacity touch-none"
+      class="drag-handle cursor-grab active:cursor-grabbing pl-3 pt-4 text-muted opacity-50 group-hover:opacity-100 transition-opacity touch-none"
     >
       <UIcon name="i-lucide-grip-vertical" class="size-5" />
     </div>
 
     <!-- Content -->
-    <div class="flex-1 min-w-0">
-      <!-- Header: name + badge + status + remove -->
-      <div class="flex items-center justify-between gap-2 mb-2">
-        <div class="flex items-center gap-2 min-w-0">
-          <span class="font-medium truncate">{{ exercise.exercise.name }}</span>
-          <UBadge
-            v-if="exercise.exercise.equipment"
-            variant="subtle"
-            size="xs"
-          >
-            {{ formatEnum(exercise.exercise.equipment) }}
-          </UBadge>
+    <div class="flex-1 min-w-0 p-3" :class="{ 'pl-0': !readonly }">
+      <!-- Header row: name + badge + summary (when collapsed) + toggle -->
+      <button
+        type="button"
+        class="w-full flex items-center justify-between gap-2 text-left"
+        @click="expanded = !expanded"
+      >
+        <div class="min-w-0 flex-1">
+          <div class="min-w-0">
+            <span class="font-medium truncate block">{{ exercise.exercise.name }}</span>
+          </div>
+          <p v-if="!expanded && summary" class="text-xs text-muted truncate mt-0.5">
+            {{ summary }}
+          </p>
+          <p v-else-if="!expanded && !readonly" class="text-xs text-muted/70 mt-0.5">
+            Tap to set targets
+          </p>
         </div>
         <div class="flex items-center gap-1 shrink-0">
           <span v-if="saving" class="text-xs text-muted animate-pulse">Saving...</span>
           <UIcon v-if="error" name="i-lucide-alert-circle" class="size-4 text-error" />
+          <UIcon
+            :name="expanded ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
+            class="size-4 text-muted"
+          />
+        </div>
+      </button>
+
+      <!-- Expanded: inline input fields + notes + remove -->
+      <div v-if="expanded" class="mt-3">
+        <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-2">
+          <UFormField label="Sets" size="xs">
+            <UInput
+              v-model.number="form.targetSets"
+              type="number"
+              placeholder="3"
+              size="xs"
+              :min="1"
+              :disabled="readonly"
+              @blur="schedule()"
+              @keyup.enter="onInputEnter"
+            />
+          </UFormField>
+
+          <UFormField label="Reps" size="xs">
+            <UInput
+              v-model="form.targetReps"
+              placeholder="8-12"
+              size="xs"
+              :disabled="readonly"
+              @blur="schedule()"
+              @keyup.enter="onInputEnter"
+            />
+          </UFormField>
+
+          <UFormField label="RPE" size="xs">
+            <UInput
+              v-model.number="form.targetRpe"
+              type="number"
+              placeholder="8"
+              size="xs"
+              :min="1"
+              :max="10"
+              :step="0.5"
+              :disabled="readonly"
+              @blur="schedule()"
+              @keyup.enter="onInputEnter"
+            />
+          </UFormField>
+
+          <UFormField label="Tempo" size="xs">
+            <UInput
+              v-model="form.targetTempo"
+              placeholder="2-1-1-0"
+              size="xs"
+              :disabled="readonly"
+              @blur="schedule()"
+              @keyup.enter="onInputEnter"
+            />
+          </UFormField>
+
+          <UFormField label="Rest (s)" size="xs">
+            <UInput
+              v-model.number="form.restSec"
+              type="number"
+              placeholder="90"
+              size="xs"
+              :min="0"
+              :disabled="readonly"
+              @blur="schedule()"
+              @keyup.enter="onInputEnter"
+            />
+          </UFormField>
+        </div>
+
+        <!-- Notes: collapsible -->
+        <div class="mb-2">
+          <button
+            v-if="!showNotes && !readonly"
+            class="text-xs text-muted hover:text-default transition-colors"
+            @click="showNotes = true"
+          >
+            + Add notes
+          </button>
+          <UTextarea
+            v-if="showNotes"
+            v-model="form.notes"
+            placeholder="Notes..."
+            :rows="2"
+            size="xs"
+            :disabled="readonly"
+            class="w-full"
+            @blur="schedule()"
+          />
+        </div>
+
+        <!-- Remove -->
+        <div v-if="!readonly" class="flex justify-end">
           <UButton
-            v-if="!readonly"
+            label="Remove"
             icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
             size="xs"
-            aria-label="Remove exercise"
             @click="$emit('remove')"
           />
         </div>
-      </div>
-
-      <!-- Inline input fields -->
-      <div class="grid grid-cols-2 sm:grid-cols-3 lg:grid-cols-5 gap-2 mb-2">
-        <UFormField label="Sets" size="xs">
-          <UInput
-            v-model.number="form.targetSets"
-            type="number"
-            placeholder="3"
-            size="xs"
-            :min="1"
-            :disabled="readonly"
-            @blur="schedule()"
-            @keyup.enter="onInputEnter"
-          />
-        </UFormField>
-
-        <UFormField label="Reps" size="xs">
-          <UInput
-            v-model="form.targetReps"
-            placeholder="8-12"
-            size="xs"
-            :disabled="readonly"
-            @blur="schedule()"
-            @keyup.enter="onInputEnter"
-          />
-        </UFormField>
-
-        <UFormField label="RPE" size="xs">
-          <UInput
-            v-model.number="form.targetRpe"
-            type="number"
-            placeholder="8"
-            size="xs"
-            :min="1"
-            :max="10"
-            :step="0.5"
-            :disabled="readonly"
-            @blur="schedule()"
-            @keyup.enter="onInputEnter"
-          />
-        </UFormField>
-
-        <UFormField label="Tempo" size="xs">
-          <UInput
-            v-model="form.targetTempo"
-            placeholder="2-1-1-0"
-            size="xs"
-            :disabled="readonly"
-            @blur="schedule()"
-            @keyup.enter="onInputEnter"
-          />
-        </UFormField>
-
-        <UFormField label="Rest (s)" size="xs">
-          <UInput
-            v-model.number="form.restSec"
-            type="number"
-            placeholder="90"
-            size="xs"
-            :min="0"
-            :disabled="readonly"
-            @blur="schedule()"
-            @keyup.enter="onInputEnter"
-          />
-        </UFormField>
-      </div>
-
-      <!-- Notes: collapsible -->
-      <div>
-        <button
-          v-if="!showNotes && !readonly"
-          class="text-xs text-muted hover:text-default transition-colors"
-          @click="showNotes = true"
-        >
-          + Add notes
-        </button>
-        <UTextarea
-          v-if="showNotes"
-          v-model="form.notes"
-          placeholder="Notes..."
-          :rows="2"
-          size="xs"
-          :disabled="readonly"
-          @blur="schedule()"
-        />
       </div>
     </div>
   </div>
