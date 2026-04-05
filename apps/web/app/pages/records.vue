@@ -65,7 +65,7 @@ function formatDate(dateStr: string): string {
 
 <template>
   <UContainer>
-    <UPageHeader
+    <AppPageHeader
       title="Personal Records"
       description="Your best performances across all exercises"
     />

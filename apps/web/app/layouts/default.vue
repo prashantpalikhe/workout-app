@@ -135,7 +135,8 @@ const navItems = computed<NavigationMenuItem[]>(() => [
     <div class="flex-1 overflow-y-auto min-h-svh">
       <!-- Mobile header with hamburger -->
       <div
-        class="lg:hidden flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default"
+        class="lg:hidden sticky top-0 z-20 bg-default flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default"
+        style="padding-top: env(safe-area-inset-top); height: calc(var(--ui-header-height) + env(safe-area-inset-top));"
       >
         <UButton
           icon="i-lucide-menu"
@@ -157,7 +158,9 @@ const navItems = computed<NavigationMenuItem[]>(() => [
         <div id="mobile-header-actions" class="flex items-center gap-1 shrink-0" />
       </div>
 
-      <slot />
+      <div class="py-4 sm:py-6">
+        <slot />
+      </div>
     </div>
   </UDashboardGroup>
 </template>

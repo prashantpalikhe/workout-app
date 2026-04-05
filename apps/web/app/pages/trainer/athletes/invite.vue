@@ -66,7 +66,7 @@ function formatDate(dateStr: string) {
 
 <template>
   <div class="max-w-2xl mx-auto p-4 sm:p-6">
-    <UPageHeader
+    <AppPageHeader
       title="Invite Athletes"
       description="Generate invite links to share with athletes"
     >
@@ -79,7 +79,7 @@ function formatDate(dateStr: string) {
           to="/trainer/athletes"
         />
       </template>
-    </UPageHeader>
+    </AppPageHeader>
 
     <div class="mt-6 space-y-6">
       <!-- Generate Invite -->

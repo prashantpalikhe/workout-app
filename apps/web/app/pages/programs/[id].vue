@@ -114,7 +114,7 @@ async function onDeleteConfirm() {
     </div>
 
     <div v-else-if="program">
-      <UPageHeader
+      <AppPageHeader
         :title="program.name"
         :description="program.description || undefined"
       >
@@ -139,7 +139,7 @@ async function onDeleteConfirm() {
             @click="showDeleteDialog = true"
           />
         </template>
-      </UPageHeader>
+      </AppPageHeader>
 
       <!-- Badges -->
       <div v-if="program.folder || program.assignedBy" class="flex items-center gap-2 mb-6">

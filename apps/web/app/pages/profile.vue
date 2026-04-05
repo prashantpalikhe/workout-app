@@ -33,20 +33,19 @@ function onCalendarMonthChange(month: number, year: number) {
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto p-4 sm:p-6">
-    <UPageHeader title="Profile">
+  <div class="max-w-2xl mx-auto px-4 sm:px-6">
+    <AppPageHeader title="Profile">
       <template #links>
         <UButton
           label="Edit Profile"
           icon="i-lucide-pencil"
           variant="outline"
-          size="sm"
           @click="editOpen = true"
         />
       </template>
-    </UPageHeader>
+    </AppPageHeader>
 
-    <div class="mt-6 space-y-6">
+    <div class="space-y-6">
       <!-- User Header -->
       <ProfileUserHeader :profile="profileStore.profile" />
 
@@ -79,9 +78,6 @@ function onCalendarMonthChange(month: number, year: number) {
     </div>
 
     <!-- Edit Modal -->
-    <ProfileEditModal
-      v-model:open="editOpen"
-      :profile="profileStore.profile"
-    />
+    <ProfileEditModal v-model:open="editOpen" :profile="profileStore.profile" />
   </div>
 </template>

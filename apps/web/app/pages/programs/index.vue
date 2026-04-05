@@ -177,14 +177,16 @@ function _getFolderPrograms(folderId: string): Program[] {
 
 <template>
   <UContainer>
-    <UPageHeader
+    <AppPageHeader
       title="Programs"
       description="Organize your workout routines"
     >
       <template #links>
+        <!-- Desktop: both buttons inline -->
         <UButton
           label="New Program"
           icon="i-lucide-plus"
+          class="hidden sm:inline-flex"
           @click="openCreateProgram"
         />
         <UButton
@@ -192,10 +194,26 @@ function _getFolderPrograms(folderId: string): Program[] {
           icon="i-lucide-folder-plus"
           color="neutral"
           variant="outline"
+          class="hidden sm:inline-flex"
           @click="openCreateFolder"
         />
+        <!-- Mobile: single "+" dropdown -->
+        <UDropdownMenu
+          class="sm:hidden"
+          :items="[
+            [
+              { label: 'New Program', icon: 'i-lucide-plus', onSelect: openCreateProgram },
+              { label: 'New Folder', icon: 'i-lucide-folder-plus', onSelect: openCreateFolder }
+            ]
+          ]"
+        >
+          <UButton
+            icon="i-lucide-plus"
+            aria-label="Create"
+          />
+        </UDropdownMenu>
       </template>
-    </UPageHeader>
+    </AppPageHeader>
 
     <!-- Loading -->
     <div v-if="programStore.loading" class="space-y-4">

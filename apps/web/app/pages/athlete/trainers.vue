@@ -67,7 +67,7 @@ const statusColor: Record<string, string> = {
 
 <template>
   <div class="max-w-2xl mx-auto p-4 sm:p-6">
-    <UPageHeader
+    <AppPageHeader
       title="My Trainers"
       description="View and manage your trainer connections"
     />

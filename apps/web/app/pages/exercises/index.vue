@@ -129,7 +129,7 @@ function getRowActions(exercise: Exercise) {
 
 <template>
   <UContainer>
-    <UPageHeader
+    <AppPageHeader
       title="Exercise Library"
       description="Browse, search, and manage your exercises"
     >
@@ -140,15 +140,86 @@ function getRowActions(exercise: Exercise) {
           @click="openCreate"
         />
       </template>
-    </UPageHeader>
+    </AppPageHeader>
 
     <ExercisesExerciseFilters />
 
+    <!-- Mobile: card list -->
+    <div class="md:hidden mb-6 space-y-2">
+      <div
+        v-if="exerciseStore.loading && !exerciseStore.exercises.length"
+        class="space-y-2"
+      >
+        <USkeleton v-for="i in 5" :key="i" class="h-20 w-full rounded-lg" />
+      </div>
+      <template v-else-if="exerciseStore.exercises.length">
+        <button
+          v-for="exercise in exerciseStore.exercises"
+          :key="exercise.id"
+          type="button"
+          class="w-full text-left flex items-center gap-3 p-3 rounded-lg border border-default bg-default hover:bg-elevated transition-colors"
+          @click="openDetail(exercise)"
+        >
+          <div class="flex-1 min-w-0">
+            <div class="flex items-center gap-2">
+              <span class="font-medium truncate">{{ exercise.name }}</span>
+              <UBadge
+                v-if="!exercise.isGlobal"
+                color="primary"
+                variant="subtle"
+                size="xs"
+              >
+                Custom
+              </UBadge>
+            </div>
+            <div class="mt-0.5 text-xs text-muted truncate">
+              {{ [
+                formatEnum(exercise.equipment),
+                formatEnum(exercise.movementPattern)
+              ].filter(Boolean).join(' · ') || '—' }}
+            </div>
+            <div v-if="exercise.muscleGroups?.length" class="mt-2">
+              <ExercisesExerciseMuscleGroupBadges
+                :muscle-groups="exercise.muscleGroups"
+              />
+            </div>
+          </div>
+          <UDropdownMenu
+            :items="getRowActions(exercise)"
+            :content="{ align: 'end' }"
+          >
+            <UButton
+              icon="i-lucide-ellipsis-vertical"
+              color="neutral"
+              variant="ghost"
+              size="sm"
+              @click.stop
+            />
+          </UDropdownMenu>
+        </button>
+      </template>
+      <div
+        v-else
+        class="text-center py-8 rounded-lg border border-default"
+      >
+        <p class="text-muted mb-4">
+          No exercises found
+        </p>
+        <UButton
+          v-if="exerciseStore.hasActiveFilters"
+          label="Clear Filters"
+          variant="outline"
+          @click="exerciseStore.resetFilters()"
+        />
+      </div>
+    </div>
+
+    <!-- Desktop: full table -->
     <UTable
       :data="exerciseStore.exercises"
       :columns="columns"
       :loading="exerciseStore.loading"
-      class="mb-6"
+      class="mb-6 hidden md:block"
       :ui="{ tr: 'cursor-pointer' }"
       @select="(_e: Event, row: any) => openDetail(row.original)"
     >

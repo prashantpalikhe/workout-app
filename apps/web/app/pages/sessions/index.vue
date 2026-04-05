@@ -28,7 +28,7 @@ function startWorkout() {
 
 <template>
   <UContainer>
-    <UPageHeader
+    <AppPageHeader
       title="Sessions"
       description="Your workout history"
     >
@@ -39,7 +39,7 @@ function startWorkout() {
           @click="startWorkout"
         />
       </template>
-    </UPageHeader>
+    </AppPageHeader>
 
     <!-- Active session banner -->
     <NuxtLink

@@ -84,7 +84,7 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
     </div>
 
     <div v-else-if="session">
-      <UPageHeader :title="session.name">
+      <AppPageHeader :title="session.name">
         <template #description>
           <div class="flex items-center gap-3 flex-wrap">
             <SessionsSessionStatusBadge :status="session.status" />
@@ -104,7 +104,7 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
             />
           </NuxtLink>
         </template>
-      </UPageHeader>
+      </AppPageHeader>
 
       <!-- Summary stats -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">

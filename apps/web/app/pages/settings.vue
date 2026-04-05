@@ -194,8 +194,8 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto p-4 sm:p-6">
-    <UPageHeader
+  <div class="max-w-2xl mx-auto px-4 sm:px-6">
+    <AppPageHeader
       title="Settings"
       description="Configure your workout preferences"
     />
@@ -204,17 +204,13 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
       <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
     </div>
 
-    <div v-else class="mt-6 space-y-6">
+    <div v-else class="space-y-6">
       <!-- Appearance -->
       <UCard>
         <div class="space-y-5">
           <div>
-            <p class="font-medium">
-              Appearance
-            </p>
-            <p class="text-sm text-muted">
-              Choose your preferred theme
-            </p>
+            <p class="font-medium">Appearance</p>
+            <p class="text-sm text-muted">Choose your preferred theme</p>
           </div>
           <div class="flex gap-2">
             <UButton
@@ -236,12 +232,8 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">
-                Units
-              </p>
-              <p class="text-sm text-muted">
-                Weight and measurement units
-              </p>
+              <p class="font-medium">Units</p>
+              <p class="text-sm text-muted">Weight and measurement units</p>
             </div>
             <USelect
               v-model="unitPreference"
@@ -258,9 +250,7 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">
-                Trainer Mode
-              </p>
+              <p class="font-medium">Trainer Mode</p>
               <p class="text-sm text-muted">
                 Manage athletes and log workouts on their behalf
               </p>
@@ -279,15 +269,19 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <template #content>
           <div class="p-6 space-y-4">
             <div class="flex items-center gap-3">
-              <div class="size-10 rounded-full bg-warning/10 flex items-center justify-center shrink-0">
-                <UIcon name="i-lucide-alert-triangle" class="size-5 text-warning" />
+              <div
+                class="size-10 rounded-full bg-warning/10 flex items-center justify-center shrink-0"
+              >
+                <UIcon
+                  name="i-lucide-alert-triangle"
+                  class="size-5 text-warning"
+                />
               </div>
               <div>
-                <p class="font-semibold">
-                  Disable Trainer Mode?
-                </p>
+                <p class="font-semibold">Disable Trainer Mode?</p>
                 <p class="text-sm text-muted mt-1">
-                  All your active athlete relationships will be deactivated. You can re-enable trainer mode later to reactivate them.
+                  All your active athlete relationships will be deactivated. You
+                  can re-enable trainer mode later to reactivate them.
                 </p>
               </div>
             </div>
@@ -314,9 +308,7 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">
-                Rest Timer
-              </p>
+              <p class="font-medium">Rest Timer</p>
               <p class="text-sm text-muted">
                 Automatically start a countdown timer after completing a set
               </p>
@@ -325,9 +317,7 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
           </div>
 
           <div v-if="restTimerEnabled" class="pt-2 border-t border-default">
-            <p class="text-sm font-medium mb-3">
-              Default Rest Duration
-            </p>
+            <p class="text-sm font-medium mb-3">Default Rest Duration</p>
             <div class="flex items-center gap-2">
               <USelect
                 v-model.number="restMinutes"
@@ -345,7 +335,8 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
               <span class="text-sm text-muted">sec</span>
             </div>
             <p class="text-xs text-muted mt-2">
-              This can be overridden per-exercise in programs or adjusted during a session.
+              This can be overridden per-exercise in programs or adjusted during
+              a session.
             </p>
           </div>
         </div>

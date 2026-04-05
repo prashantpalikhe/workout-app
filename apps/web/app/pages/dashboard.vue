@@ -20,7 +20,7 @@ function onSessionStarted() {
 
 <template>
   <UContainer>
-    <UPageHeader
+    <AppPageHeader
       :title="`Welcome, ${authStore.user?.firstName}!`"
       description="Your workout dashboard"
     />
@@ -29,7 +29,7 @@ function onSessionStarted() {
     <NuxtLink
       v-if="sessionStore.hasActiveSession"
       to="/sessions/active"
-      class="block mt-6"
+      class="block"
     >
       <UCard
         class="hover:bg-elevated transition-colors cursor-pointer border-primary/30"
@@ -54,7 +54,7 @@ function onSessionStarted() {
     </NuxtLink>
 
     <!-- Start workout CTA -->
-    <UCard v-else class="mt-6">
+    <UCard v-else>
       <div class="grid items-center justify-between sm:grid-cols-2 gap-4">
         <div class="flex items-center gap-3">
           <div
@@ -63,12 +63,8 @@ function onSessionStarted() {
             <UIcon name="i-lucide-dumbbell" class="size-5 text-muted" />
           </div>
           <div>
-            <p class="font-medium">
-              Ready to work out?
-            </p>
-            <p class="text-sm text-muted">
-              Start a new workout session
-            </p>
+            <p class="font-medium">Ready to work out?</p>
+            <p class="text-sm text-muted">Start a new workout session</p>
           </div>
         </div>
         <UButton

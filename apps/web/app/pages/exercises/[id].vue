@@ -69,7 +69,7 @@ function onHistoryPage(page: number) {
     </div>
 
     <div v-else-if="exercise">
-      <UPageHeader :title="exercise.name">
+      <AppPageHeader :title="exercise.name">
         <template #description>
           <div class="flex items-center gap-2 flex-wrap">
             <UBadge variant="subtle" size="sm">
@@ -95,7 +95,7 @@ function onHistoryPage(page: number) {
             />
           </NuxtLink>
         </template>
-      </UPageHeader>
+      </AppPageHeader>
 
       <!-- Exercise details -->
       <UCard class="mb-6">

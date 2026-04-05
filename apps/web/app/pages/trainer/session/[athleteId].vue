@@ -161,7 +161,7 @@ const dropdownItems = computed(() => [
 
     <!-- Active session -->
     <div v-else>
-      <UPageHeader :title="session.name">
+      <AppPageHeader :title="session.name">
         <template #description>
           <SessionsSessionTimer :started-at="session.startedAt" />
         </template>
@@ -193,7 +193,7 @@ const dropdownItems = computed(() => [
             />
           </UDropdownMenu>
         </template>
-      </UPageHeader>
+      </AppPageHeader>
 
       <!-- Session Notes -->
       <div v-if="showSessionNotes" class="mb-4">

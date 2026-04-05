@@ -83,7 +83,7 @@ const NuxtLink = resolveComponent('NuxtLink')
 
 <template>
   <div class="max-w-3xl mx-auto p-4 sm:p-6">
-    <UPageHeader
+    <AppPageHeader
       title="Athletes"
       description="Manage your athlete connections"
     >
@@ -101,7 +101,7 @@ const NuxtLink = resolveComponent('NuxtLink')
           to="/trainer/athletes/invite"
         />
       </template>
-    </UPageHeader>
+    </AppPageHeader>
 
     <!-- Selection mode banner -->
     <div
