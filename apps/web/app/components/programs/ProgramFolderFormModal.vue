@@ -29,11 +29,11 @@ const formSchema = z.preprocess(
     }
     return val
   },
-  createProgramFolderInputSchema,
+  createProgramFolderInputSchema
 )
 
 const state = reactive({
-  name: '',
+  name: ''
 })
 
 const error = ref('')
@@ -48,7 +48,7 @@ watch(
       state.name = ''
     }
     error.value = ''
-  },
+  }
 )
 
 type FormData = {

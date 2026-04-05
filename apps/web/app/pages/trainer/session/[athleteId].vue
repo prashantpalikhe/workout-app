@@ -39,11 +39,11 @@ const { schedule: scheduleSessionNoteSave } = useAutoSave(
   async () => {
     if (session.value) {
       await sessionStore.updateSession(session.value.id, {
-        notes: sessionNotesText.value.trim() || undefined,
+        notes: sessionNotesText.value.trim() || undefined
       })
     }
   },
-  { debounceMs: 600 },
+  { debounceMs: 600 }
 )
 
 onMounted(async () => {
@@ -57,7 +57,7 @@ onMounted(async () => {
       if (profile) {
         athleteName.value = `${profile.firstName} ${profile.lastName}`
       }
-    }),
+    })
   ])
 })
 
@@ -65,7 +65,7 @@ onBeforeUnmount(() => {
   sessionStore.exitTrainerMode()
 })
 
-function onSetCompleted(data: { setRestSec: number | null; exerciseRestSec: number | null }) {
+function onSetCompleted(data: { setRestSec: number | null, exerciseRestSec: number | null }) {
   if (!restTimerEnabled.value) return
 
   const seconds = restTimer.sessionDefault.value
@@ -113,9 +113,9 @@ const dropdownItems = computed(() => [
       label: 'Abandon Workout',
       icon: 'i-lucide-x-circle',
       color: 'error' as const,
-      onSelect: () => { showAbandonDialog.value = true },
-    },
-  ],
+      onSelect: () => { showAbandonDialog.value = true }
+    }
+  ]
 ])
 </script>
 
@@ -145,7 +145,9 @@ const dropdownItems = computed(() => [
       class="flex flex-col items-center justify-center py-16 text-center"
     >
       <UIcon name="i-lucide-dumbbell" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">No active workout</h3>
+      <h3 class="text-lg font-medium mb-2">
+        No active workout
+      </h3>
       <p class="text-sm text-muted mb-6">
         This athlete doesn't have an active session. Start one from their profile.
       </p>

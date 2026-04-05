@@ -3,10 +3,10 @@ definePageMeta({ layout: 'default', middleware: 'auth' })
 
 const trainerStore = useTrainerStore()
 const toast = useToast()
-const config = useRuntimeConfig()
+const _config = useRuntimeConfig()
 
 const creating = ref(false)
-const latestInvite = ref<{ token: string; url: string } | null>(null)
+const latestInvite = ref<{ token: string, url: string } | null>(null)
 const copied = ref(false)
 
 onMounted(() => {
@@ -36,7 +36,9 @@ async function copyLink(token: string) {
     await navigator.clipboard.writeText(getInviteUrl(token))
     copied.value = true
     toast.add({ title: 'Link copied to clipboard', color: 'success' })
-    setTimeout(() => { copied.value = false }, 2000)
+    setTimeout(() => {
+      copied.value = false
+    }, 2000)
   } catch {
     toast.add({ title: 'Failed to copy link', color: 'error' })
   }
@@ -57,7 +59,7 @@ function formatDate(dateStr: string) {
     day: 'numeric',
     year: 'numeric',
     hour: 'numeric',
-    minute: '2-digit',
+    minute: '2-digit'
   })
 }
 </script>
@@ -85,7 +87,9 @@ function formatDate(dateStr: string) {
         <div class="space-y-4">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">Generate Invite Link</p>
+              <p class="font-medium">
+                Generate Invite Link
+              </p>
               <p class="text-sm text-muted">
                 Create a shareable link that athletes can use to connect with you
               </p>
@@ -103,7 +107,9 @@ function formatDate(dateStr: string) {
             v-if="latestInvite"
             class="p-4 bg-elevated rounded-lg space-y-3"
           >
-            <p class="text-sm font-medium text-success">Invite link created!</p>
+            <p class="text-sm font-medium text-success">
+              Invite link created!
+            </p>
             <div class="flex gap-2">
               <UInput
                 :model-value="getInviteUrl(latestInvite.token)"
@@ -129,7 +135,9 @@ function formatDate(dateStr: string) {
       <!-- Active Invites -->
       <UCard>
         <div class="space-y-4">
-          <p class="font-medium">Active Invites</p>
+          <p class="font-medium">
+            Active Invites
+          </p>
 
           <div v-if="trainerStore.invitesLoading" class="flex justify-center py-6">
             <UIcon name="i-lucide-loader-2" class="size-5 animate-spin text-muted" />
@@ -137,7 +145,9 @@ function formatDate(dateStr: string) {
 
           <div v-else-if="trainerStore.invites.length === 0" class="text-center py-6">
             <UIcon name="i-lucide-mail-x" class="size-8 text-muted mx-auto mb-2" />
-            <p class="text-sm text-muted">No active invites</p>
+            <p class="text-sm text-muted">
+              No active invites
+            </p>
           </div>
 
           <div v-else class="divide-y divide-default">

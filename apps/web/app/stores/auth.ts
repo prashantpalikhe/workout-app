@@ -130,7 +130,7 @@ export const useAuthStore = defineStore('auth', () => {
     const data = await $fetch<AuthResponse>('/auth/refresh', {
       baseURL,
       method: 'POST',
-      body: { refreshToken },
+      body: { refreshToken }
     })
     setTokens(data.tokens.accessToken, data.tokens.refreshToken)
     user.value = data.user

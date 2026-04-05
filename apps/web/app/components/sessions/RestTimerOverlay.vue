@@ -9,7 +9,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  skip: []
+  'skip': []
   'add-time': [seconds: number]
   'set-duration': [seconds: number]
 }>()

@@ -51,7 +51,7 @@ async function saveSessionNote() {
   sessionNoteSaving.value = true
   try {
     await sessionStore.updateSession(session.value.id, {
-      notes: sessionNotesText.value.trim() || undefined,
+      notes: sessionNotesText.value.trim() || undefined
     })
     sessionNoteDialogOpen.value = false
   } catch {
@@ -135,15 +135,15 @@ const dropdownItems = computed(() => [
     {
       label: hasSessionNote.value ? 'View Session Note' : 'Add Session Note',
       icon: 'i-lucide-message-square',
-      onSelect: () => openSessionNoteDialog(),
+      onSelect: () => openSessionNoteDialog()
     },
     {
       label: 'Abandon Workout',
       icon: 'i-lucide-x-circle',
       color: 'error' as const,
-      onSelect: () => { showAbandonDialog.value = true },
-    },
-  ],
+      onSelect: () => { showAbandonDialog.value = true }
+    }
+  ]
 ])
 
 // ── Stats ──────────────────────────────────────
@@ -151,7 +151,7 @@ const totalSets = computed(() => {
   if (!session.value) return 0
   return session.value.sessionExercises.reduce(
     (sum, ex) => sum + ex.sets.filter(s => s.completed).length,
-    0,
+    0
   )
 })
 
@@ -159,11 +159,11 @@ const totalVolume = computed(() => {
   if (!session.value) return 0
   return session.value.sessionExercises.reduce(
     (sum, ex) =>
-      sum +
-      ex.sets
+      sum
+      + ex.sets
         .filter(s => s.completed && s.weight && s.reps)
         .reduce((s, set) => s + (set.weight! * set.reps!), 0),
-    0,
+    0
   )
 })
 
@@ -197,7 +197,9 @@ const canEditProgram = computed(() => {
       class="flex flex-col items-center justify-center py-16 text-center"
     >
       <UIcon name="i-lucide-dumbbell" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">No active workout</h3>
+      <h3 class="text-lg font-medium mb-2">
+        No active workout
+      </h3>
       <p class="text-sm text-muted mb-6">
         Start a workout to begin tracking your exercises and sets.
       </p>

@@ -17,7 +17,7 @@ interface Program {
   description: string | null
 }
 
-interface PaginatedPrograms {
+interface _PaginatedPrograms {
   data: Program[]
   meta: { total: number }
 }
@@ -46,8 +46,8 @@ watch(open, async (isOpen) => {
 
 const programOptions = computed(() =>
   programs?.value
-    ?.filter((p) => !props.assignedProgramIds?.includes(p.id))
-    .map((p) => ({
+    ?.filter(p => !props.assignedProgramIds?.includes(p.id))
+    .map(p => ({
       label: p.name,
       value: p.id
     }))
@@ -93,7 +93,9 @@ async function assign() {
     <template #content>
       <div class="p-6 space-y-5">
         <div>
-          <p class="font-semibold text-lg">Assign Program</p>
+          <p class="font-semibold text-lg">
+            Assign Program
+          </p>
           <p class="text-sm text-muted mt-1">
             Assign one of your programs to
             <span class="font-medium">{{ athleteName }}</span>
@@ -109,7 +111,9 @@ async function assign() {
 
         <template v-else>
           <div v-if="programs?.length === 0" class="text-center py-4">
-            <p class="text-sm text-muted">You don't have any programs yet.</p>
+            <p class="text-sm text-muted">
+              You don't have any programs yet.
+            </p>
             <UButton
               label="Create a Program"
               to="/programs"
@@ -121,7 +125,9 @@ async function assign() {
           </div>
 
           <div v-else-if="programOptions?.length === 0" class="text-center py-4">
-            <p class="text-sm text-muted">All your programs are already assigned to this athlete.</p>
+            <p class="text-sm text-muted">
+              All your programs are already assigned to this athlete.
+            </p>
           </div>
 
           <template v-else>
@@ -141,7 +147,9 @@ async function assign() {
 
             <div class="flex items-center justify-between">
               <div>
-                <p class="text-sm font-medium">Allow Session Deviations</p>
+                <p class="text-sm font-medium">
+                  Allow Session Deviations
+                </p>
                 <p class="text-xs text-muted">
                   Athlete can modify exercises during a workout
                 </p>

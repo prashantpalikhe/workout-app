@@ -16,7 +16,7 @@ watch(searchQuery, (val) => {
 
 const statusItems = [
   { label: formatEnum('COMPLETED'), value: 'COMPLETED' },
-  { label: formatEnum('ABANDONED'), value: 'ABANDONED' },
+  { label: formatEnum('ABANDONED'), value: 'ABANDONED' }
 ]
 
 const selectedStatus = ref(sessionStore.filters.status || '')

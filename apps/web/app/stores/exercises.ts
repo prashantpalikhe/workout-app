@@ -1,8 +1,8 @@
 import type {
   CreateExerciseInput,
-  UpdateExerciseInput,
+  UpdateExerciseInput as _UpdateExerciseInput,
   ExerciseStatsResponse,
-  ExerciseHistorySession,
+  ExerciseHistorySession
 } from '@workout/shared'
 
 interface MuscleGroup {
@@ -56,7 +56,7 @@ export const useExerciseStore = defineStore('exercises', () => {
     movementPattern: undefined as string | undefined,
     muscleGroupId: undefined as string | undefined,
     page: 1,
-    limit: 20,
+    limit: 20
   })
 
   const muscleGroups = ref<MuscleGroup[]>([])
@@ -75,10 +75,10 @@ export const useExerciseStore = defineStore('exercises', () => {
   // ── Getters ──
   const hasActiveFilters = computed(
     () =>
-      !!filters.search ||
-      !!filters.equipment ||
-      !!filters.movementPattern ||
-      !!filters.muscleGroupId,
+      !!filters.search
+      || !!filters.equipment
+      || !!filters.movementPattern
+      || !!filters.muscleGroupId
   )
 
   // ── Actions ──
@@ -87,7 +87,7 @@ export const useExerciseStore = defineStore('exercises', () => {
     try {
       const query: Record<string, string | number> = {
         page: filters.page,
-        limit: filters.limit,
+        limit: filters.limit
       }
       if (filters.search) query.search = filters.search
       if (filters.equipment) query.equipment = filters.equipment
@@ -121,7 +121,7 @@ export const useExerciseStore = defineStore('exercises', () => {
   async function createExercise(input: CreateExerciseInput) {
     const created = await api<Exercise>('/exercises', {
       method: 'POST',
-      body: input,
+      body: input
     })
     await fetchExercises()
     return created
@@ -130,7 +130,7 @@ export const useExerciseStore = defineStore('exercises', () => {
   async function updateExercise(id: string, input: Partial<CreateExerciseInput>) {
     const updated = await api<Exercise>(`/exercises/${id}`, {
       method: 'PATCH',
-      body: input,
+      body: input
     })
     const idx = exercises.value.findIndex(e => e.id === id)
     if (idx !== -1) exercises.value[idx] = updated
@@ -155,7 +155,7 @@ export const useExerciseStore = defineStore('exercises', () => {
     try {
       exerciseStats.value = await api<ExerciseStatsResponse>(
         `/exercises/${exerciseId}/statistics`,
-        { query: { range } },
+        { query: { range } }
       )
     } finally {
       statsLoading.value = false
@@ -167,7 +167,7 @@ export const useExerciseStore = defineStore('exercises', () => {
     try {
       const result = await api<{
         data: ExerciseHistorySession[]
-        meta: { page: number; limit: number; total: number; totalPages: number }
+        meta: { page: number, limit: number, total: number, totalPages: number }
       }>(`/exercises/${exerciseId}/history`, { query: { page, limit: 20 } })
       exerciseHistory.value = result.data
       exerciseHistoryMeta.value = result.meta
@@ -209,6 +209,6 @@ export const useExerciseStore = defineStore('exercises', () => {
     updateExercise,
     deleteExercise,
     setPage,
-    resetFilters,
+    resetFilters
   }
 })

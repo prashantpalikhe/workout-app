@@ -13,14 +13,14 @@ const exercise = computed(() => exerciseStore.selectedExercise)
 const activeTab = ref('statistics')
 const tabs = [
   { label: 'Statistics', value: 'statistics', icon: 'i-lucide-bar-chart-3' },
-  { label: 'History', value: 'history', icon: 'i-lucide-history' },
+  { label: 'History', value: 'history', icon: 'i-lucide-history' }
 ]
 
 const primaryMuscles = computed(() =>
-  exercise.value?.muscleGroups.filter(mg => mg.role === 'PRIMARY') ?? [],
+  exercise.value?.muscleGroups.filter(mg => mg.role === 'PRIMARY') ?? []
 )
 const secondaryMuscles = computed(() =>
-  exercise.value?.muscleGroups.filter(mg => mg.role === 'SECONDARY') ?? [],
+  exercise.value?.muscleGroups.filter(mg => mg.role === 'SECONDARY') ?? []
 )
 
 const videoEmbedUrl = computed(() => {
@@ -36,7 +36,7 @@ onMounted(async () => {
   await Promise.all([
     exerciseStore.fetchExerciseStats(exerciseId.value),
     exerciseStore.fetchExerciseHistory(exerciseId.value),
-    recordsStore.fetchByExercise(exerciseId.value),
+    recordsStore.fetchByExercise(exerciseId.value)
   ])
 })
 
@@ -45,7 +45,7 @@ watch(exerciseId, async (id) => {
   await Promise.all([
     exerciseStore.fetchExerciseStats(id),
     exerciseStore.fetchExerciseHistory(id),
-    recordsStore.fetchByExercise(id),
+    recordsStore.fetchByExercise(id)
   ])
 })
 
@@ -103,7 +103,9 @@ function onHistoryPage(page: number) {
           <!-- Muscle groups -->
           <div v-if="exercise.muscleGroups.length > 0">
             <div v-if="primaryMuscles.length > 0" class="mb-2">
-              <p class="text-xs text-muted mb-1">Primary Muscles</p>
+              <p class="text-xs text-muted mb-1">
+                Primary Muscles
+              </p>
               <div class="flex flex-wrap gap-1.5">
                 <UBadge
                   v-for="mg in primaryMuscles"
@@ -116,7 +118,9 @@ function onHistoryPage(page: number) {
               </div>
             </div>
             <div v-if="secondaryMuscles.length > 0">
-              <p class="text-xs text-muted mb-1">Secondary Muscles</p>
+              <p class="text-xs text-muted mb-1">
+                Secondary Muscles
+              </p>
               <div class="flex flex-wrap gap-1.5">
                 <UBadge
                   v-for="mg in secondaryMuscles"
@@ -133,13 +137,19 @@ function onHistoryPage(page: number) {
 
           <!-- Instructions -->
           <div v-if="exercise.instructions">
-            <p class="text-xs text-muted mb-1">Instructions</p>
-            <p class="text-sm whitespace-pre-line">{{ exercise.instructions }}</p>
+            <p class="text-xs text-muted mb-1">
+              Instructions
+            </p>
+            <p class="text-sm whitespace-pre-line">
+              {{ exercise.instructions }}
+            </p>
           </div>
 
           <!-- Video -->
           <div v-if="videoEmbedUrl">
-            <p class="text-xs text-muted mb-1">Video</p>
+            <p class="text-xs text-muted mb-1">
+              Video
+            </p>
             <div class="aspect-video rounded-lg overflow-hidden bg-muted">
               <iframe
                 :src="videoEmbedUrl"
@@ -189,7 +199,9 @@ function onHistoryPage(page: number) {
     <!-- Not found -->
     <div v-else class="flex flex-col items-center justify-center py-16 text-center">
       <UIcon name="i-lucide-search-x" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">Exercise not found</h3>
+      <h3 class="text-lg font-medium mb-2">
+        Exercise not found
+      </h3>
       <NuxtLink to="/exercises">
         <UButton label="Back to Library" variant="outline" />
       </NuxtLink>

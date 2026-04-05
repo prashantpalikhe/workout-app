@@ -8,9 +8,9 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  update: [data: Record<string, unknown>]
+  'update': [data: Record<string, unknown>]
   'toggle-completed': []
-  delete: []
+  'delete': []
 }>()
 
 const toast = useToast()
@@ -21,7 +21,7 @@ const form = reactive({
   reps: props.set.reps ?? (undefined as number | undefined),
   durationSec: props.set.durationSec ?? (undefined as number | undefined),
   distance: props.set.distance ?? (undefined as number | undefined),
-  rpe: props.set.rpe ?? (undefined as number | undefined),
+  rpe: props.set.rpe ?? (undefined as number | undefined)
 })
 
 // Sync from prop when set data changes externally
@@ -34,7 +34,7 @@ watch(
     form.distance = s.distance ?? undefined
     form.rpe = s.rpe ?? undefined
   },
-  { deep: true },
+  { deep: true }
 )
 
 // Auto-save on blur
@@ -46,15 +46,15 @@ const { schedule, cancel } = useAutoSave(
       durationSec: form.durationSec ?? undefined,
       distance: form.distance ?? undefined,
       rpe: form.rpe ?? undefined,
-      completed: props.set.completed,
+      completed: props.set.completed
     })
   },
   {
     debounceMs: 400,
     onError: () => {
       toast.add({ title: 'Failed to save set', color: 'error' })
-    },
-  },
+    }
+  }
 )
 
 function toggleCompleted() {
@@ -71,13 +71,13 @@ function onInputEnter(event: Event) {
 
 // Which data inputs to show
 const showWeight = computed(() =>
-  ['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(props.trackingType),
+  ['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(props.trackingType)
 )
 const showReps = computed(() =>
-  ['WEIGHT_REPS', 'REPS_ONLY'].includes(props.trackingType),
+  ['WEIGHT_REPS', 'REPS_ONLY'].includes(props.trackingType)
 )
 const showDuration = computed(() =>
-  ['DURATION', 'WEIGHT_DURATION', 'DISTANCE_DURATION'].includes(props.trackingType),
+  ['DURATION', 'WEIGHT_DURATION', 'DISTANCE_DURATION'].includes(props.trackingType)
 )
 const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
 </script>

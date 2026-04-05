@@ -10,7 +10,7 @@ defineEmits<{
   delete: []
 }>()
 
-const { formatEnum } = useFormatEnum()
+const { formatEnum: _formatEnum } = useFormatEnum()
 
 function exercisePreview(program: Program) {
   const names = program.exercises
@@ -54,15 +54,15 @@ function exercisePreview(program: Program) {
       <UDropdownMenu
         :items="[
           [{
-            label: 'Edit',
-            icon: 'i-lucide-pencil',
-            onSelect: () => $emit('edit'),
-          },
-          {
-            label: 'Delete',
-            icon: 'i-lucide-trash-2',
-            onSelect: () => $emit('delete'),
-          }],
+             label: 'Edit',
+             icon: 'i-lucide-pencil',
+             onSelect: () => $emit('edit')
+           },
+           {
+             label: 'Delete',
+             icon: 'i-lucide-trash-2',
+             onSelect: () => $emit('delete')
+           }]
         ]"
         :content="{ align: 'end' as const }"
       >

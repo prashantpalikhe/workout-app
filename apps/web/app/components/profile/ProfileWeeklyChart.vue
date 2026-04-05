@@ -17,13 +17,13 @@ const range = ref('12w')
 
 const metricTabs = [
   { label: 'Duration', value: 'duration' },
-  { label: 'Reps', value: 'reps' },
+  { label: 'Reps', value: 'reps' }
 ]
 
 const rangeOptions = [
   { label: 'Last 12 weeks', value: '12w' },
   { label: '1 year', value: '1y' },
-  { label: 'All Time', value: 'all' },
+  { label: 'All Time', value: 'all' }
 ]
 
 function onMetricChange(val: string) {
@@ -87,7 +87,7 @@ const chartData = computed(() => {
     return d.toLocaleDateString('en-US', { month: 'short', year: 'numeric' })
   })
 
-  const values = props.data.buckets.map((b) => b.value)
+  const values = props.data.buckets.map(b => b.value)
 
   return {
     labels,
@@ -97,9 +97,9 @@ const chartData = computed(() => {
         backgroundColor: 'rgb(59, 130, 246)',
         borderRadius: 3,
         barPercentage: 0.75,
-        categoryPercentage: 0.85,
-      },
-    ],
+        categoryPercentage: 0.85
+      }
+    ]
   }
 })
 
@@ -114,9 +114,9 @@ const chartOptions = computed(() => ({
           const val = ctx.parsed.y
           if (metric.value === 'duration') return formatHours(val)
           return `${val.toLocaleString()} reps`
-        },
-      },
-    },
+        }
+      }
+    }
   },
   scales: {
     x: {
@@ -126,8 +126,8 @@ const chartOptions = computed(() => ({
         maxRotation: 0,
         autoSkip: true,
         maxTicksLimit: range.value === 'all' ? 8 : range.value === '1y' ? 12 : 7,
-        font: { size: 11 },
-      },
+        font: { size: 11 }
+      }
     },
     y: {
       beginAtZero: true,
@@ -135,7 +135,7 @@ const chartOptions = computed(() => ({
       grid: {
         drawBorder: false,
         color: 'rgba(128, 128, 128, 0.15)',
-        drawTicks: false,
+        drawTicks: false
       },
       ticks: {
         font: { size: 11 },
@@ -146,17 +146,19 @@ const chartOptions = computed(() => ({
           }
           if (value >= 1000) return `${(value / 1000).toFixed(0)}k`
           return value
-        },
-      },
-    },
-  },
+        }
+      }
+    }
+  }
 }))
 </script>
 
 <template>
   <UCard>
     <!-- Header: Title -->
-    <h3 class="text-base font-semibold mb-3">Statistics</h3>
+    <h3 class="text-base font-semibold mb-3">
+      Statistics
+    </h3>
 
     <!-- Metric tabs (underline style) -->
     <div class="flex gap-4 border-b border-default mb-4">

@@ -111,7 +111,7 @@ describe('ProgramsService', () => {
       await service.findAll('user-1');
 
       const args = prisma.program.findMany.mock.calls[0][0];
-      expect(args.where).toEqual({ createdById: 'user-1' });
+      expect(args.where).toEqual({ createdById: 'user-1', assignedById: null });
     });
 
     it('should order by updatedAt descending', async () => {

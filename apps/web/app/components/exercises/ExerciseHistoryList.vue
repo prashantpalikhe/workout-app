@@ -5,7 +5,7 @@ defineProps<{
   sessions: ExerciseHistorySession[]
   loading: boolean
   trackingType: string
-  meta: { page: number; limit: number; total: number; totalPages: number }
+  meta: { page: number, limit: number, total: number, totalPages: number }
 }>()
 
 const emit = defineEmits<{
@@ -19,7 +19,7 @@ function formatDate(dateStr: string) {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    year: 'numeric'
   })
 }
 
@@ -82,7 +82,9 @@ function prLabel(prType: string): string {
               >
                 {{ session.sessionName }}
               </NuxtLink>
-              <p class="text-xs text-muted">{{ formatDate(session.date) }}</p>
+              <p class="text-xs text-muted">
+                {{ formatDate(session.date) }}
+              </p>
             </div>
             <UBadge variant="subtle" size="xs">
               {{ session.sets.length }} {{ session.sets.length === 1 ? 'set' : 'sets' }}
@@ -110,8 +112,12 @@ function prLabel(prType: string): string {
                   class="border-b border-default last:border-0"
                   :class="set.completed ? '' : 'opacity-50'"
                 >
-                  <td class="py-1.5 px-2">{{ set.setNumber }}</td>
-                  <td class="py-1.5 px-2">{{ formatEnum(set.setType) }}</td>
+                  <td class="py-1.5 px-2">
+                    {{ set.setNumber }}
+                  </td>
+                  <td class="py-1.5 px-2">
+                    {{ formatEnum(set.setType) }}
+                  </td>
                   <td
                     v-for="(val, vi) in getSetValues(set, trackingType)"
                     :key="vi"

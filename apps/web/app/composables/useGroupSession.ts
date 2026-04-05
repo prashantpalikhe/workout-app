@@ -7,7 +7,7 @@ import type {
   CreateSessionSetInput,
   UpdateSessionSetInput,
   ExerciseHistorySession,
-  ExerciseHistoryResponse,
+  ExerciseHistoryResponse
 } from '@workout/shared'
 import type { WorkoutSession, SessionExercise, SessionSet } from '~/stores/sessions'
 
@@ -16,7 +16,7 @@ import type { WorkoutSession, SessionExercise, SessionSet } from '~/stores/sessi
 export interface ProgramAssignment {
   id: string
   status: string
-  program: { id: string; name: string }
+  program: { id: string, name: string }
 }
 
 export interface AthleteSlot {
@@ -50,7 +50,7 @@ export function useGroupSession() {
   }
 
   function getSlot(athleteId: string): AthleteSlot | undefined {
-    return slots.value.find((s) => s.athleteId === athleteId)
+    return slots.value.find(s => s.athleteId === athleteId)
   }
 
   function getSlotOrThrow(athleteId: string): AthleteSlot {
@@ -61,11 +61,11 @@ export function useGroupSession() {
 
   // ── Initialization ──
 
-  async function initSlots(athletes: Array<{ id: string; name: string }>) {
+  async function initSlots(athletes: Array<{ id: string, name: string }>) {
     initializing.value = true
 
     // Create slots with rest timers (run inside timerScope so onScopeDispose works)
-    slots.value = athletes.map((a) => ({
+    slots.value = athletes.map(a => ({
       athleteId: a.id,
       athleteName: a.name,
       session: null,
@@ -75,7 +75,7 @@ export function useGroupSession() {
       restTimer: timerScope.run(() => useRestTimer())!,
       exerciseHistory: new Map(),
       historyLoading: new Set(),
-      assignments: [],
+      assignments: []
     }))
 
     // Fetch active sessions and assignments for all athletes in parallel
@@ -85,17 +85,17 @@ export function useGroupSession() {
           const [session, assignmentsData] = await Promise.all([
             api<WorkoutSession | null>(`${basePath(slot.athleteId)}/active`),
             api<ProgramAssignment[]>(
-              `/trainer/athletes/${slot.athleteId}/assignments`,
-            ),
+              `/trainer/athletes/${slot.athleteId}/assignments`
+            )
           ])
           slot.session = session
-          slot.assignments = assignmentsData.filter((a) => a.status === 'ACTIVE')
+          slot.assignments = assignmentsData.filter(a => a.status === 'ACTIVE')
         } catch {
           slot.error = 'Failed to load session'
         } finally {
           slot.loading = false
         }
-      }),
+      })
     )
 
     initializing.value = false
@@ -110,7 +110,7 @@ export function useGroupSession() {
     try {
       const session = await api<WorkoutSession>(
         `${basePath(athleteId)}/start`,
-        { method: 'POST', body: input },
+        { method: 'POST', body: input }
       )
       slot.session = session
       slot.currentExerciseIndex = 0
@@ -125,30 +125,30 @@ export function useGroupSession() {
 
   async function startAllSessions(
     baseInput: StartSessionInput,
-    assignmentMap?: Map<string, string>,
+    assignmentMap?: Map<string, string>
   ) {
     await Promise.allSettled(
       slots.value
-        .filter((s) => !s.session && !s.loading)
+        .filter(s => !s.session && !s.loading)
         .map((slot) => {
           const assignmentId = assignmentMap?.get(slot.athleteId)
           const input: StartSessionInput = {
             ...baseInput,
-            ...(assignmentId && { programAssignmentId: assignmentId }),
+            ...(assignmentId && { programAssignmentId: assignmentId })
           }
           // If starting from a program and no explicit name, use program name
           if (assignmentId && !baseInput.name) {
-            const assignment = slot.assignments.find((a) => a.id === assignmentId)
+            const assignment = slot.assignments.find(a => a.id === assignmentId)
             if (assignment) input.name = assignment.program.name
           }
           return startSession(slot.athleteId, input)
-        }),
+        })
     )
   }
 
   async function completeSession(
     athleteId: string,
-    input: CompleteSessionInput,
+    input: CompleteSessionInput
   ) {
     const slot = getSlotOrThrow(athleteId)
     const sessionId = slot.session?.id
@@ -156,12 +156,12 @@ export function useGroupSession() {
 
     await api(`${basePath(athleteId)}/${sessionId}/complete`, {
       method: 'POST',
-      body: input,
+      body: input
     })
 
     slot.restTimer.skip()
     // Remove slot from active list
-    slots.value = slots.value.filter((s) => s.athleteId !== athleteId)
+    slots.value = slots.value.filter(s => s.athleteId !== athleteId)
   }
 
   async function abandonSession(athleteId: string) {
@@ -170,11 +170,11 @@ export function useGroupSession() {
     if (!sessionId) return
 
     await api(`${basePath(athleteId)}/${sessionId}/abandon`, {
-      method: 'POST',
+      method: 'POST'
     })
 
     slot.restTimer.skip()
-    slots.value = slots.value.filter((s) => s.athleteId !== athleteId)
+    slots.value = slots.value.filter(s => s.athleteId !== athleteId)
   }
 
   // ── Exercise CRUD ──
@@ -185,12 +185,12 @@ export function useGroupSession() {
 
     await api<SessionExercise>(
       `${basePath(athleteId)}/${slot.session.id}/exercises`,
-      { method: 'POST', body: input },
+      { method: 'POST', body: input }
     )
 
     // Refetch full session to get nested data
     const refreshed = await api<WorkoutSession | null>(
-      `${basePath(athleteId)}/active`,
+      `${basePath(athleteId)}/active`
     )
     if (refreshed) {
       slot.session = refreshed
@@ -205,18 +205,18 @@ export function useGroupSession() {
 
     await api(
       `${basePath(athleteId)}/${slot.session.id}/exercises/${exerciseId}`,
-      { method: 'DELETE' },
+      { method: 'DELETE' }
     )
 
     slot.session.sessionExercises = slot.session.sessionExercises.filter(
-      (e) => e.id !== exerciseId,
+      e => e.id !== exerciseId
     )
 
     // Clamp exercise index
     if (slot.currentExerciseIndex >= slot.session.sessionExercises.length) {
       slot.currentExerciseIndex = Math.max(
         0,
-        slot.session.sessionExercises.length - 1,
+        slot.session.sessionExercises.length - 1
       )
     }
   }
@@ -224,18 +224,18 @@ export function useGroupSession() {
   async function updateExercise(
     athleteId: string,
     exerciseId: string,
-    input: UpdateSessionExerciseInput,
+    input: UpdateSessionExerciseInput
   ) {
     const slot = getSlotOrThrow(athleteId)
     if (!slot.session) return
 
     const updated = await api<SessionExercise>(
       `${basePath(athleteId)}/${slot.session.id}/exercises/${exerciseId}`,
-      { method: 'PATCH', body: input },
+      { method: 'PATCH', body: input }
     )
 
     const idx = slot.session.sessionExercises.findIndex(
-      (e) => e.id === exerciseId,
+      e => e.id === exerciseId
     )
     if (idx !== -1) slot.session.sessionExercises[idx] = updated
   }
@@ -245,25 +245,25 @@ export function useGroupSession() {
   async function addSet(
     athleteId: string,
     exerciseId: string,
-    input: Partial<CreateSessionSetInput> = {},
+    input: Partial<CreateSessionSetInput> = {}
   ) {
     const slot = getSlotOrThrow(athleteId)
     if (!slot.session) return
 
     const exercise = slot.session.sessionExercises.find(
-      (e) => e.id === exerciseId,
+      e => e.id === exerciseId
     )
 
     const body = {
       ...input,
       setNumber: input.setNumber ?? (exercise?.sets.length ?? 0) + 1,
       setType: input.setType ?? 'WORKING',
-      completed: input.completed ?? false,
+      completed: input.completed ?? false
     }
 
     const created = await api<SessionSet>(
       `${basePath(athleteId)}/${slot.session.id}/exercises/${exerciseId}/sets`,
-      { method: 'POST', body },
+      { method: 'POST', body }
     )
 
     if (exercise) exercise.sets.push(created)
@@ -275,21 +275,21 @@ export function useGroupSession() {
     athleteId: string,
     exerciseId: string,
     setId: string,
-    input: UpdateSessionSetInput,
+    input: UpdateSessionSetInput
   ): Promise<SessionSet | undefined> {
     const slot = getSlotOrThrow(athleteId)
     if (!slot.session) return
 
     const updated = await api<SessionSet>(
       `${basePath(athleteId)}/${slot.session.id}/exercises/${exerciseId}/sets/${setId}`,
-      { method: 'PATCH', body: input },
+      { method: 'PATCH', body: input }
     )
 
     const exercise = slot.session.sessionExercises.find(
-      (e) => e.id === exerciseId,
+      e => e.id === exerciseId
     )
     if (exercise) {
-      const idx = exercise.sets.findIndex((s) => s.id === setId)
+      const idx = exercise.sets.findIndex(s => s.id === setId)
       if (idx !== -1) exercise.sets[idx] = updated
     }
 
@@ -299,21 +299,21 @@ export function useGroupSession() {
   async function deleteSet(
     athleteId: string,
     exerciseId: string,
-    setId: string,
+    setId: string
   ) {
     const slot = getSlotOrThrow(athleteId)
     if (!slot.session) return
 
     await api(
       `${basePath(athleteId)}/${slot.session.id}/exercises/${exerciseId}/sets/${setId}`,
-      { method: 'DELETE' },
+      { method: 'DELETE' }
     )
 
     const exercise = slot.session.sessionExercises.find(
-      (e) => e.id === exerciseId,
+      e => e.id === exerciseId
     )
     if (exercise) {
-      exercise.sets = exercise.sets.filter((s) => s.id !== setId)
+      exercise.sets = exercise.sets.filter(s => s.id !== setId)
     }
   }
 
@@ -353,7 +353,7 @@ export function useGroupSession() {
     if (!slot.session) return
     slot.currentExerciseIndex = Math.max(
       0,
-      Math.min(index, slot.session.sessionExercises.length - 1),
+      Math.min(index, slot.session.sessionExercises.length - 1)
     )
   }
 
@@ -364,8 +364,8 @@ export function useGroupSession() {
 
     // Skip if already cached or loading
     if (
-      slot.exerciseHistory.has(exerciseId) ||
-      slot.historyLoading.has(exerciseId)
+      slot.exerciseHistory.has(exerciseId)
+      || slot.historyLoading.has(exerciseId)
     ) {
       return
     }
@@ -374,7 +374,7 @@ export function useGroupSession() {
     try {
       const result = await api<ExerciseHistoryResponse>(
         `/trainer/athletes/${athleteId}/exercises/${exerciseId}/history`,
-        { query: { page: 1, limit: 3 } },
+        { query: { page: 1, limit: 3 } }
       )
       slot.exerciseHistory.set(exerciseId, result.data)
     } catch {
@@ -388,13 +388,13 @@ export function useGroupSession() {
   // ── Computed ──
 
   const activeSlots = computed(() =>
-    slots.value.filter((s) => s.session !== null),
+    slots.value.filter(s => s.session !== null)
   )
 
   const allDone = computed(() => slots.value.length === 0)
 
   const needsStart = computed(() =>
-    slots.value.some((s) => !s.session && !s.loading),
+    slots.value.some(s => !s.session && !s.loading)
   )
 
   // Cleanup all rest timer intervals when the composable's parent scope is disposed
@@ -442,6 +442,6 @@ export function useGroupSession() {
     goToExercise,
 
     // History
-    fetchExerciseHistory,
+    fetchExerciseHistory
   }
 }

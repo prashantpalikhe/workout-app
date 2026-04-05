@@ -48,7 +48,7 @@ async function disconnect() {
   try {
     await api(`/athlete/trainers/${rel.id}/disconnect`, { method: 'POST' })
     // Remove from list
-    trainers.value = trainers.value.filter((t) => t.id !== rel.id)
+    trainers.value = trainers.value.filter(t => t.id !== rel.id)
     toast.add({ title: 'Disconnected from trainer', color: 'success' })
   } catch {
     toast.add({ title: 'Failed to disconnect', color: 'error' })
@@ -61,7 +61,7 @@ async function disconnect() {
 const statusColor: Record<string, string> = {
   ACTIVE: 'success',
   INACTIVE: 'warning',
-  PENDING: 'info',
+  PENDING: 'info'
 }
 </script>
 
@@ -81,7 +81,9 @@ const statusColor: Record<string, string> = {
         <div class="size-14 rounded-full bg-elevated flex items-center justify-center mx-auto mb-4">
           <UIcon name="i-lucide-users" class="size-7 text-muted" />
         </div>
-        <p class="font-medium">No trainers yet</p>
+        <p class="font-medium">
+          No trainers yet
+        </p>
         <p class="text-sm text-muted mt-1">
           Ask your trainer for an invite link to get connected
         </p>
@@ -104,7 +106,9 @@ const statusColor: Record<string, string> = {
                 <p class="font-medium truncate">
                   {{ rel.trainer.firstName }} {{ rel.trainer.lastName }}
                 </p>
-                <p class="text-sm text-muted truncate">{{ rel.trainer.email }}</p>
+                <p class="text-sm text-muted truncate">
+                  {{ rel.trainer.email }}
+                </p>
               </div>
             </div>
 
@@ -122,8 +126,8 @@ const statusColor: Record<string, string> = {
                 variant="ghost"
                 color="error"
                 aria-label="Disconnect"
-                @click="confirmDisconnect(rel)"
                 :loading="disconnecting === rel.id"
+                @click="confirmDisconnect(rel)"
               />
             </div>
           </div>
@@ -145,7 +149,9 @@ const statusColor: Record<string, string> = {
               <UIcon name="i-lucide-unlink" class="size-5 text-error" />
             </div>
             <div>
-              <p class="font-semibold">Disconnect from Trainer?</p>
+              <p class="font-semibold">
+                Disconnect from Trainer?
+              </p>
               <p class="text-sm text-muted mt-1">
                 This will permanently remove
                 <span class="font-medium">{{ selectedRelationship?.trainer.firstName }} {{ selectedRelationship?.trainer.lastName }}</span>

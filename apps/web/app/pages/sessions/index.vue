@@ -9,7 +9,7 @@ const showStartModal = ref(false)
 onMounted(async () => {
   await Promise.all([
     sessionStore.fetchActive(),
-    sessionStore.fetchSessions(),
+    sessionStore.fetchSessions()
   ])
 })
 
@@ -90,7 +90,9 @@ function startWorkout() {
     <!-- Empty state -->
     <div v-else class="flex flex-col items-center justify-center py-16 text-center">
       <UIcon name="i-lucide-dumbbell" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">No workouts yet</h3>
+      <h3 class="text-lg font-medium mb-2">
+        No workouts yet
+      </h3>
       <p class="text-sm text-muted mb-6">
         Start your first workout to begin tracking your progress.
       </p>

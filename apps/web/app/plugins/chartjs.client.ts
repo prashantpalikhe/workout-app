@@ -7,7 +7,7 @@ import {
   LinearScale,
   Tooltip,
   Legend,
-  Filler,
+  Filler
 } from 'chart.js'
 
 export default defineNuxtPlugin(() => {
@@ -19,6 +19,6 @@ export default defineNuxtPlugin(() => {
     LinearScale,
     Tooltip,
     Legend,
-    Filler,
+    Filler
   )
 })

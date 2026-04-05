@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import {
   EXERCISE_EQUIPMENT,
-  EXERCISE_MOVEMENT_PATTERNS,
+  EXERCISE_MOVEMENT_PATTERNS
 } from '@workout/shared'
 
 const exerciseStore = useExerciseStore()
@@ -21,19 +21,19 @@ watch(searchQuery, (val) => {
 
 const equipmentItems = EXERCISE_EQUIPMENT.map(e => ({
   label: formatEnum(e),
-  value: e,
+  value: e
 }))
 
 const movementItems = EXERCISE_MOVEMENT_PATTERNS.map(m => ({
   label: formatEnum(m),
-  value: m,
+  value: m
 }))
 
 const muscleGroupItems = computed(() =>
   exerciseStore.muscleGroups.map(mg => ({
     label: mg.name,
-    value: mg.id,
-  })),
+    value: mg.id
+  }))
 )
 
 // Local refs that sync with store (USelect needs a defined value, not undefined)

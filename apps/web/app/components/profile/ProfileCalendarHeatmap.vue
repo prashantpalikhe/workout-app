@@ -38,7 +38,7 @@ async function fetchDaySessions(day: number) {
   dayLoading.value[dateStr] = true
   try {
     const result = await api<{ data: WorkoutSession[] }>('/sessions', {
-      query: { fromDate: dateStr, toDate: dateStr, status: 'COMPLETED', limit: 10 },
+      query: { fromDate: dateStr, toDate: dateStr, status: 'COMPLETED', limit: 10 }
     })
     daySessions.value[dateStr] = result.data
   } finally {
@@ -86,9 +86,9 @@ function prevMonth() {
 }
 
 function nextMonth() {
-  const isCurrentMonth =
-    currentMonth.value === now.getMonth() + 1 &&
-    currentYear.value === now.getFullYear()
+  const isCurrentMonth
+    = currentMonth.value === now.getMonth() + 1
+      && currentYear.value === now.getFullYear()
   if (isCurrentMonth) return
 
   if (currentMonth.value === 12) {
@@ -102,8 +102,8 @@ function nextMonth() {
 
 const isNextDisabled = computed(() => {
   return (
-    currentMonth.value === now.getMonth() + 1 &&
-    currentYear.value === now.getFullYear()
+    currentMonth.value === now.getMonth() + 1
+    && currentYear.value === now.getFullYear()
   )
 })
 
@@ -130,7 +130,7 @@ const calendarCells = computed(() => {
   let startDow = firstDay.getDay() - 1
   if (startDow < 0) startDow = 6
 
-  const cells: Array<{ day: number | null; workout: CalendarWorkoutDay | null; isToday: boolean }> = []
+  const cells: Array<{ day: number | null, workout: CalendarWorkoutDay | null, isToday: boolean }> = []
 
   // Leading empty cells
   for (let i = 0; i < startDow; i++) {
@@ -139,14 +139,14 @@ const calendarCells = computed(() => {
 
   // Day cells
   for (let d = 1; d <= daysInMonth; d++) {
-    const isToday =
-      d === now.getDate() &&
-      currentMonth.value === now.getMonth() + 1 &&
-      currentYear.value === now.getFullYear()
+    const isToday
+      = d === now.getDate()
+        && currentMonth.value === now.getMonth() + 1
+        && currentYear.value === now.getFullYear()
     cells.push({
       day: d,
       workout: workoutMap.value.get(d) ?? null,
-      isToday,
+      isToday
     })
   }
 
@@ -210,7 +210,7 @@ function intensityClass(workout: CalendarWorkoutDay | null): string {
                 class="aspect-square flex items-center justify-center text-xs rounded-md transition-colors cursor-pointer hover:ring-1 hover:ring-primary/50"
                 :class="[
                   cell.isToday ? 'ring-1 ring-primary' : '',
-                  intensityClass(cell.workout),
+                  intensityClass(cell.workout)
                 ]"
               >
                 {{ cell.day }}
@@ -218,7 +218,9 @@ function intensityClass(workout: CalendarWorkoutDay | null): string {
             </template>
             <template #content>
               <div class="p-3 max-w-64">
-                <p class="text-xs text-muted mb-2">{{ formatDateLabel(getDateStr(cell.day)) }}</p>
+                <p class="text-xs text-muted mb-2">
+                  {{ formatDateLabel(getDateStr(cell.day)) }}
+                </p>
 
                 <!-- Loading -->
                 <div v-if="dayLoading[getDateStr(cell.day)]" class="space-y-2">
@@ -233,7 +235,9 @@ function intensityClass(workout: CalendarWorkoutDay | null): string {
                     :key="session.id"
                     class="space-y-1"
                   >
-                    <p class="text-sm font-medium">{{ session.name }}</p>
+                    <p class="text-sm font-medium">
+                      {{ session.name }}
+                    </p>
                     <div class="flex items-center gap-2 text-xs text-muted">
                       <span v-if="formatDuration(session)">{{ formatDuration(session) }}</span>
                       <span>{{ session.sessionExercises.length }} exercise{{ session.sessionExercises.length !== 1 ? 's' : '' }}</span>
@@ -261,7 +265,7 @@ function intensityClass(workout: CalendarWorkoutDay | null): string {
             class="aspect-square flex items-center justify-center text-xs rounded-md transition-colors"
             :class="[
               cell.isToday ? 'ring-1 ring-primary' : '',
-              cell.day ? 'bg-elevated/30' : '',
+              cell.day ? 'bg-elevated/30' : ''
             ]"
           >
             {{ cell.day ?? '' }}

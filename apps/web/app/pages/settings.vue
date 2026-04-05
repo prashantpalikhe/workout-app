@@ -30,13 +30,13 @@ const theme = ref(colorModeToTheme(colorMode.preference))
 const themeOptions = [
   { label: 'System', value: 'SYSTEM', icon: 'i-lucide-monitor' },
   { label: 'Light', value: 'LIGHT', icon: 'i-lucide-sun' },
-  { label: 'Dark', value: 'DARK', icon: 'i-lucide-moon' },
+  { label: 'Dark', value: 'DARK', icon: 'i-lucide-moon' }
 ]
 
 const unitPreference = ref('METRIC')
 const unitOptions = [
   { label: 'Metric (kg, cm)', value: 'METRIC' },
-  { label: 'Imperial (lbs, in)', value: 'IMPERIAL' },
+  { label: 'Imperial (lbs, in)', value: 'IMPERIAL' }
 ]
 
 // ── Trainer Mode ─────────────────────────────────
@@ -69,14 +69,14 @@ async function saveTrainerMode(isTrainer: boolean) {
   try {
     await api('/users/me', {
       method: 'PATCH',
-      body: { isTrainer },
+      body: { isTrainer }
     })
     trainerMode.value = isTrainer
     // Refresh JWT tokens so the isTrainer claim is up to date
     await authStore.refreshSession()
     toast.add({
       title: isTrainer ? 'Trainer mode enabled' : 'Trainer mode disabled',
-      color: 'success',
+      color: 'success'
     })
   } catch {
     // Revert on failure
@@ -92,7 +92,7 @@ onMounted(async () => {
   try {
     const [settings, profile] = await Promise.all([
       api<UserSettings>('/users/me/settings'),
-      api<{ unitPreference: string }>('/users/me/profile'),
+      api<{ unitPreference: string }>('/users/me/profile')
     ])
 
     restTimerEnabled.value = settings.restTimerEnabled
@@ -146,8 +146,8 @@ async function saveSettings() {
       body: {
         restTimerEnabled: restTimerEnabled.value,
         defaultRestSec,
-        theme: theme.value,
-      },
+        theme: theme.value
+      }
     })
     showSavedToast()
     // Refresh the global settings cache so other pages (e.g. active workout) see updated values
@@ -161,7 +161,7 @@ async function saveUnitPreference() {
   try {
     await api('/users/me/profile', {
       method: 'PATCH',
-      body: { unitPreference: unitPreference.value },
+      body: { unitPreference: unitPreference.value }
     })
     showSavedToast()
   } catch {
@@ -184,12 +184,12 @@ watch(unitPreference, () => {
 // ── Minute/second options ───────────────────────
 const minuteOptions = Array.from({ length: 11 }, (_, i) => ({
   label: `${i}`,
-  value: i,
+  value: i
 }))
 
 const secondOptions = Array.from({ length: 12 }, (_, i) => ({
   label: String(i * 5).padStart(2, '0'),
-  value: i * 5,
+  value: i * 5
 }))
 </script>
 
@@ -209,8 +209,12 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
       <UCard>
         <div class="space-y-5">
           <div>
-            <p class="font-medium">Appearance</p>
-            <p class="text-sm text-muted">Choose your preferred theme</p>
+            <p class="font-medium">
+              Appearance
+            </p>
+            <p class="text-sm text-muted">
+              Choose your preferred theme
+            </p>
           </div>
           <div class="flex gap-2">
             <UButton
@@ -232,8 +236,12 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">Units</p>
-              <p class="text-sm text-muted">Weight and measurement units</p>
+              <p class="font-medium">
+                Units
+              </p>
+              <p class="text-sm text-muted">
+                Weight and measurement units
+              </p>
             </div>
             <USelect
               v-model="unitPreference"
@@ -250,7 +258,9 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">Trainer Mode</p>
+              <p class="font-medium">
+                Trainer Mode
+              </p>
               <p class="text-sm text-muted">
                 Manage athletes and log workouts on their behalf
               </p>
@@ -273,7 +283,9 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
                 <UIcon name="i-lucide-alert-triangle" class="size-5 text-warning" />
               </div>
               <div>
-                <p class="font-semibold">Disable Trainer Mode?</p>
+                <p class="font-semibold">
+                  Disable Trainer Mode?
+                </p>
                 <p class="text-sm text-muted mt-1">
                   All your active athlete relationships will be deactivated. You can re-enable trainer mode later to reactivate them.
                 </p>
@@ -302,7 +314,9 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">Rest Timer</p>
+              <p class="font-medium">
+                Rest Timer
+              </p>
               <p class="text-sm text-muted">
                 Automatically start a countdown timer after completing a set
               </p>
@@ -311,7 +325,9 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
           </div>
 
           <div v-if="restTimerEnabled" class="pt-2 border-t border-default">
-            <p class="text-sm font-medium mb-3">Default Rest Duration</p>
+            <p class="text-sm font-medium mb-3">
+              Default Rest Duration
+            </p>
             <div class="flex items-center gap-2">
               <USelect
                 v-model.number="restMinutes"

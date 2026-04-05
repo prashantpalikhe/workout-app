@@ -63,7 +63,7 @@ export const useTrainerStore = defineStore('trainer', () => {
   async function createInvite(expiresInHours = 168) {
     const data = await api<TrainerInvite>('/trainer/invites', {
       method: 'POST',
-      body: { expiresInHours },
+      body: { expiresInHours }
     })
     invites.value.unshift(data)
     return data
@@ -80,12 +80,12 @@ export const useTrainerStore = defineStore('trainer', () => {
 
   async function revokeInvite(inviteId: string) {
     await api(`/trainer/invites/${inviteId}`, { method: 'DELETE' })
-    invites.value = invites.value.filter((i) => i.id !== inviteId)
+    invites.value = invites.value.filter(i => i.id !== inviteId)
   }
 
   // ── Athlete Actions ───────────────────────────
 
-  async function fetchAthletes(filters: { status?: string; page?: number; limit?: number } = {}) {
+  async function fetchAthletes(filters: { status?: string, page?: number, limit?: number } = {}) {
     athletesLoading.value = true
     try {
       const params = new URLSearchParams()
@@ -106,7 +106,7 @@ export const useTrainerStore = defineStore('trainer', () => {
 
   async function fetchAthleteProfile(athleteId: string) {
     athleteProfile.value = await api<AthleteProfile>(
-      `/trainer/athletes/${athleteId}/profile`,
+      `/trainer/athletes/${athleteId}/profile`
     )
     return athleteProfile.value
   }
@@ -114,7 +114,7 @@ export const useTrainerStore = defineStore('trainer', () => {
   async function updateRelationship(relationshipId: string, status: string) {
     await api(`/trainer/athletes/${relationshipId}`, {
       method: 'PATCH',
-      body: { status },
+      body: { status }
     })
     // Refresh the list
     await fetchAthletes()
@@ -135,6 +135,6 @@ export const useTrainerStore = defineStore('trainer', () => {
     revokeInvite,
     fetchAthletes,
     fetchAthleteProfile,
-    updateRelationship,
+    updateRelationship
   }
 })

@@ -23,8 +23,12 @@ const formattedVolume = computed(() => {
         <USkeleton class="h-4 w-16 mx-auto" />
       </template>
       <template v-else>
-        <div class="text-2xl font-bold">{{ stats?.totalWorkouts ?? 0 }}</div>
-        <div class="text-xs text-muted mt-1">Workouts</div>
+        <div class="text-2xl font-bold">
+          {{ stats?.totalWorkouts ?? 0 }}
+        </div>
+        <div class="text-xs text-muted mt-1">
+          Workouts
+        </div>
       </template>
     </div>
 
@@ -34,8 +38,12 @@ const formattedVolume = computed(() => {
         <USkeleton class="h-4 w-20 mx-auto" />
       </template>
       <template v-else>
-        <div class="text-2xl font-bold">{{ formattedVolume }}</div>
-        <div class="text-xs text-muted mt-1">Volume (kg)</div>
+        <div class="text-2xl font-bold">
+          {{ formattedVolume }}
+        </div>
+        <div class="text-xs text-muted mt-1">
+          Volume (kg)
+        </div>
       </template>
     </div>
 
@@ -53,7 +61,9 @@ const formattedVolume = computed(() => {
           />
           <span class="text-2xl font-bold">{{ stats?.currentStreak ?? 0 }}</span>
         </div>
-        <div class="text-xs text-muted mt-1">Day Streak</div>
+        <div class="text-xs text-muted mt-1">
+          Day Streak
+        </div>
       </template>
     </div>
   </div>

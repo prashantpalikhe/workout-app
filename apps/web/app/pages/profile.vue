@@ -13,7 +13,7 @@ onMounted(() => {
     profileStore.fetchWeeklyStats('12w', 'duration'),
     profileStore.fetchCalendarStats(now.getMonth() + 1, now.getFullYear()),
     profileStore.fetchProfile(),
-    profileStore.fetchRecentSessions(),
+    profileStore.fetchRecentSessions()
   ])
 })
 

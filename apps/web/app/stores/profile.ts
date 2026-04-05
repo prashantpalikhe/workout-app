@@ -1,7 +1,7 @@
 import type {
   UserStatsResponse,
   ChartStatsResponse,
-  CalendarStatsResponse,
+  CalendarStatsResponse
 } from '@workout/shared'
 import type { WorkoutSession } from '~/stores/sessions'
 
@@ -83,7 +83,7 @@ export const useProfileStore = defineStore('profile', () => {
   async function updateProfile(data: Record<string, unknown>) {
     profile.value = await api<AthleteProfile>('/users/me/profile', {
       method: 'PATCH',
-      body: data,
+      body: data
     })
   }
 
@@ -96,7 +96,7 @@ export const useProfileStore = defineStore('profile', () => {
     formData.append('file', file)
     const result = await api<{ avatarUrl: string }>('/users/me/avatar', {
       method: 'POST',
-      body: formData,
+      body: formData
     })
     // Sync auth store so avatar updates everywhere immediately
     const authStore = useAuthStore()
@@ -119,7 +119,7 @@ export const useProfileStore = defineStore('profile', () => {
       data: WorkoutSession[]
       meta: { total: number }
     }>('/sessions', {
-      query: { limit: 5, status: 'COMPLETED' },
+      query: { limit: 5, status: 'COMPLETED' }
     })
     recentSessions.value = result.data
   }
@@ -142,6 +142,6 @@ export const useProfileStore = defineStore('profile', () => {
     updateUser,
     uploadAvatar,
     removeAvatar,
-    fetchRecentSessions,
+    fetchRecentSessions
   }
 })

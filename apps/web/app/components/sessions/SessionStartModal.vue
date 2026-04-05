@@ -12,7 +12,7 @@ const toast = useToast()
 interface Assignment {
   id: string
   status: string
-  program: { id: string; name: string }
+  program: { id: string, name: string }
 }
 
 const sessionName = ref('')
@@ -21,7 +21,6 @@ const starting = ref(false)
 const error = ref<string | null>(null)
 const assignments = ref<Assignment[]>([])
 const assignmentsLoading = ref(false)
-
 
 watch(open, async (val) => {
   if (val) {
@@ -46,7 +45,7 @@ watch(open, async (val) => {
 
 watch(selectedAssignmentId, (id) => {
   if (id) {
-    const assignment = assignments.value.find((a) => a.id === id)
+    const assignment = assignments.value.find(a => a.id === id)
     if (assignment) sessionName.value = assignment.program.name
   } else {
     sessionName.value = ''
@@ -63,7 +62,7 @@ async function startWorkout() {
       name: sessionName.value.trim() || undefined,
       ...(isOwnProgram
         ? { programId: selected!.slice(4) }
-        : { programAssignmentId: selected || undefined }),
+        : { programAssignmentId: selected || undefined })
     })
     toast.add({ title: 'Workout started!', color: 'success' })
     open.value = false
@@ -98,7 +97,9 @@ async function startWorkout() {
             class="w-full rounded-md bg-default ring ring-accented text-highlighted px-3 py-2 text-sm focus:outline-primary"
             @change="selectedAssignmentId = ($event.target as HTMLSelectElement).value || null"
           >
-            <option value="">Freestyle (no program)</option>
+            <option value="">
+              Freestyle (no program)
+            </option>
             <option
               v-for="a in assignments"
               :key="a.id"

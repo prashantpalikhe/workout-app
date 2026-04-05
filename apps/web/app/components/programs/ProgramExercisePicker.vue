@@ -18,7 +18,7 @@ const adding = ref<string | null>(null)
 
 interface PaginatedResponse<T> {
   data: T[]
-  meta: { page: number; limit: number; total: number; totalPages: number }
+  meta: { page: number, limit: number, total: number, totalPages: number }
 }
 
 async function searchExercises() {
@@ -34,7 +34,7 @@ async function searchExercises() {
 }
 
 const addedExerciseIds = computed(() =>
-  new Set(programStore.selectedProgram?.exercises.map(e => e.exerciseId) || []),
+  new Set(programStore.selectedProgram?.exercises.map(e => e.exerciseId) || [])
 )
 
 let searchTimeout: ReturnType<typeof setTimeout> | null = null
@@ -60,7 +60,7 @@ async function addExercise(exercise: Exercise) {
       sortOrder: programStore.selectedProgram.exercises.length,
       targetSets: 3,
       targetReps: '8-12',
-      targetTempo: '2-1-1-0',
+      targetTempo: '2-1-1-0'
     })
     emit('success')
     open.value = false

@@ -30,7 +30,7 @@ watch(open, (val) => {
 
 const exerciseCount = computed(() => props.session.sessionExercises.length)
 const totalSets = computed(() =>
-  props.session.sessionExercises.reduce((sum, ex) => sum + ex.sets.filter(s => s.completed).length, 0),
+  props.session.sessionExercises.reduce((sum, ex) => sum + ex.sets.filter(s => s.completed).length, 0)
 )
 
 async function completeWorkout() {
@@ -42,7 +42,7 @@ async function completeWorkout() {
   try {
     await sessionStore.completeSession(sessionId, {
       overallRpe: overallRpe.value,
-      notes: notes.value.trim() || undefined,
+      notes: notes.value.trim() || undefined
     })
     toast.add({ title: 'Workout completed!', color: 'success' })
     open.value = false

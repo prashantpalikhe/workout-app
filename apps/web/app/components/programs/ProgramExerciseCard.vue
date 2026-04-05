@@ -21,7 +21,7 @@ const form = reactive({
   targetRpe: props.exercise.targetRpe ?? undefined as number | undefined,
   targetTempo: props.exercise.targetTempo ?? '',
   restSec: props.exercise.restSec ?? undefined as number | undefined,
-  notes: props.exercise.notes ?? '',
+  notes: props.exercise.notes ?? ''
 })
 
 // Sync from prop when exercise data changes externally (e.g., after reorder API response)
@@ -48,15 +48,15 @@ const { saving, error, schedule } = useAutoSave(
     await programStore.updateExercise(
       props.exercise.programId,
       props.exercise.id,
-      payload,
+      payload
     )
   },
   {
     debounceMs: 400,
     onError: () => {
       toast.add({ title: 'Failed to save exercise changes', color: 'error' })
-    },
-  },
+    }
+  }
 )
 
 // Notes expand/collapse

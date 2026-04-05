@@ -1,7 +1,7 @@
 <script setup lang="ts">
 import type { AthleteProfile } from '~/stores/profile'
 
-const props = defineProps<{
+defineProps<{
   profile: AthleteProfile | null
 }>()
 
@@ -13,7 +13,7 @@ const initials = computed(() => {
   return `${user.value.firstName.charAt(0)}${user.value.lastName.charAt(0)}`
 })
 
-const memberSince = computed(() => {
+const _memberSince = computed(() => {
   if (!user.value) return ''
   // We'll use profile store's stats.memberSince or fallback
   return ''
@@ -28,9 +28,15 @@ const memberSince = computed(() => {
       size="3xl"
     />
     <div class="min-w-0 flex-1">
-      <h2 class="text-xl font-bold">{{ authStore.fullName }}</h2>
-      <p class="text-sm text-muted">{{ user?.email }}</p>
-      <p v-if="profile?.bio" class="text-sm mt-2">{{ profile.bio }}</p>
+      <h2 class="text-xl font-bold">
+        {{ authStore.fullName }}
+      </h2>
+      <p class="text-sm text-muted">
+        {{ user?.email }}
+      </p>
+      <p v-if="profile?.bio" class="text-sm mt-2">
+        {{ profile.bio }}
+      </p>
       <a
         v-if="profile?.link"
         :href="profile.link"

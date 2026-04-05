@@ -33,7 +33,7 @@ declare namespace google.accounts.id {
   function renderButton(parent: HTMLElement, config: GsiButtonConfiguration): void
   function prompt(): void
   function disableAutoSelect(): void
-  function revoke(hint: string, callback?: (response: { successful: boolean; error?: string }) => void): void
+  function revoke(hint: string, callback?: (response: { successful: boolean, error?: string }) => void): void
   function cancel(): void
 }
 

@@ -65,8 +65,12 @@ async function acceptInvite() {
           <UIcon name="i-lucide-link-2-off" class="size-7 text-error" />
         </div>
         <div>
-          <p class="font-semibold text-lg">Invalid Invite</p>
-          <p class="text-sm text-muted mt-1">{{ error }}</p>
+          <p class="font-semibold text-lg">
+            Invalid Invite
+          </p>
+          <p class="text-sm text-muted mt-1">
+            {{ error }}
+          </p>
         </div>
         <UButton
           label="Go to Dashboard"
@@ -84,7 +88,9 @@ async function acceptInvite() {
           <UIcon name="i-lucide-check-circle-2" class="size-7 text-success" />
         </div>
         <div>
-          <p class="font-semibold text-lg">Connected!</p>
+          <p class="font-semibold text-lg">
+            Connected!
+          </p>
           <p class="text-sm text-muted mt-1">
             You are now connected with
             <span class="font-medium">{{ inviteInfo?.trainer.firstName }} {{ inviteInfo?.trainer.lastName }}</span>
@@ -119,7 +125,9 @@ async function acceptInvite() {
             <p class="font-semibold text-lg">
               {{ inviteInfo.trainer.firstName }} {{ inviteInfo.trainer.lastName }}
             </p>
-            <p class="text-sm text-muted">invites you to connect as their athlete</p>
+            <p class="text-sm text-muted">
+              invites you to connect as their athlete
+            </p>
           </div>
         </div>
 

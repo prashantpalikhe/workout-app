@@ -58,7 +58,7 @@ function formatDate(dateStr: string): string {
   return new Date(dateStr).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    year: 'numeric'
   })
 }
 </script>
@@ -81,7 +81,9 @@ function formatDate(dateStr: string): string {
       class="flex flex-col items-center justify-center py-16 text-center"
     >
       <UIcon name="i-lucide-trophy" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">No personal records yet</h3>
+      <h3 class="text-lg font-medium mb-2">
+        No personal records yet
+      </h3>
       <p class="text-sm text-muted mb-4">
         Complete workouts to start setting personal records.
       </p>
@@ -113,9 +115,15 @@ function formatDate(dateStr: string): string {
           >
             <UIcon :name="prIcon(pr.prType)" class="size-5 text-primary shrink-0" />
             <div class="min-w-0">
-              <p class="text-sm font-semibold">{{ formatValue(pr.prType, pr.value) }}</p>
-              <p class="text-xs text-muted">{{ prLabel(pr.prType) }}</p>
-              <p class="text-xs text-muted">{{ formatDate(pr.achievedOn) }}</p>
+              <p class="text-sm font-semibold">
+                {{ formatValue(pr.prType, pr.value) }}
+              </p>
+              <p class="text-xs text-muted">
+                {{ prLabel(pr.prType) }}
+              </p>
+              <p class="text-xs text-muted">
+                {{ formatDate(pr.achievedOn) }}
+              </p>
             </div>
           </div>
         </div>

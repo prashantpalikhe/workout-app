@@ -25,7 +25,7 @@ export interface SessionSet {
   restSec: number | null
   completed: boolean
   notes: string | null
-  personalRecord: { id: string; prType: string; value: number } | null
+  personalRecord: { id: string, prType: string, value: number } | null
 }
 
 export interface SessionExercise {
@@ -70,13 +70,13 @@ export interface WorkoutSession {
   programAssignment: {
     id: string
     programId: string
-    program: { id: string; name: string }
+    program: { id: string, name: string }
   } | null
 }
 
 interface PaginatedResponse {
   data: WorkoutSession[]
-  meta: { page: number; limit: number; total: number; totalPages: number }
+  meta: { page: number, limit: number, total: number, totalPages: number }
 }
 
 // ── Store ──
@@ -98,7 +98,7 @@ export const useSessionStore = defineStore('sessions', () => {
     search: '',
     status: undefined as string | undefined,
     page: 1,
-    limit: 20,
+    limit: 20
   })
 
   const hasActiveFilters = computed(() =>
@@ -188,7 +188,7 @@ export const useSessionStore = defineStore('sessions', () => {
     try {
       const query: Record<string, string | number> = {
         page: overrides.page ?? filters.page,
-        limit: overrides.limit ?? filters.limit,
+        limit: overrides.limit ?? filters.limit
       }
       const search = overrides.search ?? filters.search
       const status = overrides.status ?? filters.status
@@ -243,7 +243,7 @@ export const useSessionStore = defineStore('sessions', () => {
     // Update in-place on activeSession
     if (activeSession.value?.id === sessionId) {
       const idx = activeSession.value.sessionExercises.findIndex(
-        (e) => e.id === exerciseId
+        e => e.id === exerciseId
       )
       if (idx !== -1) activeSession.value.sessionExercises[idx] = updated
     }
@@ -255,8 +255,8 @@ export const useSessionStore = defineStore('sessions', () => {
       method: 'DELETE'
     })
     if (activeSession.value?.id === sessionId) {
-      activeSession.value.sessionExercises =
-        activeSession.value.sessionExercises.filter((e) => e.id !== exerciseId)
+      activeSession.value.sessionExercises
+        = activeSession.value.sessionExercises.filter(e => e.id !== exerciseId)
     }
   }
 
@@ -274,7 +274,7 @@ export const useSessionStore = defineStore('sessions', () => {
     // Append to the exercise's sets locally
     if (activeSession.value?.id === sessionId) {
       const exercise = activeSession.value.sessionExercises.find(
-        (e) => e.id === exerciseId
+        e => e.id === exerciseId
       )
       if (exercise) exercise.sets.push(created)
     }
@@ -294,10 +294,10 @@ export const useSessionStore = defineStore('sessions', () => {
     // Update in-place
     if (activeSession.value?.id === sessionId) {
       const exercise = activeSession.value.sessionExercises.find(
-        (e) => e.id === exerciseId
+        e => e.id === exerciseId
       )
       if (exercise) {
-        const idx = exercise.sets.findIndex((s) => s.id === setId)
+        const idx = exercise.sets.findIndex(s => s.id === setId)
         if (idx !== -1) exercise.sets[idx] = updated
       }
     }
@@ -315,16 +315,16 @@ export const useSessionStore = defineStore('sessions', () => {
     // Remove from local array
     if (activeSession.value?.id === sessionId) {
       const exercise = activeSession.value.sessionExercises.find(
-        (e) => e.id === exerciseId
+        e => e.id === exerciseId
       )
       if (exercise) {
-        exercise.sets = exercise.sets.filter((s) => s.id !== setId)
+        exercise.sets = exercise.sets.filter(s => s.id !== setId)
       }
     }
   }
 
-  async function checkPR(exerciseId: string, setData: { sessionId?: string; excludeSetId?: string; weight?: number; reps?: number; durationSec?: number; distance?: number }) {
-    return api<{ isPR: boolean; prTypes: { type: string; label: string }[] }>(
+  async function checkPR(exerciseId: string, setData: { sessionId?: string, excludeSetId?: string, weight?: number, reps?: number, durationSec?: number, distance?: number }) {
+    return api<{ isPR: boolean, prTypes: { type: string, label: string }[] }>(
       '/records/check-pr',
       { method: 'POST', body: { exerciseId, ...setData } }
     )

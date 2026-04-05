@@ -19,7 +19,7 @@ watch(open, async (isOpen) => {
     try {
       const res = await api<ExerciseHistoryResponse>(
         `/exercises/${props.exerciseId}/history`,
-        { query: { page: 1, limit: 10 } },
+        { query: { page: 1, limit: 10 } }
       )
       history.value = res.data
     } catch {
@@ -34,7 +34,7 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    year: 'numeric'
   })
 }
 
@@ -66,7 +66,9 @@ function formatSetSummary(set: ExerciseHistorySession['sets'][number]) {
         class="flex flex-col items-center justify-center py-12 text-center"
       >
         <UIcon name="i-lucide-history" class="size-10 text-muted mb-3" />
-        <p class="text-sm text-muted">No history for this exercise yet</p>
+        <p class="text-sm text-muted">
+          No history for this exercise yet
+        </p>
       </div>
 
       <!-- History list -->
@@ -77,7 +79,9 @@ function formatSetSummary(set: ExerciseHistorySession['sets'][number]) {
           class="space-y-2"
         >
           <div class="flex items-center justify-between">
-            <p class="text-sm font-medium">{{ session.sessionName }}</p>
+            <p class="text-sm font-medium">
+              {{ session.sessionName }}
+            </p>
             <span class="text-xs text-muted">{{ formatDate(session.date) }}</span>
           </div>
 

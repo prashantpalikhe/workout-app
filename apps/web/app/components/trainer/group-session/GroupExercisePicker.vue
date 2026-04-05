@@ -8,13 +8,13 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  add: [exerciseId: string]
+  'add': [exerciseId: string]
   'update:open': [value: boolean]
 }>()
 
 const { api } = useApiClient()
 const { formatEnum } = useFormatEnum()
-const toast = useToast()
+const _toast = useToast()
 
 const searchQuery = ref('')
 const searchResults = ref<Exercise[]>([])
@@ -23,7 +23,7 @@ const adding = ref<string | null>(null)
 
 interface PaginatedResponse<T> {
   data: T[]
-  meta: { page: number; limit: number; total: number; totalPages: number }
+  meta: { page: number, limit: number, total: number, totalPages: number }
 }
 
 async function searchExercises() {

@@ -5,7 +5,7 @@ interface UseAutoSaveOptions {
 
 export function useAutoSave(
   saveFn: () => Promise<void>,
-  options: UseAutoSaveOptions = {},
+  options: UseAutoSaveOptions = {}
 ) {
   const { debounceMs = 400, onError } = options
 

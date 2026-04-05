@@ -1,11 +1,9 @@
 <script setup lang="ts">
 import { z } from 'zod'
-import { createExerciseInputSchema } from '@workout/shared'
-import {
+import { createExerciseInputSchema,
   EXERCISE_TRACKING_TYPES,
   EXERCISE_EQUIPMENT,
-  EXERCISE_MOVEMENT_PATTERNS,
-} from '@workout/shared'
+  EXERCISE_MOVEMENT_PATTERNS } from '@workout/shared'
 import type { FormSubmitEvent } from '#ui/types'
 import type { Exercise } from '~/stores/exercises'
 
@@ -36,7 +34,7 @@ const formSchema = z.preprocess(
     }
     return val
   },
-  createExerciseInputSchema,
+  createExerciseInputSchema
 )
 
 const state = reactive({
@@ -44,7 +42,7 @@ const state = reactive({
   trackingType: '' as string,
   equipment: '' as string,
   movementPattern: '' as string,
-  instructions: '',
+  instructions: ''
 })
 
 const error = ref('')
@@ -67,22 +65,22 @@ watch(
       state.instructions = ''
     }
     error.value = ''
-  },
+  }
 )
 
 const trackingTypeItems = EXERCISE_TRACKING_TYPES.map(t => ({
   label: formatEnum(t),
-  value: t,
+  value: t
 }))
 
 const equipmentItems = EXERCISE_EQUIPMENT.map(e => ({
   label: formatEnum(e),
-  value: e,
+  value: e
 }))
 
 const movementItems = EXERCISE_MOVEMENT_PATTERNS.map(m => ({
   label: formatEnum(m),
-  value: m,
+  value: m
 }))
 
 type FormData = {
@@ -101,14 +99,14 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
     ...event.data,
     equipment: event.data.equipment || undefined,
     movementPattern: event.data.movementPattern || undefined,
-    instructions: event.data.instructions || undefined,
+    instructions: event.data.instructions || undefined
   }
 
   try {
     if (isEditMode.value && props.exercise) {
       await exerciseStore.updateExercise(props.exercise.id, payload)
     } else {
-      await exerciseStore.createExercise(payload as any)
+      await exerciseStore.createExercise(payload as Parameters<typeof exerciseStore.createExercise>[0])
     }
     emit('success')
   } catch (err: unknown) {

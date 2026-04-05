@@ -63,8 +63,12 @@ function onSessionStarted() {
             <UIcon name="i-lucide-dumbbell" class="size-5 text-muted" />
           </div>
           <div>
-            <p class="font-medium">Ready to work out?</p>
-            <p class="text-sm text-muted">Start a new workout session</p>
+            <p class="font-medium">
+              Ready to work out?
+            </p>
+            <p class="text-sm text-muted">
+              Start a new workout session
+            </p>
           </div>
         </div>
         <UButton

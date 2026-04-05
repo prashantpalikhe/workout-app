@@ -24,7 +24,7 @@ const adding = ref<string | null>(null)
 
 interface PaginatedResponse<T> {
   data: T[]
-  meta: { page: number; limit: number; total: number; totalPages: number }
+  meta: { page: number, limit: number, total: number, totalPages: number }
 }
 
 async function searchExercises() {
@@ -57,13 +57,13 @@ async function addExercise(exercise: Exercise) {
   adding.value = exercise.id
   try {
     const created = await sessionStore.addExercise(props.sessionId, {
-      exerciseId: exercise.id,
+      exerciseId: exercise.id
     })
     // Auto-add the first set so the user can start logging immediately
     await sessionStore.addSet(props.sessionId, created.id, {
       setNumber: 1,
       setType: 'WORKING',
-      completed: false,
+      completed: false
     })
     toast.add({ title: `${exercise.name} added`, color: 'success' })
     emit('success')

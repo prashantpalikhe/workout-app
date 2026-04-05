@@ -26,7 +26,7 @@ const form = reactive({
   targetRpe: undefined as number | undefined,
   targetTempo: '' as string,
   restSec: undefined as number | undefined,
-  notes: '' as string,
+  notes: '' as string
 })
 
 // Sync form when modal opens
@@ -54,9 +54,9 @@ async function save() {
           targetRpe: form.targetRpe || undefined,
           targetTempo: form.targetTempo.trim() || undefined,
           restSec: form.restSec || undefined,
-          notes: form.notes.trim() || undefined,
-        },
-      },
+          notes: form.notes.trim() || undefined
+        }
+      }
     )
     toast.add({ title: 'Program exercise updated', color: 'success' })
     open.value = false

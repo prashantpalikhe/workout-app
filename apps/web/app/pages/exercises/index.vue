@@ -3,7 +3,7 @@ import type { TableColumn } from '#ui/types'
 import type { Exercise } from '~/stores/exercises'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'auth'
 })
 
 const exerciseStore = useExerciseStore()
@@ -22,7 +22,7 @@ const deletingExercise = ref<Exercise | null>(null)
 onMounted(async () => {
   await Promise.all([
     exerciseStore.fetchExercises(),
-    exerciseStore.fetchMuscleGroups(),
+    exerciseStore.fetchMuscleGroups()
   ])
 })
 
@@ -30,28 +30,28 @@ onMounted(async () => {
 const columns: TableColumn<Exercise>[] = [
   {
     accessorKey: 'name',
-    header: 'Name',
+    header: 'Name'
   },
   {
     accessorKey: 'equipment',
-    header: 'Equipment',
+    header: 'Equipment'
   },
   {
     accessorKey: 'movementPattern',
-    header: 'Movement',
+    header: 'Movement'
   },
   {
     accessorKey: 'trackingType',
-    header: 'Tracking',
+    header: 'Tracking'
   },
   {
     accessorKey: 'muscleGroups',
-    header: 'Muscles',
+    header: 'Muscles'
   },
   {
     id: 'actions',
-    header: '',
-  },
+    header: ''
+  }
 ]
 
 // Actions
@@ -78,7 +78,7 @@ function onFormSuccess() {
   showFormModal.value = false
   toast.add({
     title: editingExercise.value ? 'Exercise updated' : 'Exercise created',
-    color: 'success',
+    color: 'success'
   })
 }
 
@@ -91,7 +91,7 @@ async function onDeleteConfirm() {
     const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: fetchError?.data?.message || 'Failed to delete exercise',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     showDeleteDialog.value = false
@@ -104,8 +104,8 @@ function getRowActions(exercise: Exercise) {
     [{
       label: 'View Details',
       icon: 'i-lucide-eye',
-      onSelect: () => openDetail(exercise),
-    }],
+      onSelect: () => openDetail(exercise)
+    }]
   ]
 
   if (!exercise.isGlobal) {
@@ -113,13 +113,13 @@ function getRowActions(exercise: Exercise) {
       {
         label: 'Edit',
         icon: 'i-lucide-pencil',
-        onSelect: () => openEdit(exercise),
+        onSelect: () => openEdit(exercise)
       },
       {
         label: 'Delete',
         icon: 'i-lucide-trash-2',
-        onSelect: () => openDelete(exercise),
-      },
+        onSelect: () => openDelete(exercise)
+      }
     ])
   }
 

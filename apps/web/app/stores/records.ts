@@ -40,7 +40,7 @@ export const useRecordsStore = defineStore('records', () => {
     try {
       const query: Record<string, string | number> = {
         page: filter.page ?? 1,
-        limit: filter.limit ?? 20,
+        limit: filter.limit ?? 20
       }
       if (filter.exerciseId) query.exerciseId = filter.exerciseId
       if (filter.prType) query.prType = filter.prType
@@ -74,6 +74,6 @@ export const useRecordsStore = defineStore('records', () => {
     exercisePRsLoading,
     fetchRecords,
     fetchByExercise,
-    setPage,
+    setPage
   }
 })

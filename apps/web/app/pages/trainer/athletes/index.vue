@@ -8,7 +8,7 @@ const statusTabs = [
   { label: 'All', value: undefined },
   { label: 'Active', value: 'ACTIVE' },
   { label: 'Pending', value: 'PENDING' },
-  { label: 'Inactive', value: 'INACTIVE' },
+  { label: 'Inactive', value: 'INACTIVE' }
 ]
 
 onMounted(() => {
@@ -28,14 +28,14 @@ const statusColor: Record<string, string> = {
   ACTIVE: 'success',
   INACTIVE: 'warning',
   PENDING: 'info',
-  DISCONNECTED: 'error',
+  DISCONNECTED: 'error'
 }
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    year: 'numeric'
   })
 }
 
@@ -147,7 +147,9 @@ const NuxtLink = resolveComponent('NuxtLink')
         <div class="size-14 rounded-full bg-elevated flex items-center justify-center mx-auto mb-4">
           <UIcon name="i-lucide-users" class="size-7 text-muted" />
         </div>
-        <p class="font-medium">No athletes yet</p>
+        <p class="font-medium">
+          No athletes yet
+        </p>
         <p class="text-sm text-muted mt-1">
           Invite athletes to start training them
         </p>
@@ -175,7 +177,7 @@ const NuxtLink = resolveComponent('NuxtLink')
             :class="{
               'hover:bg-elevated cursor-pointer': !selectionMode,
               'ring-2 ring-primary bg-primary/5': selectionMode && selectedAthleteIds.has(rel.athlete.id),
-              'opacity-40': selectionMode && !isSelectable(rel.status),
+              'opacity-40': selectionMode && !isSelectable(rel.status)
             }"
           >
             <div class="flex items-center justify-between">

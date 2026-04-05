@@ -10,7 +10,9 @@ defineProps<{
 <template>
   <div>
     <div class="flex items-center justify-between mb-3">
-      <h3 class="text-sm font-semibold">Recent Workouts</h3>
+      <h3 class="text-sm font-semibold">
+        Recent Workouts
+      </h3>
       <UButton
         label="View All"
         variant="link"

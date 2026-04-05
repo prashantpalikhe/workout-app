@@ -34,19 +34,19 @@ const formattedDate = computed(() => {
     weekday: 'long',
     month: 'long',
     day: 'numeric',
-    year: 'numeric',
+    year: 'numeric'
   })
 })
 
 const totalSets = computed(() =>
-  session.value?.sessionExercises.reduce((sum, ex) => sum + ex.sets.length, 0) ?? 0,
+  session.value?.sessionExercises.reduce((sum, ex) => sum + ex.sets.length, 0) ?? 0
 )
 
 const completedSets = computed(() =>
   session.value?.sessionExercises.reduce(
     (sum, ex) => sum + ex.sets.filter(s => s.completed).length,
-    0,
-  ) ?? 0,
+    0
+  ) ?? 0
 )
 
 // Determine columns for an exercise's tracking type
@@ -110,26 +110,42 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <UCard>
           <div class="text-center">
-            <p class="text-2xl font-bold">{{ session.sessionExercises.length }}</p>
-            <p class="text-xs text-muted">Exercises</p>
+            <p class="text-2xl font-bold">
+              {{ session.sessionExercises.length }}
+            </p>
+            <p class="text-xs text-muted">
+              Exercises
+            </p>
           </div>
         </UCard>
         <UCard>
           <div class="text-center">
-            <p class="text-2xl font-bold">{{ completedSets }}/{{ totalSets }}</p>
-            <p class="text-xs text-muted">Sets Completed</p>
+            <p class="text-2xl font-bold">
+              {{ completedSets }}/{{ totalSets }}
+            </p>
+            <p class="text-xs text-muted">
+              Sets Completed
+            </p>
           </div>
         </UCard>
         <UCard>
           <div class="text-center">
-            <p class="text-2xl font-bold">{{ session.overallRpe ?? '-' }}</p>
-            <p class="text-xs text-muted">RPE</p>
+            <p class="text-2xl font-bold">
+              {{ session.overallRpe ?? '-' }}
+            </p>
+            <p class="text-xs text-muted">
+              RPE
+            </p>
           </div>
         </UCard>
         <UCard>
           <div class="text-center">
-            <p class="text-2xl font-bold">{{ duration ?? '-' }}</p>
-            <p class="text-xs text-muted">Duration</p>
+            <p class="text-2xl font-bold">
+              {{ duration ?? '-' }}
+            </p>
+            <p class="text-xs text-muted">
+              Duration
+            </p>
           </div>
         </UCard>
       </div>
@@ -137,8 +153,12 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
       <!-- Notes -->
       <UCard v-if="session.notes" class="mb-6">
         <div>
-          <p class="text-sm font-medium mb-1">Notes</p>
-          <p class="text-sm text-muted">{{ session.notes }}</p>
+          <p class="text-sm font-medium mb-1">
+            Notes
+          </p>
+          <p class="text-sm text-muted">
+            {{ session.notes }}
+          </p>
         </div>
       </UCard>
 
@@ -186,7 +206,9 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
                   >
                     {{ label }}
                   </th>
-                  <th class="text-left text-xs font-medium text-muted py-1 px-2">Done</th>
+                  <th class="text-left text-xs font-medium text-muted py-1 px-2">
+                    Done
+                  </th>
                 </tr>
               </thead>
               <tbody>
@@ -197,8 +219,12 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
                   <tr
                     :class="[set.completed ? '' : 'opacity-50', set.notes ? '' : 'border-b border-default last:border-0']"
                   >
-                    <td class="py-1.5 px-2">{{ i + 1 }}</td>
-                    <td class="py-1.5 px-2">{{ formatEnum(set.setType) }}</td>
+                    <td class="py-1.5 px-2">
+                      {{ i + 1 }}
+                    </td>
+                    <td class="py-1.5 px-2">
+                      {{ formatEnum(set.setType) }}
+                    </td>
                     <td
                       v-for="(val, vi) in getSetValues(set, exercise.exercise.trackingType)"
                       :key="vi"
@@ -236,7 +262,9 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
             </table>
           </div>
 
-          <p v-else class="text-sm text-muted">No sets logged</p>
+          <p v-else class="text-sm text-muted">
+            No sets logged
+          </p>
 
           <p v-if="exercise.substitutionReason" class="text-xs text-muted mt-2">
             Substitution reason: {{ exercise.substitutionReason }}
@@ -248,7 +276,9 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
     <!-- Not found -->
     <div v-else class="flex flex-col items-center justify-center py-16 text-center">
       <UIcon name="i-lucide-search-x" class="size-12 text-muted mb-4" />
-      <h3 class="text-lg font-medium mb-2">Session not found</h3>
+      <h3 class="text-lg font-medium mb-2">
+        Session not found
+      </h3>
       <NuxtLink to="/sessions">
         <UButton label="Back to History" variant="outline" />
       </NuxtLink>

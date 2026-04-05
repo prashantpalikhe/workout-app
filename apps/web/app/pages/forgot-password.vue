@@ -39,7 +39,9 @@ async function onSubmit(event: FormSubmitEvent<ForgotData>) {
 <template>
   <UCard>
     <template #header>
-      <h1 class="text-2xl font-bold text-center">Reset Password</h1>
+      <h1 class="text-2xl font-bold text-center">
+        Reset Password
+      </h1>
       <p class="text-sm text-muted text-center mt-1">
         Enter your email and we'll send you a reset link
       </p>

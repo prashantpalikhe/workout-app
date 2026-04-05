@@ -26,14 +26,14 @@ const form = reactive({
   dateOfBirth: '',
   gender: '',
   weight: null as number | null,
-  height: null as number | null,
+  height: null as number | null
 })
 
 const genderOptions = [
   { label: 'Male', value: 'MALE' },
   { label: 'Female', value: 'FEMALE' },
   { label: 'Other', value: 'OTHER' },
-  { label: 'Prefer not to say', value: 'PREFER_NOT_TO_SAY' },
+  { label: 'Prefer not to say', value: 'PREFER_NOT_TO_SAY' }
 ]
 
 const initials = computed(() => {
@@ -145,7 +145,7 @@ async function save() {
       dateOfBirth: form.dateOfBirth || null,
       gender: form.gender || null,
       weight: form.weight ?? null,
-      height: form.height ?? null,
+      height: form.height ?? null
     })
 
     toast.add({ title: 'Profile updated', color: 'success' })
@@ -161,7 +161,9 @@ async function save() {
 <template>
   <UModal v-model:open="open">
     <template #header>
-      <h3 class="text-lg font-semibold">Edit Profile</h3>
+      <h3 class="text-lg font-semibold">
+        Edit Profile
+      </h3>
     </template>
 
     <template #body>
@@ -211,7 +213,7 @@ async function save() {
             accept="image/jpeg,image/png,image/webp,image/gif"
             class="hidden"
             @change="onFileSelected"
-          />
+          >
         </div>
 
         <div class="grid grid-cols-2 gap-3">

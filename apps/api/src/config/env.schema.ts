@@ -6,7 +6,7 @@ import { z } from 'zod';
  * If any variable is missing or invalid, the app crashes immediately
  * with a descriptive error — "fail-fast" prevents running with broken config.
  *
- * More env vars (JWT_SECRET, REDIS_URL, SENTRY_DSN, etc.) will be added
+ * More env vars (SENTRY_DSN, etc.) will be added
  * in their respective implementation steps.
  */
 export const envSchema = z.object({

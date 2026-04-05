@@ -37,7 +37,9 @@ async function onSubmit(event: FormSubmitEvent<LoginData>) {
 <template>
   <UCard>
     <template #header>
-      <h1 class="text-2xl font-bold text-center">Sign In</h1>
+      <h1 class="text-2xl font-bold text-center">
+        Sign In
+      </h1>
       <p class="text-sm text-muted text-center mt-1">
         Enter your credentials to continue
       </p>

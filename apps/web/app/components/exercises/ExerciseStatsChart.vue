@@ -16,7 +16,7 @@ const range = ref('12w')
 const rangeOptions = [
   { label: 'Last 12 weeks', value: '12w' },
   { label: '1 year', value: '1y' },
-  { label: 'All Time', value: 'all' },
+  { label: 'All Time', value: 'all' }
 ]
 
 function onRangeChange(val: string) {
@@ -26,7 +26,7 @@ function onRangeChange(val: string) {
 
 // Which charts to show based on tracking type
 const charts = computed(() => {
-  const list: { title: string; key: keyof ExerciseStatsDataPoint; unit: string; color: string }[] = []
+  const list: { title: string, key: keyof ExerciseStatsDataPoint, unit: string, color: string }[] = []
 
   if (['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(props.trackingType)) {
     list.push({ title: 'Weight', key: 'maxWeight', unit: 'kg', color: 'rgb(59, 130, 246)' })
@@ -55,15 +55,15 @@ function buildChartData(key: keyof ExerciseStatsDataPoint, color: string) {
     labels: labels.value,
     datasets: [
       {
-        data: props.data?.dataPoints?.map((dp) => dp[key]) ?? [],
+        data: props.data?.dataPoints?.map(dp => dp[key]) ?? [],
         borderColor: color,
         backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
         tension: 0.3,
         fill: true,
         pointRadius: 3,
-        pointHoverRadius: 5,
-      },
-    ],
+        pointHoverRadius: 5
+      }
+    ]
   }
 }
 
@@ -75,19 +75,19 @@ function buildChartOptions(unit: string) {
       legend: { display: false },
       tooltip: {
         callbacks: {
-          label: (ctx: any) => {
+          label: (ctx: { parsed: { y: number } }) => {
             const val = ctx.parsed.y
             if (unit === 'reps') return `${val} reps`
             return `${val?.toLocaleString()} ${unit}`
-          },
-        },
-      },
+          }
+        }
+      }
     },
     scales: {
       x: {
         grid: { display: false },
         border: { display: false },
-        ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { size: 11 } },
+        ticks: { maxRotation: 0, autoSkip: true, maxTicksLimit: 8, font: { size: 11 } }
       },
       y: {
         beginAtZero: true,
@@ -99,10 +99,10 @@ function buildChartOptions(unit: string) {
           callback: (value: number) => {
             if (value >= 1000) return `${(value / 1000).toFixed(value >= 10000 ? 0 : 1)}k`
             return value
-          },
-        },
-      },
-    },
+          }
+        }
+      }
+    }
   }
 }
 </script>
@@ -142,7 +142,9 @@ function buildChartOptions(unit: string) {
     <template v-else>
       <div class="space-y-6">
         <div v-for="chart in charts" :key="chart.key">
-          <h4 class="text-sm font-semibold mb-2">{{ chart.title }}</h4>
+          <h4 class="text-sm font-semibold mb-2">
+            {{ chart.title }}
+          </h4>
           <div class="h-48">
             <Line
               :data="buildChartData(chart.key, chart.color)"

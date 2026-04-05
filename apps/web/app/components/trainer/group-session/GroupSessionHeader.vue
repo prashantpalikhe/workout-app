@@ -14,15 +14,15 @@ const dropdownItems = computed(() => [
     {
       label: 'Complete All',
       icon: 'i-lucide-check-circle',
-      onSelect: () => emit('end-all-complete'),
+      onSelect: () => emit('end-all-complete')
     },
     {
       label: 'Abandon All',
       icon: 'i-lucide-x-circle',
       color: 'error' as const,
-      onSelect: () => emit('end-all-abandon'),
-    },
-  ],
+      onSelect: () => emit('end-all-abandon')
+    }
+  ]
 ])
 </script>
 
@@ -31,7 +31,9 @@ const dropdownItems = computed(() => [
     <div class="flex items-center gap-3">
       <div>
         <div class="flex items-center gap-2">
-          <h1 class="text-lg font-semibold">Group Session</h1>
+          <h1 class="text-lg font-semibold">
+            Group Session
+          </h1>
           <UBadge
             :label="`${slotCount} athlete${slotCount !== 1 ? 's' : ''}`"
             variant="subtle"

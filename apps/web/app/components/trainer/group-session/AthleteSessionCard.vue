@@ -22,7 +22,7 @@ const emit = defineEmits<{
   'complete': []
   'abandon': []
   'show-history': [exerciseId: string]
-  'set-completed-event': [{ setRestSec: number | null; exerciseRestSec: number | null }]
+  'set-completed-event': [{ setRestSec: number | null, exerciseRestSec: number | null }]
 }>()
 
 const { formatEnum } = useFormatEnum()
@@ -36,18 +36,18 @@ watch(
   (ex) => {
     showNotes.value = !!ex?.notes
     notesText.value = ex?.notes ?? ''
-  },
+  }
 )
 
 const { schedule: scheduleNoteSave } = useAutoSave(
   async () => {
     if (props.currentExercise) {
       emit('update-exercise', props.currentExercise.id, {
-        notes: notesText.value.trim() || undefined,
+        notes: notesText.value.trim() || undefined
       })
     }
   },
-  { debounceMs: 600 },
+  { debounceMs: 600 }
 )
 
 const dropdownItems = computed(() => [
@@ -55,7 +55,7 @@ const dropdownItems = computed(() => [
     {
       label: 'Add Exercise',
       icon: 'i-lucide-plus',
-      onSelect: () => emit('add-exercise'),
+      onSelect: () => emit('add-exercise')
     },
     ...(props.currentExercise
       ? [
@@ -63,24 +63,24 @@ const dropdownItems = computed(() => [
             label: 'Remove Exercise',
             icon: 'i-lucide-trash-2',
             color: 'error' as const,
-            onSelect: () => emit('remove-exercise', props.currentExercise!.id),
-          },
+            onSelect: () => emit('remove-exercise', props.currentExercise!.id)
+          }
         ]
-      : []),
+      : [])
   ],
   [
     {
       label: 'Complete Workout',
       icon: 'i-lucide-check-circle',
-      onSelect: () => emit('complete'),
+      onSelect: () => emit('complete')
     },
     {
       label: 'Abandon Workout',
       icon: 'i-lucide-x-circle',
       color: 'error' as const,
-      onSelect: () => emit('abandon'),
-    },
-  ],
+      onSelect: () => emit('abandon')
+    }
+  ]
 ])
 
 function onSetUpdate(exerciseId: string, setId: string, data: Record<string, unknown>) {
@@ -96,7 +96,7 @@ function onToggleCompleted(exerciseId: string, setId: string, setRestSec: number
 // Rest timer display
 const restTimer = computed(() => props.slot.restTimer)
 const isTimerActive = computed(
-  () => restTimer.value.isRunning.value || restTimer.value.isCompleted.value,
+  () => restTimer.value.isRunning.value || restTimer.value.isCompleted.value
 )
 const isReady = computed(() => restTimer.value.isCompleted.value)
 </script>
@@ -110,7 +110,9 @@ const isReady = computed(() => restTimer.value.isCompleted.value)
     <div class="flex items-center justify-between mb-3">
       <div class="flex items-center gap-2 min-w-0">
         <div class="min-w-0">
-          <p class="font-semibold text-sm truncate">{{ slot.athleteName }}</p>
+          <p class="font-semibold text-sm truncate">
+            {{ slot.athleteName }}
+          </p>
           <p v-if="slot.session" class="text-xs text-muted">
             <SessionsSessionTimer :started-at="slot.session.startedAt" />
           </p>
@@ -134,17 +136,23 @@ const isReady = computed(() => restTimer.value.isCompleted.value)
 
     <!-- Error -->
     <div v-else-if="slot.error" class="text-center py-4">
-      <p class="text-sm text-error">{{ slot.error }}</p>
+      <p class="text-sm text-error">
+        {{ slot.error }}
+      </p>
     </div>
 
     <!-- No session -->
     <div v-else-if="!slot.session" class="text-center py-4">
-      <p class="text-sm text-muted">No active session</p>
+      <p class="text-sm text-muted">
+        No active session
+      </p>
     </div>
 
     <!-- No exercises -->
     <div v-else-if="exerciseCount === 0" class="text-center py-4">
-      <p class="text-sm text-muted mb-2">No exercises yet</p>
+      <p class="text-sm text-muted mb-2">
+        No exercises yet
+      </p>
       <UButton
         label="Add Exercise"
         icon="i-lucide-plus"

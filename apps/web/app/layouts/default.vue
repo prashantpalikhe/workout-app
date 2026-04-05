@@ -78,9 +78,7 @@ const navItems = computed<NavigationMenuItem[]>(() => [
           :class="collapsed ? 'justify-center w-full' : ''"
         >
           <div class="size-8 rounded-full bg-primary shrink-0" />
-          <span v-if="!collapsed" class="font-semibold text-lg truncate"
-            >Workout</span
-          >
+          <span v-if="!collapsed" class="font-semibold text-lg truncate">Workout</span>
         </NuxtLink>
       </template>
 

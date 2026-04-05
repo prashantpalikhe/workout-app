@@ -29,13 +29,13 @@ const formSchema = z.preprocess(
     }
     return val
   },
-  createProgramInputSchema,
+  createProgramInputSchema
 )
 
 const state = reactive({
   name: '',
   description: '',
-  folderId: '' as string,
+  folderId: '' as string
 })
 
 const error = ref('')
@@ -54,11 +54,11 @@ watch(
       state.folderId = ''
     }
     error.value = ''
-  },
+  }
 )
 
 const folderItems = computed(() =>
-  programStore.folders.map(f => ({ label: f.name, value: f.id })),
+  programStore.folders.map(f => ({ label: f.name, value: f.id }))
 )
 
 type FormData = {
@@ -74,7 +74,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   const payload = {
     ...event.data,
     description: event.data.description || undefined,
-    folderId: event.data.folderId || undefined,
+    folderId: event.data.folderId || undefined
   }
 
   try {
@@ -82,7 +82,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
       await programStore.updateProgram(props.program.id, payload)
       emit('success')
     } else {
-      const created = await programStore.createProgram(payload as any)
+      const created = await programStore.createProgram(payload as Parameters<typeof programStore.createProgram>[0])
       emit('success', created)
     }
   } catch (err: unknown) {

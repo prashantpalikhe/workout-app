@@ -23,12 +23,12 @@ const formattedDate = computed(() => {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    year: 'numeric'
   })
 })
 
 const totalSets = computed(() =>
-  props.session.sessionExercises.reduce((sum, ex) => sum + ex.sets.length, 0),
+  props.session.sessionExercises.reduce((sum, ex) => sum + ex.sets.length, 0)
 )
 </script>
 

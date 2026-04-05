@@ -35,8 +35,8 @@ async function onSubmit(event: FormSubmitEvent<RegisterData>) {
     navigateTo('/dashboard')
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
-    error.value =
-      fetchError?.data?.message || 'Registration failed. Please try again.'
+    error.value
+      = fetchError?.data?.message || 'Registration failed. Please try again.'
   }
 }
 </script>
@@ -44,7 +44,9 @@ async function onSubmit(event: FormSubmitEvent<RegisterData>) {
 <template>
   <UCard>
     <template #header>
-      <h1 class="text-2xl font-bold text-center">Create Account</h1>
+      <h1 class="text-2xl font-bold text-center">
+        Create Account
+      </h1>
       <p class="text-sm text-muted text-center mt-1">
         Start tracking your workouts today
       </p>

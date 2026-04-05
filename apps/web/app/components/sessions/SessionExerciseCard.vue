@@ -8,8 +8,8 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  substitute: []
-  remove: []
+  'substitute': []
+  'remove': []
   'set-completed': [{ setRestSec: number | null, exerciseRestSec: number | null }]
 }>()
 
@@ -30,7 +30,7 @@ const hasNote = computed(() => !!props.exercise.notes)
 
 watch(
   () => props.exercise.notes,
-  (v) => { noteText.value = v ?? '' },
+  (v) => { noteText.value = v ?? '' }
 )
 
 function openNoteDialog() {
@@ -44,7 +44,7 @@ async function saveNote() {
     await sessionStore.updateExercise(
       props.sessionId,
       props.exercise.id,
-      { notes: noteText.value.trim() || undefined },
+      { notes: noteText.value.trim() || undefined }
     )
     noteDialogOpen.value = false
   } catch {
@@ -60,7 +60,7 @@ async function deleteNote() {
     await sessionStore.updateExercise(
       props.sessionId,
       props.exercise.id,
-      { notes: undefined },
+      { notes: undefined }
     )
     noteText.value = ''
     noteDialogOpen.value = false
@@ -84,7 +84,7 @@ async function addSet() {
       durationSec: lastSet?.durationSec ?? undefined,
       distance: lastSet?.distance ?? undefined,
       rpe: lastSet?.rpe ?? undefined,
-      completed: false,
+      completed: false
     })
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
@@ -118,20 +118,20 @@ const dropdownItems = computed(() => {
     {
       label: 'History',
       icon: 'i-lucide-history',
-      onSelect: () => { showHistory.value = true },
+      onSelect: () => { showHistory.value = true }
     },
     {
       label: hasNote.value ? 'View Note' : 'Add Note',
       icon: 'i-lucide-message-square',
-      onSelect: () => openNoteDialog(),
-    },
+      onSelect: () => openNoteDialog()
+    }
   ]
 
   if (props.canEditProgram && props.exercise.prescribedExercise) {
     items.push({
       label: 'Update in Program',
       icon: 'i-lucide-pencil',
-      onSelect: () => { showProgramEdit.value = true },
+      onSelect: () => { showProgramEdit.value = true }
     })
   }
 
@@ -139,14 +139,14 @@ const dropdownItems = computed(() => {
     {
       label: 'Substitute Exercise',
       icon: 'i-lucide-repeat-2',
-      onSelect: () => emit('substitute'),
+      onSelect: () => emit('substitute')
     },
     {
       label: 'Remove Exercise',
       icon: 'i-lucide-trash-2',
       color: 'error' as const,
-      onSelect: () => emit('remove'),
-    },
+      onSelect: () => emit('remove')
+    }
   )
 
   return [items]

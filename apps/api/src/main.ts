@@ -33,18 +33,20 @@ async function bootstrap() {
     exclude: ['health'],
   });
 
-  // ── Swagger / OpenAPI docs at /api/docs ──────────
-  const document = SwaggerModule.createDocument(app, swaggerConfig);
-  SwaggerModule.setup('api/docs', app, document, {
-    swaggerOptions: {
-      persistAuthorization: true, // keeps JWT token between page refreshes
-    },
-  });
+  // ── Swagger / OpenAPI docs at /api/docs (disabled in production) ─
+  if (config.get('NODE_ENV', { infer: true }) !== 'production') {
+    const document = SwaggerModule.createDocument(app, swaggerConfig);
+    SwaggerModule.setup('api/docs', app, document, {
+      swaggerOptions: {
+        persistAuthorization: true, // keeps JWT token between page refreshes
+      },
+    });
+  }
 
   // ── Global exception filter ──────────────────────
   // Catches all unhandled errors and returns consistent JSON format.
   app.useGlobalFilters(new AllExceptionsFilter());
 
-  await app.listen(port);
+  await app.listen(port, '0.0.0.0');
 }
 bootstrap();

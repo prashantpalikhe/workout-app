@@ -47,7 +47,9 @@ async function onSubmit(event: FormSubmitEvent<ResetData>) {
 <template>
   <UCard>
     <template #header>
-      <h1 class="text-2xl font-bold text-center">Set New Password</h1>
+      <h1 class="text-2xl font-bold text-center">
+        Set New Password
+      </h1>
       <p class="text-sm text-muted text-center mt-1">
         Choose a new password for your account
       </p>

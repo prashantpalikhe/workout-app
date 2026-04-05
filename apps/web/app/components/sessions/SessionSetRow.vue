@@ -11,7 +11,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'set-completed': [{ setId: string; restSec: number | null }]
+  'set-completed': [{ setId: string, restSec: number | null }]
 }>()
 
 const sessionStore = useSessionStore()
@@ -82,7 +82,7 @@ const hasNote = computed(() => !!props.set.notes)
 
 watch(
   () => props.set.notes,
-  (v) => { noteText.value = v ?? '' },
+  (v) => { noteText.value = v ?? '' }
 )
 
 function openNoteDialog() {
@@ -97,7 +97,7 @@ async function saveNote() {
       props.sessionId,
       props.exerciseId,
       props.set.id,
-      { notes: noteText.value.trim() || undefined },
+      { notes: noteText.value.trim() || undefined }
     )
     noteDialogOpen.value = false
   } catch {
@@ -114,7 +114,7 @@ async function deleteNote() {
       props.sessionId,
       props.exerciseId,
       props.set.id,
-      { notes: undefined },
+      { notes: undefined }
     )
     noteText.value = ''
     noteDialogOpen.value = false
@@ -150,7 +150,7 @@ watch(
 )
 
 // Auto-save on blur
-const { saving, error, schedule, cancel } = useAutoSave(
+const { saving: _saving, error: _error, schedule, cancel } = useAutoSave(
   async () => {
     const payload: Record<string, unknown> = {}
     payload.setType = form.setType
@@ -195,7 +195,7 @@ async function toggleCompleted() {
         durationSec: form.durationSec || undefined,
         distance: form.distance || undefined,
         rpe: form.rpe || undefined,
-        completed: !wasCompleted,
+        completed: !wasCompleted
       }
     )
     // Emit only when marking a set as complete (not when uncompleting)
@@ -221,33 +221,33 @@ async function deleteSet() {
 }
 
 // Set type options for USelect
-const setTypeItems = SESSION_SET_TYPES.map((t) => ({
+const setTypeItems = SESSION_SET_TYPES.map(t => ({
   label: formatEnum(t),
   value: t
 }))
 
 // Set number dropdown — set type only (desktop), set type + view note (mobile)
 const setTypeDropdownItems = computed(() => {
-  const typeItems = SESSION_SET_TYPES.map((t) => ({
+  const typeItems = SESSION_SET_TYPES.map(t => ({
     label: formatEnum(t),
     icon: form.setType === t ? 'i-lucide-check' : undefined,
     onSelect: () => {
       form.setType = t
       schedule()
-    },
+    }
   }))
 
   return [typeItems]
 })
 
 const mobileSetTypeDropdownItems = computed(() => {
-  const typeItems = SESSION_SET_TYPES.map((t) => ({
+  const typeItems = SESSION_SET_TYPES.map(t => ({
     label: formatEnum(t),
     icon: form.setType === t ? 'i-lucide-check' : undefined,
     onSelect: () => {
       form.setType = t
       schedule()
-    },
+    }
   }))
 
   if (hasNote.value) {
@@ -256,8 +256,8 @@ const mobileSetTypeDropdownItems = computed(() => {
       [{
         label: 'View Note',
         icon: 'i-lucide-message-square',
-        onSelect: () => openNoteDialog(),
-      }],
+        onSelect: () => openNoteDialog()
+      }]
     ]
   }
 
@@ -270,15 +270,15 @@ const actionDropdownItems = computed(() => [
     {
       label: hasNote.value ? 'View Note' : 'Add Note',
       icon: 'i-lucide-message-square',
-      onSelect: () => openNoteDialog(),
+      onSelect: () => openNoteDialog()
     },
     {
       label: 'Delete Set',
       icon: 'i-lucide-trash-2',
       color: 'error' as const,
-      onSelect: () => deleteSet(),
-    },
-  ],
+      onSelect: () => deleteSet()
+    }
+  ]
 ])
 
 function onInputEnter(event: Event) {

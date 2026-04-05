@@ -3,7 +3,7 @@ import type { ProgramExercise } from '~/stores/programs'
 import draggable from 'vuedraggable'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'auth'
 })
 
 const route = useRoute()
@@ -40,7 +40,7 @@ const exerciseList = computed({
     if (program.value) {
       program.value.exercises = val
     }
-  },
+  }
 })
 
 // DnD reorder
@@ -48,7 +48,7 @@ async function onDragEnd() {
   if (!program.value) return
   const items = program.value.exercises.map((e, i) => ({
     id: e.id,
-    sortOrder: i,
+    sortOrder: i
   }))
   try {
     await programStore.reorderExercises(programId.value, items)
@@ -56,7 +56,7 @@ async function onDragEnd() {
     const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: fetchError?.data?.message || 'Failed to reorder exercises',
-      color: 'error',
+      color: 'error'
     })
     await programStore.fetchProgramById(programId.value)
   }
@@ -74,7 +74,7 @@ async function onRemoveExercise(exercise: ProgramExercise) {
     const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: fetchError?.data?.message || 'Failed to remove exercise',
-      color: 'error',
+      color: 'error'
     })
   }
 }
@@ -95,7 +95,7 @@ async function onDeleteConfirm() {
     const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: fetchError?.data?.message || 'Failed to delete program',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     showDeleteDialog.value = false

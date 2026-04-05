@@ -17,7 +17,7 @@ const tabs = [
   { label: 'Overview', value: 'overview', icon: 'i-lucide-layout-dashboard' },
   { label: 'Workouts', value: 'workouts', icon: 'i-lucide-timer' },
   { label: 'Programs', value: 'programs', icon: 'i-lucide-clipboard-list' },
-  { label: 'Records', value: 'records', icon: 'i-lucide-trophy' },
+  { label: 'Records', value: 'records', icon: 'i-lucide-trophy' }
 ]
 
 // ── Stats ───────────────────────────────────────
@@ -48,7 +48,7 @@ interface Session {
 
 interface PaginatedSessions {
   data: Session[]
-  meta: { page: number; limit: number; total: number; totalPages: number }
+  meta: { page: number, limit: number, total: number, totalPages: number }
 }
 
 const sessions = ref<Session[]>([])
@@ -67,7 +67,7 @@ interface PersonalRecord {
 
 interface PaginatedRecords {
   data: PersonalRecord[]
-  meta: { page: number; limit: number; total: number; totalPages: number }
+  meta: { page: number, limit: number, total: number, totalPages: number }
 }
 
 const records = ref<PersonalRecord[]>([])
@@ -81,7 +81,7 @@ interface Assignment {
   startDate: string | null
   allowSessionDeviations: boolean
   assignedAt: string
-  program: { id: string; name: string; sourceProgramId: string | null }
+  program: { id: string, name: string, sourceProgramId: string | null }
 }
 
 const assignments = ref<Assignment[]>([])
@@ -95,11 +95,11 @@ const activeSession = ref<Session | null>(null)
 // ── Initial load ────────────────────────────────
 onMounted(async () => {
   try {
-    const [profile, statsData, activeData, assignmentsData] = await Promise.all([
+    const [_profile, statsData, activeData, assignmentsData] = await Promise.all([
       trainerStore.fetchAthleteProfile(athleteId),
       api<OverviewStats>(`/trainer/athletes/${athleteId}/stats`),
       api<Session | null>(`/trainer/athletes/${athleteId}/sessions/active`),
-      api<Assignment[]>(`/trainer/athletes/${athleteId}/assignments`),
+      api<Assignment[]>(`/trainer/athletes/${athleteId}/assignments`)
     ])
     stats.value = statsData
     activeSession.value = activeData
@@ -130,7 +130,7 @@ async function loadSessions(page = 1) {
   sessionsLoading.value = true
   try {
     const data = await api<PaginatedSessions>(
-      `/trainer/athletes/${athleteId}/sessions?page=${page}&limit=10`,
+      `/trainer/athletes/${athleteId}/sessions?page=${page}&limit=10`
     )
     sessions.value = data.data
     sessionsMeta.value = data.meta
@@ -143,7 +143,7 @@ async function loadRecords(page = 1) {
   recordsLoading.value = true
   try {
     const data = await api<PaginatedRecords>(
-      `/trainer/athletes/${athleteId}/records?page=${page}&limit=20`,
+      `/trainer/athletes/${athleteId}/records?page=${page}&limit=20`
     )
     records.value = data.data
     recordsMeta.value = data.meta
@@ -156,7 +156,7 @@ async function loadAssignments() {
   assignmentsLoading.value = true
   try {
     assignments.value = await api<Assignment[]>(
-      `/trainer/athletes/${athleteId}/assignments`,
+      `/trainer/athletes/${athleteId}/assignments`
     )
     assignmentsLoaded.value = true
   } finally {
@@ -167,7 +167,7 @@ async function loadAssignments() {
 async function cancelAssignment(assignmentId: string) {
   try {
     await api(`/trainer/assignments/${assignmentId}`, { method: 'DELETE' })
-    assignments.value = assignments.value.filter((a) => a.id !== assignmentId)
+    assignments.value = assignments.value.filter(a => a.id !== assignmentId)
     toast.add({ title: 'Assignment cancelled', color: 'success' })
   } catch {
     toast.add({ title: 'Failed to cancel assignment', color: 'error' })
@@ -181,13 +181,12 @@ const sessionName = ref('')
 const selectedAssignmentId = ref<string | null>(null)
 
 const activeAssignments = computed(() =>
-  assignments.value.filter((a) => a.status === 'ACTIVE'),
+  assignments.value.filter(a => a.status === 'ACTIVE')
 )
-
 
 watch(selectedAssignmentId, (id) => {
   if (id) {
-    const assignment = assignments.value.find((a) => a.id === id)
+    const assignment = assignments.value.find(a => a.id === id)
     if (assignment) sessionName.value = assignment.program.name
   } else {
     sessionName.value = ''
@@ -208,8 +207,8 @@ async function startSession() {
       method: 'POST',
       body: {
         name: sessionName.value || undefined,
-        programAssignmentId: selectedAssignmentId.value || undefined,
-      },
+        programAssignmentId: selectedAssignmentId.value || undefined
+      }
     })
     toast.add({ title: 'Workout started for athlete', color: 'success' })
     showStartModal.value = false
@@ -220,7 +219,7 @@ async function startSession() {
     const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: fetchError?.data?.message || 'Failed to start workout',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     startingSession.value = false
@@ -231,7 +230,7 @@ function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString(undefined, {
     month: 'short',
     day: 'numeric',
-    year: 'numeric',
+    year: 'numeric'
   })
 }
 
@@ -263,7 +262,9 @@ function formatPRValue(prType: string, value: number) {
     <!-- Error -->
     <div v-else-if="error" class="text-center py-12">
       <UIcon name="i-lucide-alert-circle" class="size-8 text-error mx-auto mb-3" />
-      <p class="font-medium">{{ error }}</p>
+      <p class="font-medium">
+        {{ error }}
+      </p>
       <UButton
         label="Back to Athletes"
         to="/trainer/athletes"
@@ -333,16 +334,22 @@ function formatPRValue(prType: string, value: number) {
 
       <!-- Stats Bar -->
       <div v-if="stats" class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
-        <UCard v-for="stat in [
-          { label: 'Workouts', value: stats.totalWorkouts, icon: 'i-lucide-dumbbell' },
-          { label: 'Volume', value: `${Math.round(stats.totalVolume / 1000)}t`, icon: 'i-lucide-weight' },
-          { label: 'Streak', value: `${stats.currentStreak}d`, icon: 'i-lucide-flame' },
-          { label: 'PRs', value: stats.totalPersonalRecords, icon: 'i-lucide-trophy' },
-        ]" :key="stat.label">
+        <UCard
+          v-for="stat in [
+            { label: 'Workouts', value: stats.totalWorkouts, icon: 'i-lucide-dumbbell' },
+            { label: 'Volume', value: `${Math.round(stats.totalVolume / 1000)}t`, icon: 'i-lucide-weight' },
+            { label: 'Streak', value: `${stats.currentStreak}d`, icon: 'i-lucide-flame' },
+            { label: 'PRs', value: stats.totalPersonalRecords, icon: 'i-lucide-trophy' }
+          ]" :key="stat.label"
+        >
           <div class="text-center">
             <UIcon :name="stat.icon" class="size-4 text-muted mb-1" />
-            <p class="text-lg font-bold">{{ stat.value }}</p>
-            <p class="text-xs text-muted">{{ stat.label }}</p>
+            <p class="text-lg font-bold">
+              {{ stat.value }}
+            </p>
+            <p class="text-xs text-muted">
+              {{ stat.label }}
+            </p>
           </div>
         </UCard>
       </div>
@@ -367,8 +374,12 @@ function formatPRValue(prType: string, value: number) {
           <!-- Bio -->
           <UCard v-if="trainerStore.athleteProfile.profile?.bio">
             <div>
-              <p class="text-sm font-medium mb-1">Bio</p>
-              <p class="text-sm text-muted">{{ trainerStore.athleteProfile.profile.bio }}</p>
+              <p class="text-sm font-medium mb-1">
+                Bio
+              </p>
+              <p class="text-sm text-muted">
+                {{ trainerStore.athleteProfile.profile.bio }}
+              </p>
             </div>
           </UCard>
 
@@ -376,24 +387,44 @@ function formatPRValue(prType: string, value: number) {
           <UCard>
             <div class="grid grid-cols-2 gap-4 text-sm">
               <div v-if="trainerStore.athleteProfile.profile?.gender">
-                <p class="text-muted">Gender</p>
-                <p class="font-medium">{{ trainerStore.athleteProfile.profile.gender }}</p>
+                <p class="text-muted">
+                  Gender
+                </p>
+                <p class="font-medium">
+                  {{ trainerStore.athleteProfile.profile.gender }}
+                </p>
               </div>
               <div v-if="trainerStore.athleteProfile.profile?.weight">
-                <p class="text-muted">Weight</p>
-                <p class="font-medium">{{ trainerStore.athleteProfile.profile.weight }} kg</p>
+                <p class="text-muted">
+                  Weight
+                </p>
+                <p class="font-medium">
+                  {{ trainerStore.athleteProfile.profile.weight }} kg
+                </p>
               </div>
               <div v-if="trainerStore.athleteProfile.profile?.height">
-                <p class="text-muted">Height</p>
-                <p class="font-medium">{{ trainerStore.athleteProfile.profile.height }} cm</p>
+                <p class="text-muted">
+                  Height
+                </p>
+                <p class="font-medium">
+                  {{ trainerStore.athleteProfile.profile.height }} cm
+                </p>
               </div>
               <div v-if="trainerStore.athleteProfile.profile?.dateOfBirth">
-                <p class="text-muted">Date of Birth</p>
-                <p class="font-medium">{{ formatDate(trainerStore.athleteProfile.profile.dateOfBirth) }}</p>
+                <p class="text-muted">
+                  Date of Birth
+                </p>
+                <p class="font-medium">
+                  {{ formatDate(trainerStore.athleteProfile.profile.dateOfBirth) }}
+                </p>
               </div>
               <div v-if="stats?.memberSince">
-                <p class="text-muted">Member Since</p>
-                <p class="font-medium">{{ formatDate(stats.memberSince) }}</p>
+                <p class="text-muted">
+                  Member Since
+                </p>
+                <p class="font-medium">
+                  {{ formatDate(stats.memberSince) }}
+                </p>
               </div>
             </div>
           </UCard>
@@ -407,7 +438,9 @@ function formatPRValue(prType: string, value: number) {
         </div>
 
         <div v-else-if="sessions.length === 0" class="text-center py-8">
-          <p class="text-sm text-muted">No workout history yet</p>
+          <p class="text-sm text-muted">
+            No workout history yet
+          </p>
         </div>
 
         <div v-else class="space-y-2">
@@ -417,7 +450,9 @@ function formatPRValue(prType: string, value: number) {
           >
             <div class="flex items-center justify-between">
               <div class="min-w-0">
-                <p class="font-medium truncate">{{ session.name }}</p>
+                <p class="font-medium truncate">
+                  {{ session.name }}
+                </p>
                 <p class="text-xs text-muted">
                   {{ formatDate(session.startedAt) }}
                   ·
@@ -465,7 +500,9 @@ function formatPRValue(prType: string, value: number) {
         </div>
 
         <div v-else-if="assignments.length === 0" class="text-center py-8">
-          <p class="text-sm text-muted">No programs assigned yet</p>
+          <p class="text-sm text-muted">
+            No programs assigned yet
+          </p>
         </div>
 
         <div v-else class="space-y-2">
@@ -475,7 +512,9 @@ function formatPRValue(prType: string, value: number) {
           >
             <div class="flex items-center justify-between">
               <div class="min-w-0">
-                <p class="font-medium truncate">{{ assignment.program.name }}</p>
+                <p class="font-medium truncate">
+                  {{ assignment.program.name }}
+                </p>
                 <p class="text-xs text-muted">
                   Assigned {{ formatDate(assignment.assignedAt) }}
                   <template v-if="assignment.startDate">
@@ -520,7 +559,9 @@ function formatPRValue(prType: string, value: number) {
         </div>
 
         <div v-else-if="records.length === 0" class="text-center py-8">
-          <p class="text-sm text-muted">No personal records yet</p>
+          <p class="text-sm text-muted">
+            No personal records yet
+          </p>
         </div>
 
         <div v-else class="space-y-2">
@@ -530,7 +571,9 @@ function formatPRValue(prType: string, value: number) {
           >
             <div class="flex items-center justify-between">
               <div class="min-w-0">
-                <p class="font-medium truncate">{{ pr.exerciseName }}</p>
+                <p class="font-medium truncate">
+                  {{ pr.exerciseName }}
+                </p>
                 <p class="text-xs text-muted">
                   {{ pr.prType.replace(/_/g, ' ') }}
                   · {{ formatDate(pr.achievedOn) }}
@@ -561,7 +604,9 @@ function formatPRValue(prType: string, value: number) {
     <UModal v-model:open="showStartModal">
       <template #content>
         <div class="p-6 space-y-4">
-          <p class="font-semibold text-lg">Start Workout for Athlete</p>
+          <p class="font-semibold text-lg">
+            Start Workout for Athlete
+          </p>
           <p class="text-sm text-muted">
             This will start a workout session on behalf of
             <span class="font-medium">{{ trainerStore.athleteProfile?.firstName }}</span>.
@@ -572,7 +617,9 @@ function formatPRValue(prType: string, value: number) {
               class="w-full rounded-md bg-default ring ring-accented text-highlighted px-3 py-2 text-sm focus:outline-primary"
               @change="selectedAssignmentId = ($event.target as HTMLSelectElement).value || null"
             >
-              <option value="">Freestyle (no program)</option>
+              <option value="">
+                Freestyle (no program)
+              </option>
               <option
                 v-for="a in activeAssignments"
                 :key="a.id"

@@ -2,7 +2,7 @@
 import type { Program, ProgramFolder } from '~/stores/programs'
 
 definePageMeta({
-  middleware: 'auth',
+  middleware: 'auth'
 })
 
 const programStore = useProgramStore()
@@ -16,8 +16,8 @@ interface Assignment {
   startDate: string | null
   assignedAt: string
   allowSessionDeviations: boolean
-  program: { id: string; name: string; description: string | null }
-  assignedBy: { id: string; firstName: string; lastName: string }
+  program: { id: string, name: string, description: string | null }
+  assignedBy: { id: string, firstName: string, lastName: string }
 }
 
 const assignments = ref<Assignment[]>([])
@@ -41,16 +41,16 @@ function matchesSearch(name: string) {
 }
 
 const filteredAssignments = computed(() =>
-  assignments.value.filter((a) => matchesSearch(a.program.name))
+  assignments.value.filter(a => matchesSearch(a.program.name))
 )
 
 const filteredUnfiled = computed(() =>
-  programStore.programsByFolder.unfiled.filter((p) => matchesSearch(p.name))
+  programStore.programsByFolder.unfiled.filter(p => matchesSearch(p.name))
 )
 
 function getFilteredFolderPrograms(folderId: string): Program[] {
   const programs = programStore.programsByFolder.byFolder.get(folderId) || []
-  return programs.filter((p) => matchesSearch(p.name))
+  return programs.filter(p => matchesSearch(p.name))
 }
 
 const filteredFolders = computed(() =>
@@ -80,7 +80,7 @@ onMounted(async () => {
     programStore.fetchFolders(),
     api<Assignment[]>('/assignments').then((data) => {
       assignments.value = data
-    }).catch(() => {}),
+    }).catch(() => {})
   ])
 })
 
@@ -104,7 +104,7 @@ function onProgramFormSuccess(program?: Program) {
   showProgramFormModal.value = false
   toast.add({
     title: editingProgram.value ? 'Program updated' : 'Program created',
-    color: 'success',
+    color: 'success'
   })
   // Navigate to the newly created program's detail page
   if (!editingProgram.value && program?.id) {
@@ -121,7 +121,7 @@ async function onProgramDeleteConfirm() {
     const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: fetchError?.data?.message || 'Failed to delete program',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     showProgramDeleteDialog.value = false
@@ -149,7 +149,7 @@ function onFolderFormSuccess() {
   showFolderFormModal.value = false
   toast.add({
     title: editingFolder.value ? 'Folder updated' : 'Folder created',
-    color: 'success',
+    color: 'success'
   })
 }
 
@@ -162,7 +162,7 @@ async function onFolderDeleteConfirm() {
     const fetchError = err as { data?: { message?: string } }
     toast.add({
       title: fetchError?.data?.message || 'Failed to delete folder',
-      color: 'error',
+      color: 'error'
     })
   } finally {
     showFolderDeleteDialog.value = false
@@ -170,7 +170,7 @@ async function onFolderDeleteConfirm() {
   }
 }
 
-function getFolderPrograms(folderId: string): Program[] {
+function _getFolderPrograms(folderId: string): Program[] {
   return programStore.programsByFolder.byFolder.get(folderId) || []
 }
 </script>
@@ -214,7 +214,9 @@ function getFolderPrograms(folderId: string): Program[] {
 
       <!-- Assigned Programs -->
       <div v-if="filteredAssignments.length" class="mb-8">
-        <h3 class="text-sm font-medium text-muted mb-3 px-1">Assigned by Trainer</h3>
+        <h3 class="text-sm font-medium text-muted mb-3 px-1">
+          Assigned by Trainer
+        </h3>
         <div class="space-y-2">
           <UCard
             v-for="assignment in filteredAssignments"
@@ -224,7 +226,9 @@ function getFolderPrograms(folderId: string): Program[] {
           >
             <div class="flex items-center justify-between">
               <div class="min-w-0">
-                <p class="font-medium truncate">{{ assignment.program.name }}</p>
+                <p class="font-medium truncate">
+                  {{ assignment.program.name }}
+                </p>
                 <p class="text-xs text-muted">
                   by {{ assignment.assignedBy.firstName }} {{ assignment.assignedBy.lastName }}
                   · {{ new Date(assignment.assignedAt).toLocaleDateString() }}
@@ -262,15 +266,15 @@ function getFolderPrograms(folderId: string): Program[] {
             <UDropdownMenu
               :items="[
                 [{
-                  label: 'Edit Folder',
-                  icon: 'i-lucide-pencil',
-                  onSelect: () => openEditFolder(folder),
-                },
-                {
-                  label: 'Delete Folder',
-                  icon: 'i-lucide-trash-2',
-                  onSelect: () => openDeleteFolder(folder),
-                }],
+                   label: 'Edit Folder',
+                   icon: 'i-lucide-pencil',
+                   onSelect: () => openEditFolder(folder)
+                 },
+                 {
+                   label: 'Delete Folder',
+                   icon: 'i-lucide-trash-2',
+                   onSelect: () => openDeleteFolder(folder)
+                 }]
               ]"
               :content="{ align: 'end' as const }"
             >

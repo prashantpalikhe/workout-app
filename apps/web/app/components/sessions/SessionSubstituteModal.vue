@@ -27,7 +27,7 @@ const searchLoading = ref(false)
 
 interface PaginatedResponse<T> {
   data: T[]
-  meta: { page: number; limit: number; total: number; totalPages: number }
+  meta: { page: number, limit: number, total: number, totalPages: number }
 }
 
 async function searchExercises() {
@@ -70,11 +70,11 @@ async function confirmSubstitution() {
   try {
     await sessionStore.updateExercise(props.sessionId, props.exercise.id, {
       exerciseId: selectedExercise.value.id,
-      substitutionReason: substitutionReason.value.trim() || undefined,
+      substitutionReason: substitutionReason.value.trim() || undefined
     })
     toast.add({
       title: `Substituted with ${selectedExercise.value.name}`,
-      color: 'success',
+      color: 'success'
     })
     open.value = false
   } catch (err: unknown) {

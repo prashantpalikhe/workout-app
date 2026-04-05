@@ -4,7 +4,7 @@ import type { ExerciseHistorySession } from '@workout/shared'
 definePageMeta({ layout: 'default', middleware: 'auth' })
 
 const route = useRoute()
-const router = useRouter()
+const _router = useRouter()
 const toast = useToast()
 const trainerStore = useTrainerStore()
 const groupSession = useGroupSession()
@@ -51,14 +51,14 @@ onMounted(async () => {
   // Fetch athlete profiles and settings in parallel
   const [profiles] = await Promise.all([
     Promise.all(
-      athleteIds.value.map((id) => trainerStore.fetchAthleteProfile(id)),
+      athleteIds.value.map(id => trainerStore.fetchAthleteProfile(id))
     ),
-    fetchSettings(),
+    fetchSettings()
   ])
 
   const athletes = profiles.map((p, i) => ({
     id: athleteIds.value[i]!,
-    name: p ? `${p.firstName} ${p.lastName}` : `Athlete ${i + 1}`,
+    name: p ? `${p.firstName} ${p.lastName}` : `Athlete ${i + 1}`
   }))
 
   await groupSession.initSlots(athletes)
@@ -78,14 +78,14 @@ watch(
       toast.add({ title: 'All sessions completed', color: 'success' })
       navigateTo('/trainer/athletes')
     }
-  },
+  }
 )
 
 // ── Event handlers ──
 
 function onSetCompletedEvent(
   athleteId: string,
-  data: { setRestSec: number | null; exerciseRestSec: number | null },
+  data: { setRestSec: number | null, exerciseRestSec: number | null }
 ) {
   if (!restTimerEnabled.value) return
 
@@ -93,11 +93,11 @@ function onSetCompletedEvent(
   if (!slot) return
 
   // Resolution: session-sticky override → set rest → exercise prescription → user default
-  const seconds =
-    slot.restTimer.sessionDefault.value ??
-    data.setRestSec ??
-    data.exerciseRestSec ??
-    defaultRestSec.value
+  const seconds
+    = slot.restTimer.sessionDefault.value
+      ?? data.setRestSec
+      ?? data.exerciseRestSec
+      ?? defaultRestSec.value
 
   if (seconds > 0) {
     slot.restTimer.start(seconds)
@@ -108,7 +108,7 @@ async function onUpdateSet(
   athleteId: string,
   exerciseId: string,
   setId: string,
-  data: Record<string, unknown>,
+  data: Record<string, unknown>
 ) {
   try {
     await groupSession.updateSet(athleteId, exerciseId, setId, data)
@@ -120,20 +120,20 @@ async function onUpdateSet(
 async function onToggleSetCompleted(
   athleteId: string,
   exerciseId: string,
-  setId: string,
+  setId: string
 ) {
   const slot = groupSession.getSlot(athleteId)
   if (!slot?.session) return
 
   const exercise = slot.session.sessionExercises.find(
-    (e) => e.id === exerciseId,
+    e => e.id === exerciseId
   )
-  const set = exercise?.sets.find((s) => s.id === setId)
+  const set = exercise?.sets.find(s => s.id === setId)
   if (!set) return
 
   try {
     await groupSession.updateSet(athleteId, exerciseId, setId, {
-      completed: !set.completed,
+      completed: !set.completed
     })
   } catch {
     toast.add({ title: 'Failed to update set', color: 'error' })
@@ -151,7 +151,7 @@ async function onAddSet(athleteId: string, exerciseId: string) {
 async function onDeleteSet(
   athleteId: string,
   exerciseId: string,
-  setId: string,
+  setId: string
 ) {
   try {
     await groupSession.deleteSet(athleteId, exerciseId, setId)
@@ -163,16 +163,16 @@ async function onDeleteSet(
 async function onUpdateExercise(
   athleteId: string,
   exerciseId: string,
-  data: Record<string, unknown>,
+  data: Record<string, unknown>
 ) {
   try {
-    await groupSession.updateExercise(athleteId, exerciseId, data as any)
+    await groupSession.updateExercise(athleteId, exerciseId, data as Parameters<typeof groupSession.updateExercise>[2])
   } catch {
     toast.add({ title: 'Failed to update exercise', color: 'error' })
   }
 }
 
-async function onAddExercise(athleteId: string, exerciseId: string) {
+async function _onAddExercise(athleteId: string, exerciseId: string) {
   try {
     await groupSession.addExercise(athleteId, { exerciseId })
   } catch {
@@ -206,7 +206,7 @@ async function onShowHistory(athleteId: string, exerciseId: string) {
   if (!slot) return
 
   const exercise = slot.session?.sessionExercises.find(
-    (e) => e.exerciseId === exerciseId,
+    e => e.exerciseId === exerciseId
   )
 
   historyPanel.value = {
@@ -215,7 +215,7 @@ async function onShowHistory(athleteId: string, exerciseId: string) {
     athleteName: slot.athleteName,
     exerciseName: exercise?.exercise.name ?? 'Exercise',
     history: slot.exerciseHistory.get(exerciseId) ?? [],
-    loading: slot.historyLoading.has(exerciseId),
+    loading: slot.historyLoading.has(exerciseId)
   }
 
   // Fetch if not cached
@@ -223,8 +223,8 @@ async function onShowHistory(athleteId: string, exerciseId: string) {
     await groupSession.fetchExerciseHistory(athleteId, exerciseId)
     // Update the panel after fetch
     if (historyPanel.value?.exerciseId === exerciseId) {
-      historyPanel.value.history =
-        slot.exerciseHistory.get(exerciseId) ?? []
+      historyPanel.value.history
+        = slot.exerciseHistory.get(exerciseId) ?? []
       historyPanel.value.loading = false
     }
   }
@@ -237,7 +237,7 @@ async function confirmComplete() {
   try {
     await groupSession.completeSession(completeFor.value, {
       overallRpe: completeRpe.value,
-      notes: completeNotes.value.trim() || undefined,
+      notes: completeNotes.value.trim() || undefined
     })
     toast.add({ title: 'Workout completed!', color: 'success' })
   } catch {
@@ -306,7 +306,7 @@ async function confirmStartAllSessions() {
   try {
     await groupSession.startAllSessions(
       { name: startSessionName.value.trim() || undefined },
-      selectedAssignments.value.size > 0 ? selectedAssignments.value : undefined,
+      selectedAssignments.value.size > 0 ? selectedAssignments.value : undefined
     )
     showStartModal.value = false
     toast.add({ title: 'Sessions started', color: 'success' })
@@ -323,8 +323,8 @@ async function confirmStartAllSessions() {
 
 const earliestStartedAt = computed(() => {
   const dates = groupSession.slots.value
-    .filter((s) => s.session)
-    .map((s) => s.session!.startedAt)
+    .filter(s => s.session)
+    .map(s => s.session!.startedAt)
   if (dates.length === 0) return null
   return dates.sort()[0] ?? null
 })
@@ -339,18 +339,18 @@ const exercisePickerExistingIds = computed(() => {
   if (!exercisePickerSlot.value?.session) return new Set<string>()
   return new Set(
     exercisePickerSlot.value.session.sessionExercises.map(
-      (e) => e.exerciseId,
-    ),
+      e => e.exerciseId
+    )
   )
 })
 
 // ── Route leave guard ──
 
 onBeforeRouteLeave((_to, _from, next) => {
-  const hasActiveSessions = groupSession.slots.value.some((s) => s.session)
+  const hasActiveSessions = groupSession.slots.value.some(s => s.session)
   if (hasActiveSessions) {
     const confirmed = window.confirm(
-      'You have active sessions. Are you sure you want to leave?',
+      'You have active sessions. Are you sure you want to leave?'
     )
     next(confirmed)
   } else {
@@ -377,28 +377,27 @@ onBeforeRouteLeave((_to, _from, next) => {
 
       <!-- Cards Grid -->
       <TrainerGroupSessionCardsView>
-        <TrainerGroupSessionAthleteSessionCard
-          v-for="slot in groupSession.slots.value"
-          :key="slot.athleteId"
-          :slot="slot"
-          :current-exercise="groupSession.currentExercise(slot.athleteId)"
-          :exercise-index="slot.currentExerciseIndex"
-          :exercise-count="groupSession.exerciseCount(slot.athleteId)"
-          @add-set="onAddSet(slot.athleteId, $event)"
-          @update-set="(...args: [string, string, Record<string, unknown>]) => onUpdateSet(slot.athleteId, ...args)"
-          @toggle-set-completed="(...args: [string, string]) => onToggleSetCompleted(slot.athleteId, ...args)"
-          @delete-set="(...args: [string, string]) => onDeleteSet(slot.athleteId, ...args)"
-          @add-exercise="exercisePickerFor = slot.athleteId"
-          @update-exercise="(...args: [string, Record<string, unknown>]) => onUpdateExercise(slot.athleteId, ...args)"
-          @remove-exercise="onRemoveExercise(slot.athleteId, $event)"
-          @next-exercise="groupSession.nextExercise(slot.athleteId)"
-          @prev-exercise="groupSession.prevExercise(slot.athleteId)"
-          @complete="completeFor = slot.athleteId"
-          @abandon="abandonFor = slot.athleteId"
-          @show-history="onShowHistory(slot.athleteId, $event)"
-          @set-completed-event="onSetCompletedEvent(slot.athleteId, $event)"
-        />
+        <template v-for="slot in groupSession.slots.value" #[slot] :key="slot.athleteId">
+          <TrainerGroupSessionAthleteSessionCard
 
+            :current-exercise="groupSession.currentExercise(slot.athleteId)"
+            :exercise-index="slot.currentExerciseIndex"
+            :exercise-count="groupSession.exerciseCount(slot.athleteId)"
+            @add-set="onAddSet(slot.athleteId, $event)"
+            @update-set="(...args: [string, string, Record<string, unknown>]) => onUpdateSet(slot.athleteId, ...args)"
+            @toggle-set-completed="(...args: [string, string]) => onToggleSetCompleted(slot.athleteId, ...args)"
+            @delete-set="(...args: [string, string]) => onDeleteSet(slot.athleteId, ...args)"
+            @add-exercise="exercisePickerFor = slot.athleteId"
+            @update-exercise="(...args: [string, Record<string, unknown>]) => onUpdateExercise(slot.athleteId, ...args)"
+            @remove-exercise="onRemoveExercise(slot.athleteId, $event)"
+            @next-exercise="groupSession.nextExercise(slot.athleteId)"
+            @prev-exercise="groupSession.prevExercise(slot.athleteId)"
+            @complete="completeFor = slot.athleteId"
+            @abandon="abandonFor = slot.athleteId"
+            @show-history="onShowHistory(slot.athleteId, $event)"
+            @set-completed-event="onSetCompletedEvent(slot.athleteId, $event)"
+          />
+        </template>
       </TrainerGroupSessionCardsView>
     </template>
 
@@ -518,7 +517,9 @@ onBeforeRouteLeave((_to, _from, next) => {
             :key="slot.athleteId"
             class="space-y-1"
           >
-            <p class="text-sm font-medium">{{ slot.athleteName }}</p>
+            <p class="text-sm font-medium">
+              {{ slot.athleteName }}
+            </p>
             <select
               v-if="slot.assignments.length > 0"
               :value="selectedAssignments.get(slot.athleteId) ?? ''"
@@ -529,7 +530,9 @@ onBeforeRouteLeave((_to, _from, next) => {
                 else selectedAssignments.delete(slot.athleteId)
               }"
             >
-              <option value="">Freestyle (no program)</option>
+              <option value="">
+                Freestyle (no program)
+              </option>
               <option
                 v-for="a in slot.assignments"
                 :key="a.id"
@@ -538,7 +541,9 @@ onBeforeRouteLeave((_to, _from, next) => {
                 {{ a.program.name }}
               </option>
             </select>
-            <p v-else class="text-xs text-muted">Freestyle (no programs assigned)</p>
+            <p v-else class="text-xs text-muted">
+              Freestyle (no programs assigned)
+            </p>
           </div>
 
           <UFormField label="Session Name (optional)">

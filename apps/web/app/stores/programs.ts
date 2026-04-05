@@ -1,10 +1,10 @@
 import type {
   CreateProgramInput,
-  UpdateProgramInput,
+  UpdateProgramInput as _UpdateProgramInput,
   CreateProgramExerciseInput,
   UpdateProgramExerciseInput,
   ReorderInput,
-  CreateProgramFolderInput,
+  CreateProgramFolderInput
 } from '@workout/shared'
 
 export interface ProgramExercise {
@@ -46,7 +46,7 @@ export interface Program {
   updatedAt: string
   exercises: ProgramExercise[]
   folder: ProgramFolder | null
-  assignedBy: { id: string; firstName: string; lastName: string } | null
+  assignedBy: { id: string, firstName: string, lastName: string } | null
 }
 
 export const useProgramStore = defineStore('programs', () => {
@@ -97,7 +97,7 @@ export const useProgramStore = defineStore('programs', () => {
   async function createProgram(input: CreateProgramInput) {
     const created = await api<Program>('/programs', {
       method: 'POST',
-      body: input,
+      body: input
     })
     await fetchPrograms()
     return created
@@ -106,7 +106,7 @@ export const useProgramStore = defineStore('programs', () => {
   async function updateProgram(id: string, input: Partial<CreateProgramInput>) {
     const updated = await api<Program>(`/programs/${id}`, {
       method: 'PATCH',
-      body: input,
+      body: input
     })
     const idx = programs.value.findIndex(p => p.id === id)
     if (idx !== -1) programs.value[idx] = updated
@@ -124,7 +124,7 @@ export const useProgramStore = defineStore('programs', () => {
   async function addExercise(programId: string, input: CreateProgramExerciseInput) {
     const created = await api<ProgramExercise>(`/programs/${programId}/exercises`, {
       method: 'POST',
-      body: input,
+      body: input
     })
     // Refetch detail to get the full updated program
     await fetchProgramById(programId)
@@ -134,11 +134,11 @@ export const useProgramStore = defineStore('programs', () => {
   async function updateExercise(
     programId: string,
     exerciseId: string,
-    input: Partial<UpdateProgramExerciseInput>,
+    input: Partial<UpdateProgramExerciseInput>
   ) {
     const updated = await api<ProgramExercise>(
       `/programs/${programId}/exercises/${exerciseId}`,
-      { method: 'PATCH', body: input },
+      { method: 'PATCH', body: input }
     )
     if (selectedProgram.value?.id === programId) {
       const idx = selectedProgram.value.exercises.findIndex(e => e.id === exerciseId)
@@ -151,7 +151,7 @@ export const useProgramStore = defineStore('programs', () => {
     await api(`/programs/${programId}/exercises/${exerciseId}`, { method: 'DELETE' })
     if (selectedProgram.value?.id === programId) {
       selectedProgram.value.exercises = selectedProgram.value.exercises.filter(
-        e => e.id !== exerciseId,
+        e => e.id !== exerciseId
       )
     }
   }
@@ -159,7 +159,7 @@ export const useProgramStore = defineStore('programs', () => {
   async function reorderExercises(programId: string, items: ReorderInput) {
     const updated = await api<Program>(
       `/programs/${programId}/exercises/reorder`,
-      { method: 'PATCH', body: items },
+      { method: 'PATCH', body: items }
     )
     if (selectedProgram.value?.id === programId) {
       selectedProgram.value = updated
@@ -175,7 +175,7 @@ export const useProgramStore = defineStore('programs', () => {
   async function createFolder(input: CreateProgramFolderInput) {
     const created = await api<ProgramFolder>('/program-folders', {
       method: 'POST',
-      body: input,
+      body: input
     })
     await fetchFolders()
     return created
@@ -184,7 +184,7 @@ export const useProgramStore = defineStore('programs', () => {
   async function updateFolder(id: string, input: Partial<CreateProgramFolderInput>) {
     const updated = await api<ProgramFolder>(`/program-folders/${id}`, {
       method: 'PATCH',
-      body: input,
+      body: input
     })
     const idx = folders.value.findIndex(f => f.id === id)
     if (idx !== -1) folders.value[idx] = updated
@@ -217,6 +217,6 @@ export const useProgramStore = defineStore('programs', () => {
     reorderExercises,
     createFolder,
     updateFolder,
-    deleteFolder,
+    deleteFolder
   }
 })
