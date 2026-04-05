@@ -13,6 +13,34 @@ const showAbandonDialog = ref(false)
 const showSubstituteModal = ref(false)
 const substitutingExercise = ref<SessionExercise | null>(null)
 
+// Rename
+const renameDialogOpen = ref(false)
+const renameText = ref('')
+const renameSaving = ref(false)
+
+function openRenameDialog() {
+  renameText.value = session.value?.name ?? ''
+  renameDialogOpen.value = true
+}
+
+async function saveRename() {
+  if (!session.value) return
+  const trimmed = renameText.value.trim()
+  if (!trimmed || trimmed === session.value.name) {
+    renameDialogOpen.value = false
+    return
+  }
+  renameSaving.value = true
+  try {
+    await sessionStore.updateSession(session.value.id, { name: trimmed })
+    renameDialogOpen.value = false
+  } catch {
+    toast.add({ title: 'Failed to rename workout', color: 'error' })
+  } finally {
+    renameSaving.value = false
+  }
+}
+
 // ── Rest Timer ──────────────────────────────────
 const { restTimerEnabled, defaultRestSec, fetch: fetchSettings } = useUserSettings()
 const restTimer = useRestTimer()
@@ -128,6 +156,11 @@ function onAbandoned() {
 const dropdownItems = computed(() => [
   [
     {
+      label: 'Rename Workout',
+      icon: 'i-lucide-pencil',
+      onSelect: () => openRenameDialog()
+    },
+    {
       label: hasSessionNote.value ? 'View Session Note' : 'Add Session Note',
       icon: 'i-lucide-message-square',
       onSelect: () => openSessionNoteDialog()
@@ -216,7 +249,20 @@ const canEditProgram = computed(() => {
       </Teleport>
 
       <!-- Desktop header -->
-      <UPageHeader :title="session.name" class="hidden lg:block">
+      <UPageHeader class="hidden lg:block">
+        <template #title>
+          <button
+            type="button"
+            class="group inline-flex items-center gap-2 text-left hover:text-primary transition-colors"
+            @click="openRenameDialog"
+          >
+            <span>{{ session.name }}</span>
+            <UIcon
+              name="i-lucide-pencil"
+              class="size-4 text-muted opacity-0 group-hover:opacity-100 transition-opacity"
+            />
+          </button>
+        </template>
         <template #description>
           <div class="flex items-center gap-4 text-sm">
             <span class="flex items-center gap-1.5 text-muted">
@@ -343,6 +389,25 @@ const canEditProgram = computed(() => {
       :session-id="session.id"
       :exercise="substitutingExercise"
     />
+
+    <!-- Rename workout dialog -->
+    <UModal v-model:open="renameDialogOpen" title="Rename Workout">
+      <template #body>
+        <UInput
+          v-model="renameText"
+          placeholder="Workout name"
+          autofocus
+          class="w-full"
+          @keydown.enter="saveRename"
+        />
+      </template>
+      <template #footer>
+        <div class="flex gap-2 justify-end w-full">
+          <UButton label="Cancel" color="neutral" variant="outline" size="sm" @click="renameDialogOpen = false" />
+          <UButton label="Save Changes" size="sm" :loading="renameSaving" @click="saveRename" />
+        </div>
+      </template>
+    </UModal>
 
     <!-- Session note dialog -->
     <UModal v-model:open="sessionNoteDialogOpen" :title="hasSessionNote ? 'Session Note' : 'Add Session Note'">
