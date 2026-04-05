@@ -98,7 +98,9 @@ onMounted(async () => {
   try {
     const [settings, profile] = await Promise.all([
       api<UserSettings>('/users/me/settings'),
-      api<{ unitPreference: string }>('/users/me/profile')
+      api<{ unitPreference: string }>('/users/me/profile'),
+      // Refresh user so `hasPassword` is up to date (login response doesn't include it)
+      authStore.fetchUser()
     ])
 
     restTimerEnabled.value = settings.restTimerEnabled
