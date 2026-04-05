@@ -194,7 +194,7 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto px-4 sm:px-6">
+  <UContainer>
     <AppPageHeader
       title="Settings"
       description="Configure your workout preferences"
@@ -342,5 +342,5 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         </div>
       </UCard>
     </div>
-  </div>
+  </UContainer>
 </template>

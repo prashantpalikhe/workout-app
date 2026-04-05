@@ -69,7 +69,10 @@ const navItems = computed<NavigationMenuItem[]>(() => [
       v-model:open="sidebarOpen"
       collapsible
       resizable
-      :ui="{ footer: 'border-t border-default pb-[max(0.75rem,env(safe-area-inset-bottom))]' }"
+      :ui="{
+        footer:
+          'border-t border-default pb-[max(0.75rem,env(safe-area-inset-bottom))]'
+      }"
     >
       <template #header="{ collapsed }">
         <NuxtLink
@@ -78,7 +81,9 @@ const navItems = computed<NavigationMenuItem[]>(() => [
           :class="collapsed ? 'justify-center w-full' : ''"
         >
           <div class="size-8 rounded-full bg-primary shrink-0" />
-          <span v-if="!collapsed" class="font-semibold text-lg truncate">Workout</span>
+          <span v-if="!collapsed" class="font-semibold text-lg truncate"
+            >Workout</span
+          >
         </NuxtLink>
       </template>
 
@@ -99,7 +104,11 @@ const navItems = computed<NavigationMenuItem[]>(() => [
           class="flex items-center w-full"
           :class="collapsed ? 'justify-center' : 'gap-2'"
         >
-          <NuxtLink to="/profile" class="flex items-center gap-2 min-w-0 flex-1" :class="collapsed ? 'justify-center' : ''">
+          <NuxtLink
+            to="/profile"
+            class="flex items-center gap-2 min-w-0 flex-1"
+            :class="collapsed ? 'justify-center' : ''"
+          >
             <UAvatar
               :src="authStore.user?.avatarUrl || undefined"
               :alt="authStore.fullName"
@@ -137,7 +146,10 @@ const navItems = computed<NavigationMenuItem[]>(() => [
       <!-- Mobile header with hamburger -->
       <div
         class="lg:hidden sticky top-0 z-20 bg-default flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default"
-        style="padding-top: env(safe-area-inset-top); height: calc(var(--ui-header-height) + env(safe-area-inset-top));"
+        style="
+          padding-top: env(safe-area-inset-top);
+          height: calc(var(--ui-header-height) + env(safe-area-inset-top));
+        "
       >
         <UButton
           icon="i-lucide-menu"
@@ -156,7 +168,10 @@ const navItems = computed<NavigationMenuItem[]>(() => [
             <span class="font-semibold">Workout</span>
           </template>
         </div>
-        <div id="mobile-header-actions" class="flex items-center gap-1 shrink-0" />
+        <div
+          id="mobile-header-actions"
+          class="flex items-center gap-1 shrink-0"
+        />
       </div>
 
       <div class="py-4 sm:py-6">

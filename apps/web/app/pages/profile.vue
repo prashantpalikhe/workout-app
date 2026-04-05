@@ -33,7 +33,7 @@ function onCalendarMonthChange(month: number, year: number) {
 </script>
 
 <template>
-  <div class="max-w-2xl mx-auto px-4 sm:px-6">
+  <UContainer>
     <AppPageHeader title="Profile">
       <template #links>
         <UButton
@@ -79,5 +79,5 @@ function onCalendarMonthChange(month: number, year: number) {
 
     <!-- Edit Modal -->
     <ProfileEditModal v-model:open="editOpen" :profile="profileStore.profile" />
-  </div>
+  </UContainer>
 </template>
