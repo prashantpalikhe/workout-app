@@ -17,6 +17,8 @@ import {
   appleOAuthInputSchema,
   forgotPasswordInputSchema,
   resetPasswordInputSchema,
+  changePasswordInputSchema,
+  setPasswordInputSchema,
   type RegisterInput,
   type LoginInput,
   type RefreshTokenInput,
@@ -24,9 +26,11 @@ import {
   type AppleOAuthInput,
   type ForgotPasswordInput,
   type ResetPasswordInput,
+  type ChangePasswordInput,
+  type SetPasswordInput,
 } from '@workout/shared';
 import { AuthService } from './auth.service';
-import { Public, ZodValidationPipe, zodToOpenApi } from '../common';
+import { CurrentUser, Public, ZodValidationPipe, zodToOpenApi } from '../common';
 
 @ApiTags('auth')
 @Controller('auth')
@@ -129,6 +133,42 @@ export class AuthController {
   ) {
     await this.authService.resetPassword(dto.token, dto.password);
     return { message: 'Password has been reset successfully' };
+  }
+
+  @ApiBearerAuth('access-token')
+  @Post('change-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({ summary: 'Change password (requires current password)' })
+  @ApiBody({ schema: zodToOpenApi(changePasswordInputSchema) })
+  @ApiOkResponse({ description: 'Password changed successfully' })
+  @ApiUnauthorizedResponse({ description: 'Current password is incorrect' })
+  async changePassword(
+    @CurrentUser('sub') userId: string,
+    @Body(new ZodValidationPipe(changePasswordInputSchema))
+    dto: ChangePasswordInput,
+  ) {
+    await this.authService.changePassword(
+      userId,
+      dto.currentPassword,
+      dto.newPassword,
+    );
+    return { message: 'Password changed successfully' };
+  }
+
+  @ApiBearerAuth('access-token')
+  @Post('set-password')
+  @HttpCode(HttpStatus.OK)
+  @ApiOperation({
+    summary: 'Set a password for the first time (OAuth-only users)',
+  })
+  @ApiBody({ schema: zodToOpenApi(setPasswordInputSchema) })
+  @ApiOkResponse({ description: 'Password set successfully' })
+  async setPassword(
+    @CurrentUser('sub') userId: string,
+    @Body(new ZodValidationPipe(setPasswordInputSchema)) dto: SetPasswordInput,
+  ) {
+    await this.authService.setPassword(userId, dto.password);
+    return { message: 'Password set successfully' };
   }
 
   @ApiBearerAuth('access-token')

@@ -7,6 +7,7 @@ interface AuthUser {
   lastName: string
   isTrainer: boolean
   avatarUrl?: string | null
+  hasPassword?: boolean
 }
 
 export const useAuthStore = defineStore('auth', () => {
@@ -136,6 +137,33 @@ export const useAuthStore = defineStore('auth', () => {
     user.value = data.user
   }
 
+  async function changePassword(currentPassword: string, newPassword: string) {
+    await api('/auth/change-password', {
+      method: 'POST',
+      body: { currentPassword, newPassword }
+    })
+    // Backend revokes all refresh tokens. Keep the user signed in on this
+    // device by issuing a fresh pair via /auth/refresh — but the existing
+    // refresh token was just revoked, so force a re-login instead.
+    await logout()
+  }
+
+  async function setPassword(password: string) {
+    await api('/auth/set-password', {
+      method: 'POST',
+      body: { password }
+    })
+    // Reflect the change locally so the UI switches to "Change Password".
+    if (user.value) user.value.hasPassword = true
+  }
+
+  async function deleteAccount() {
+    await api('/users/me', { method: 'DELETE' })
+    user.value = null
+    clearTokens()
+    navigateTo('/login')
+  }
+
   async function initialize() {
     if (initialized.value) return
     const token = getAccessToken()
@@ -159,6 +187,9 @@ export const useAuthStore = defineStore('auth', () => {
     logout,
     fetchUser,
     refreshSession,
+    changePassword,
+    setPassword,
+    deleteAccount,
     initialize
   }
 })

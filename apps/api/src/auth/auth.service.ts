@@ -1,5 +1,6 @@
 import {
   Injectable,
+  BadRequestException,
   ConflictException,
   UnauthorizedException,
   Logger,
@@ -286,6 +287,68 @@ export class AuthService {
     ]);
 
     this.logger.log(`Password reset successful for ${stored.user.email}`);
+  }
+
+  // ── Change Password ─────────────────────────
+  // User knows their current password and wants to change it.
+  // Revokes all refresh tokens so other sessions are forced to re-login.
+  async changePassword(
+    userId: string,
+    currentPassword: string,
+    newPassword: string,
+  ) {
+    const user = await this.usersService.findById(userId);
+    if (!user || !user.passwordHash) {
+      throw new BadRequestException('No password is set for this account');
+    }
+
+    const isValid = await argon2.verify(user.passwordHash, currentPassword);
+    if (!isValid) {
+      throw new UnauthorizedException('Current password is incorrect');
+    }
+
+    const passwordHash = await argon2.hash(newPassword, {
+      type: argon2.argon2id,
+    });
+
+    await this.prisma.$transaction([
+      this.prisma.user.update({
+        where: { id: userId },
+        data: { passwordHash },
+      }),
+      this.prisma.refreshToken.updateMany({
+        where: { userId, revokedAt: null },
+        data: { revokedAt: new Date() },
+      }),
+    ]);
+
+    this.logger.log(`Password changed for user: ${user.email}`);
+  }
+
+  // ── Set Password ────────────────────────────
+  // For OAuth-only users who want to also log in with email+password.
+  // Rejects if a password is already set (use changePassword instead).
+  async setPassword(userId: string, newPassword: string) {
+    const user = await this.usersService.findById(userId);
+    if (!user) {
+      throw new UnauthorizedException('User not found');
+    }
+    if (user.passwordHash) {
+      throw new BadRequestException(
+        'A password is already set. Use change password instead.',
+      );
+    }
+
+    const passwordHash = await argon2.hash(newPassword, {
+      type: argon2.argon2id,
+    });
+
+    await this.prisma.user.update({
+      where: { id: userId },
+      data: { passwordHash },
+    });
+
+    this.logger.log(`Password set for OAuth user: ${user.email}`);
   }
 
   // ── Private Helpers ───────────────────────────

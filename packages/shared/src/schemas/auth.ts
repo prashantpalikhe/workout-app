@@ -73,3 +73,16 @@ export const resetPasswordInputSchema = z.object({
   password: z.string().min(8).max(128),
 });
 export type ResetPasswordInput = z.infer<typeof resetPasswordInputSchema>;
+
+// ── Authenticated Password Management ────────
+
+export const changePasswordInputSchema = z.object({
+  currentPassword: z.string().min(1),
+  newPassword: z.string().min(8).max(128),
+});
+export type ChangePasswordInput = z.infer<typeof changePasswordInputSchema>;
+
+export const setPasswordInputSchema = z.object({
+  password: z.string().min(8).max(128),
+});
+export type SetPasswordInput = z.infer<typeof setPasswordInputSchema>;

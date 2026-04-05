@@ -26,6 +26,8 @@ describe('AuthController', () => {
       appleLogin: vi.fn().mockResolvedValue(mockAuthResponse),
       refresh: vi.fn().mockResolvedValue(mockAuthResponse),
       logout: vi.fn().mockResolvedValue(undefined),
+      changePassword: vi.fn().mockResolvedValue(undefined),
+      setPassword: vi.fn().mockResolvedValue(undefined),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -77,5 +79,23 @@ describe('AuthController', () => {
     const result = await controller.logout({ refreshToken: 'rt' });
     expect(authService.logout).toHaveBeenCalledWith('rt');
     expect(result).toEqual({ message: 'Logged out successfully' });
+  });
+
+  it('changePassword should call authService.changePassword and return message', async () => {
+    const dto = { currentPassword: 'old12345', newPassword: 'new12345678' };
+    const result = await controller.changePassword('uid', dto);
+    expect(authService.changePassword).toHaveBeenCalledWith(
+      'uid',
+      'old12345',
+      'new12345678',
+    );
+    expect(result).toEqual({ message: 'Password changed successfully' });
+  });
+
+  it('setPassword should call authService.setPassword and return message', async () => {
+    const dto = { password: 'new12345678' };
+    const result = await controller.setPassword('uid', dto);
+    expect(authService.setPassword).toHaveBeenCalledWith('uid', 'new12345678');
+    expect(result).toEqual({ message: 'Password set successfully' });
   });
 });

@@ -1,6 +1,10 @@
 import { describe, it, expect, beforeEach, vi } from 'vitest';
 import { Test, TestingModule } from '@nestjs/testing';
-import { ConflictException, UnauthorizedException } from '@nestjs/common';
+import {
+  BadRequestException,
+  ConflictException,
+  UnauthorizedException,
+} from '@nestjs/common';
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import { AuthService } from './auth.service';
@@ -36,6 +40,7 @@ describe('AuthService', () => {
   let service: AuthService;
   let usersService: {
     findByEmail: ReturnType<typeof vi.fn>;
+    findById: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
   };
@@ -75,6 +80,7 @@ describe('AuthService', () => {
   beforeEach(async () => {
     usersService = {
       findByEmail: vi.fn(),
+      findById: vi.fn(),
       create: vi.fn(),
       update: vi.fn(),
     };
@@ -527,6 +533,89 @@ describe('AuthService', () => {
         expect.anything(), // passwordResetToken.update (usedAt)
         expect.anything(), // refreshToken.updateMany (revoke all)
       ]);
+    });
+  });
+
+  // ── Change Password ───────────────────────────
+  describe('changePassword', () => {
+    it('should throw BadRequestException if user has no password (OAuth user)', async () => {
+      usersService.findById.mockResolvedValue({
+        ...mockUser,
+        passwordHash: null,
+      });
+      await expect(
+        service.changePassword('user-uuid', 'current', 'newpassword123'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw BadRequestException if user not found', async () => {
+      usersService.findById.mockResolvedValue(null);
+      await expect(
+        service.changePassword('user-uuid', 'current', 'newpassword123'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should throw UnauthorizedException if current password is wrong', async () => {
+      const argon2 = await import('argon2');
+      vi.mocked(argon2.verify).mockResolvedValueOnce(false);
+      usersService.findById.mockResolvedValue(mockUser);
+
+      await expect(
+        service.changePassword('user-uuid', 'wrong', 'newpassword123'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should update password and revoke all refresh tokens on success', async () => {
+      usersService.findById.mockResolvedValue(mockUser);
+
+      await service.changePassword('user-uuid', 'current', 'newpassword123');
+
+      expect(prisma.$transaction).toHaveBeenCalledWith([
+        expect.anything(), // user.update (password)
+        expect.anything(), // refreshToken.updateMany (revoke all)
+      ]);
+    });
+  });
+
+  // ── Set Password ──────────────────────────────
+  describe('setPassword', () => {
+    it('should throw UnauthorizedException if user not found', async () => {
+      usersService.findById.mockResolvedValue(null);
+      await expect(
+        service.setPassword('user-uuid', 'newpassword123'),
+      ).rejects.toThrow(UnauthorizedException);
+    });
+
+    it('should throw BadRequestException if user already has a password', async () => {
+      usersService.findById.mockResolvedValue(mockUser);
+      await expect(
+        service.setPassword('user-uuid', 'newpassword123'),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should set password for OAuth user (no existing password)', async () => {
+      usersService.findById.mockResolvedValue({
+        ...mockUser,
+        passwordHash: null,
+      });
+
+      await service.setPassword('user-uuid', 'newpassword123');
+
+      expect(prisma.user.update).toHaveBeenCalledWith({
+        where: { id: 'user-uuid' },
+        data: { passwordHash: 'hashed-password' },
+      });
+    });
+
+    it('should NOT revoke refresh tokens (no existing sessions to invalidate)', async () => {
+      usersService.findById.mockResolvedValue({
+        ...mockUser,
+        passwordHash: null,
+      });
+
+      await service.setPassword('user-uuid', 'newpassword123');
+
+      expect(prisma.refreshToken.updateMany).not.toHaveBeenCalled();
     });
   });
 });

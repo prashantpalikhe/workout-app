@@ -89,6 +89,12 @@ export class UsersService {
     });
   }
 
+  // ── Delete Account ──────────────────────────
+  // Cascades to all user-owned data via Prisma relations.
+  async delete(userId: string) {
+    await this.prisma.user.delete({ where: { id: userId } });
+  }
+
   // ── Athlete Profile ─────────────────────────
 
   async getProfile(userId: string) {

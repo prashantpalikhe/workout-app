@@ -11,6 +11,7 @@ describe('UsersService', () => {
       findUnique: ReturnType<typeof vi.fn>;
       create: ReturnType<typeof vi.fn>;
       update: ReturnType<typeof vi.fn>;
+      delete: ReturnType<typeof vi.fn>;
     };
     athleteProfile: { upsert: ReturnType<typeof vi.fn> };
     userSettings: { upsert: ReturnType<typeof vi.fn> };
@@ -22,6 +23,7 @@ describe('UsersService', () => {
         findUnique: vi.fn(),
         create: vi.fn(),
         update: vi.fn(),
+        delete: vi.fn(),
       },
       athleteProfile: { upsert: vi.fn() },
       userSettings: { upsert: vi.fn() },
@@ -99,6 +101,14 @@ describe('UsersService', () => {
         data: { firstName: 'New' },
       });
       expect(result.firstName).toBe('New');
+    });
+  });
+
+  describe('delete', () => {
+    it('should delete the user (cascades via Prisma)', async () => {
+      prisma.user.delete.mockResolvedValue({ id: 'uid' });
+      await service.delete('uid');
+      expect(prisma.user.delete).toHaveBeenCalledWith({ where: { id: 'uid' } });
     });
   });
 

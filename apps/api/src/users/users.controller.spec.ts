@@ -44,9 +44,11 @@ describe('UsersController', () => {
 
   beforeEach(async () => {
     usersService = {
+      findById: vi.fn().mockResolvedValue(mockUser),
       findByIdOrThrow: vi.fn().mockResolvedValue(mockUser),
       update: vi.fn().mockResolvedValue(mockUser),
       setAvatarUrl: vi.fn().mockResolvedValue(mockUser),
+      delete: vi.fn().mockResolvedValue(undefined),
       getProfile: vi.fn().mockResolvedValue(mockProfile),
       updateProfile: vi.fn().mockResolvedValue(mockProfile),
       getSettings: vi.fn().mockResolvedValue(mockSettings),
@@ -85,6 +87,55 @@ describe('UsersController', () => {
       expect(usersService.findByIdOrThrow).toHaveBeenCalledWith('uid');
       expect(result).not.toHaveProperty('passwordHash');
       expect(result.email).toBe('a@b.com');
+    });
+
+    it('should expose hasPassword=true when passwordHash is set', async () => {
+      const result = await controller.getMe('uid');
+      expect(result.hasPassword).toBe(true);
+    });
+
+    it('should expose hasPassword=false for OAuth-only users', async () => {
+      usersService.findByIdOrThrow.mockResolvedValue({
+        ...mockUser,
+        passwordHash: null,
+      });
+      const result = await controller.getMe('uid');
+      expect(result.hasPassword).toBe(false);
+    });
+  });
+
+  describe('deleteMe', () => {
+    it('should delete the user', async () => {
+      usersService.findById.mockResolvedValue({ ...mockUser, avatarUrl: null });
+      await controller.deleteMe('uid');
+      expect(usersService.delete).toHaveBeenCalledWith('uid');
+    });
+
+    it('should delete cloudinary avatar if user has one', async () => {
+      usersService.findById.mockResolvedValue({
+        ...mockUser,
+        avatarUrl: 'https://res.cloudinary.com/test/avatar.webp',
+      });
+      await controller.deleteMe('uid');
+      expect(cloudinaryService.deleteAvatar).toHaveBeenCalledWith('uid');
+      expect(usersService.delete).toHaveBeenCalledWith('uid');
+    });
+
+    it('should skip cloudinary cleanup when user has no avatar', async () => {
+      usersService.findById.mockResolvedValue({ ...mockUser, avatarUrl: null });
+      await controller.deleteMe('uid');
+      expect(cloudinaryService.deleteAvatar).not.toHaveBeenCalled();
+      expect(usersService.delete).toHaveBeenCalledWith('uid');
+    });
+
+    it('should still delete user if cloudinary cleanup fails', async () => {
+      usersService.findById.mockResolvedValue({
+        ...mockUser,
+        avatarUrl: 'https://res.cloudinary.com/test/avatar.webp',
+      });
+      cloudinaryService.deleteAvatar.mockRejectedValue(new Error('boom'));
+      await controller.deleteMe('uid');
+      expect(usersService.delete).toHaveBeenCalledWith('uid');
     });
   });
 

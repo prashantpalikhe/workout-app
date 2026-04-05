@@ -9,6 +9,9 @@ import {
   UploadedFile,
   UseInterceptors,
   BadRequestException,
+  HttpCode,
+  HttpStatus,
+  Logger,
 } from '@nestjs/common';
 import { FileInterceptor } from '@nestjs/platform-express';
 import {
@@ -48,6 +51,8 @@ const ALLOWED_IMAGE_TYPES = [
 @ApiBearerAuth('access-token')
 @Controller('users/me')
 export class UsersController {
+  private readonly logger = new Logger(UsersController.name);
+
   constructor(
     private readonly usersService: UsersService,
     private readonly userStatsService: UserStatsService,
@@ -62,7 +67,27 @@ export class UsersController {
   async getMe(@CurrentUser('sub') userId: string) {
     const user = await this.usersService.findByIdOrThrow(userId);
     const { passwordHash, ...rest } = user;
-    return rest;
+    return { ...rest, hasPassword: !!passwordHash };
+  }
+
+  @Delete()
+  @HttpCode(HttpStatus.NO_CONTENT)
+  @ApiOperation({
+    summary: 'Delete current user account and all associated data',
+  })
+  async deleteMe(@CurrentUser('sub') userId: string) {
+    // Best-effort Cloudinary cleanup — don't block deletion on it
+    const user = await this.usersService.findById(userId);
+    if (user?.avatarUrl) {
+      try {
+        await this.cloudinaryService.deleteAvatar(userId);
+      } catch (err) {
+        this.logger.warn(
+          `Avatar cleanup failed for user ${userId}, proceeding: ${err}`,
+        );
+      }
+    }
+    await this.usersService.delete(userId);
   }
 
   @Patch()

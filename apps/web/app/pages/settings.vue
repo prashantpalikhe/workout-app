@@ -33,6 +33,12 @@ const themeOptions = [
   { label: 'Dark', value: 'DARK', icon: 'i-lucide-moon' }
 ]
 
+// ── Account (password + delete) ───────────────
+const showChangePassword = ref(false)
+const showSetPassword = ref(false)
+const showDeleteAccount = ref(false)
+const hasPassword = computed(() => !!authStore.user?.hasPassword)
+
 const unitPreference = ref('METRIC')
 const unitOptions = [
   { label: 'Metric (kg, cm)', value: 'METRIC' },
@@ -341,6 +347,66 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
           </div>
         </div>
       </UCard>
+
+      <!-- Account -->
+      <UCard>
+        <div class="space-y-5">
+          <div>
+            <p class="font-medium">Account</p>
+            <p class="text-sm text-muted">{{ authStore.user?.email }}</p>
+          </div>
+
+          <!-- Password -->
+          <div class="flex items-center justify-between pt-2 border-t border-default">
+            <div>
+              <p class="text-sm font-medium">Password</p>
+              <p class="text-xs text-muted">
+                {{ hasPassword
+                  ? 'Change your login password'
+                  : 'Set a password to sign in with email in addition to Google' }}
+              </p>
+            </div>
+            <UButton
+              v-if="hasPassword"
+              label="Change"
+              color="neutral"
+              variant="outline"
+              size="sm"
+              @click="showChangePassword = true"
+            />
+            <UButton
+              v-else
+              label="Set Password"
+              color="neutral"
+              variant="outline"
+              size="sm"
+              @click="showSetPassword = true"
+            />
+          </div>
+
+          <!-- Danger zone -->
+          <div class="flex items-center justify-between pt-2 border-t border-default">
+            <div>
+              <p class="text-sm font-medium text-error">Delete Account</p>
+              <p class="text-xs text-muted">
+                Permanently remove your account and all your workouts
+              </p>
+            </div>
+            <UButton
+              label="Delete"
+              color="error"
+              variant="outline"
+              size="sm"
+              @click="showDeleteAccount = true"
+            />
+          </div>
+        </div>
+      </UCard>
+
+      <!-- Account modals -->
+      <SettingsChangePasswordModal v-model="showChangePassword" />
+      <SettingsSetPasswordModal v-model="showSetPassword" />
+      <SettingsDeleteAccountModal v-model="showDeleteAccount" />
     </div>
   </UContainer>
 </template>
