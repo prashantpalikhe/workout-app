@@ -80,7 +80,8 @@ const navItems = computed<NavigationMenuItem[]>(() => [
           class="flex items-center gap-2"
           :class="collapsed ? 'justify-center w-full' : ''"
         >
-          <img src="/logo.png" alt="Workout" class="size-8 shrink-0 object-contain">
+          <img src="/logo-light.svg" alt="Workout" class="size-8 shrink-0 object-contain block dark:hidden">
+          <img src="/logo-dark.svg" alt="Workout" class="size-8 shrink-0 object-contain hidden dark:block">
           <span v-if="!collapsed" class="font-semibold text-lg truncate"
             >Workout</span
           >
@@ -154,7 +155,8 @@ const navItems = computed<NavigationMenuItem[]>(() => [
             <span class="font-semibold truncate">{{ mobileHeaderTitle }}</span>
           </template>
           <template v-else>
-            <img src="/logo.png" alt="Workout" class="size-6 shrink-0 object-contain">
+            <img src="/logo-light.svg" alt="Workout" class="size-6 shrink-0 object-contain block dark:hidden">
+            <img src="/logo-dark.svg" alt="Workout" class="size-6 shrink-0 object-contain hidden dark:block">
             <span class="font-semibold">Workout</span>
           </template>
         </div>
