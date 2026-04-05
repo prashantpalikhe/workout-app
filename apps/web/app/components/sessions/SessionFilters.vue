@@ -33,32 +33,60 @@ function clearFilters() {
   selectedStatus.value = ''
   sessionStore.resetFilters()
 }
+
+const activeFilterCount = computed(() => (selectedStatus.value ? 1 : 0))
+const filtersExpanded = ref(false)
 </script>
 
 <template>
-  <div class="flex flex-col sm:flex-row flex-wrap gap-3 mb-6">
-    <UInput
-      v-model="searchQuery"
-      placeholder="Search sessions..."
-      icon="i-lucide-search"
-      class="flex-1 min-w-48"
-    />
+  <div class="mb-6">
+    <!-- Search row -->
+    <div class="flex items-center gap-2">
+      <UInput
+        v-model="searchQuery"
+        placeholder="Search sessions..."
+        icon="i-lucide-search"
+        class="flex-1"
+      />
+      <UButton
+        :icon="filtersExpanded ? 'i-lucide-chevron-up' : 'i-lucide-sliders-horizontal'"
+        color="neutral"
+        variant="outline"
+        :aria-label="filtersExpanded ? 'Hide filters' : 'Show filters'"
+        @click="filtersExpanded = !filtersExpanded"
+      >
+        <span
+          v-if="activeFilterCount && !filtersExpanded"
+          class="ml-1 inline-flex items-center justify-center size-5 rounded-full bg-primary text-inverted text-xs font-medium"
+        >
+          {{ activeFilterCount }}
+        </span>
+      </UButton>
+    </div>
 
-    <USelect
-      :model-value="selectedStatus"
-      :items="statusItems"
-      placeholder="All Statuses"
-      class="w-full sm:w-48"
-      @update:model-value="onStatusChange"
-    />
+    <!-- Filters: collapsible on all sizes -->
+    <div
+      v-if="filtersExpanded"
+      class="flex flex-col sm:flex-row sm:flex-wrap gap-3 mt-3"
+    >
+      <USelect
+        :model-value="selectedStatus"
+        :items="statusItems"
+        placeholder="All Statuses"
+        class="w-full sm:w-48"
+        @update:model-value="onStatusChange"
+      />
 
-    <UButton
-      v-if="sessionStore.hasActiveFilters"
-      label="Clear"
-      icon="i-lucide-x"
-      color="neutral"
-      variant="ghost"
-      @click="clearFilters"
-    />
+      <div v-if="sessionStore.hasActiveFilters" class="flex justify-end sm:block">
+        <UButton
+          label="Clear"
+          icon="i-lucide-x"
+          color="neutral"
+          variant="subtle"
+          size="sm"
+          @click="clearFilters"
+        />
+      </div>
+    </div>
   </div>
 </template>
