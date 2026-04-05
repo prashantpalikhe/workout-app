@@ -23,11 +23,8 @@ const { formatEnum } = useFormatEnum()
     side="right"
   >
     <template #body>
-      <div v-if="loading" class="space-y-4">
-        <USkeleton class="h-4 w-3/4" />
-        <USkeleton class="h-4 w-1/2" />
-        <USkeleton class="h-4 w-2/3" />
-        <USkeleton class="h-20 w-full" />
+      <div v-if="loading" class="flex justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
       </div>
 
       <div v-else-if="exercise" class="space-y-6">

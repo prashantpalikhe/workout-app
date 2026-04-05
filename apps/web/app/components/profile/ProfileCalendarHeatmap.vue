@@ -182,7 +182,9 @@ function intensityClass(workout: CalendarWorkoutDay | null): string {
     </div>
 
     <template v-if="loading">
-      <USkeleton class="h-48 w-full rounded-lg" />
+      <div class="h-48 flex items-center justify-center">
+        <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
+      </div>
     </template>
     <template v-else>
       <!-- Day headers -->
@@ -223,9 +225,8 @@ function intensityClass(workout: CalendarWorkoutDay | null): string {
                 </p>
 
                 <!-- Loading -->
-                <div v-if="dayLoading[getDateStr(cell.day)]" class="space-y-2">
-                  <USkeleton class="h-4 w-full" />
-                  <USkeleton class="h-4 w-3/4" />
+                <div v-if="dayLoading[getDateStr(cell.day)]" class="flex justify-center py-4">
+                  <UIcon name="i-lucide-loader-2" class="size-4 animate-spin text-muted" />
                 </div>
 
                 <!-- Sessions list -->

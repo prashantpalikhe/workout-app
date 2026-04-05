@@ -129,16 +129,6 @@ const navItems = computed<NavigationMenuItem[]>(() => [
             @click="authStore.logout()"
           />
         </div>
-        <div
-          v-else
-          class="flex items-center w-full"
-          :class="collapsed ? 'justify-center' : 'gap-2'"
-        >
-          <USkeleton class="size-8 rounded-full shrink-0" />
-          <template v-if="!collapsed">
-            <USkeleton class="h-4 flex-1 rounded" />
-          </template>
-        </div>
       </template>
     </UDashboardSidebar>
 

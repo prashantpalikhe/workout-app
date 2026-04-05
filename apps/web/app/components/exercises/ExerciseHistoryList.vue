@@ -60,8 +60,8 @@ function prLabel(prType: string): string {
 <template>
   <div>
     <template v-if="loading">
-      <div class="space-y-3">
-        <USkeleton v-for="i in 3" :key="i" class="h-32 w-full rounded-lg" />
+      <div class="flex justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
       </div>
     </template>
 

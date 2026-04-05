@@ -21,12 +21,7 @@ defineProps<{
       />
     </div>
 
-    <template v-if="loading">
-      <div class="space-y-3">
-        <USkeleton v-for="i in 3" :key="i" class="h-20 w-full rounded-lg" />
-      </div>
-    </template>
-    <template v-else-if="!sessions.length">
+    <template v-if="!sessions.length && !loading">
       <div class="text-center py-8 text-sm text-muted">
         No completed workouts yet. Start a workout to see it here!
       </div>

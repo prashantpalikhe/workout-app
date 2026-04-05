@@ -77,10 +77,8 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
 <template>
   <UContainer>
     <!-- Loading -->
-    <div v-if="sessionStore.detailLoading" class="py-8">
-      <USkeleton class="h-12 w-64 mb-4" />
-      <USkeleton class="h-48 w-full rounded-lg mb-3" />
-      <USkeleton class="h-48 w-full rounded-lg" />
+    <div v-if="sessionStore.detailLoading" class="flex justify-center py-12">
+      <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
     </div>
 
     <div v-else-if="session">

@@ -123,11 +123,8 @@ function buildChartOptions(unit: string) {
 
     <!-- Loading -->
     <template v-if="loading">
-      <div class="space-y-6">
-        <div v-for="i in charts.length || 2" :key="i">
-          <USkeleton class="h-4 w-32 mb-2" />
-          <USkeleton class="h-48 w-full rounded-lg" />
-        </div>
+      <div class="flex justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
       </div>
     </template>
 

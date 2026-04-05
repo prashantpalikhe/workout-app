@@ -78,10 +78,8 @@ function addExercise(exercise: Exercise) {
         autofocus
       />
 
-      <div v-if="searchLoading" class="space-y-3">
-        <USkeleton class="h-10 w-full" />
-        <USkeleton class="h-10 w-full" />
-        <USkeleton class="h-10 w-full" />
+      <div v-if="searchLoading" class="flex justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
       </div>
 
       <div v-else class="space-y-1 max-h-80 overflow-y-auto">

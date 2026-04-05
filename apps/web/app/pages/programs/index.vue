@@ -215,14 +215,7 @@ function _getFolderPrograms(folderId: string): Program[] {
       </template>
     </AppPageHeader>
 
-    <!-- Loading -->
-    <div v-if="programStore.loading" class="space-y-4">
-      <USkeleton class="h-16 w-full rounded-lg" />
-      <USkeleton class="h-16 w-full rounded-lg" />
-      <USkeleton class="h-16 w-full rounded-lg" />
-    </div>
-
-    <div v-else>
+    <div>
       <UInput
         v-model="searchQuery"
         placeholder="Search programs..."

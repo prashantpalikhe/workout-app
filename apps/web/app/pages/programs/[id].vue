@@ -105,12 +105,9 @@ async function onDeleteConfirm() {
 
 <template>
   <UContainer>
-    <!-- Loading skeleton -->
-    <div v-if="programStore.detailLoading" class="space-y-4 mt-8">
-      <USkeleton class="h-8 w-1/3" />
-      <USkeleton class="h-4 w-1/2" />
-      <USkeleton class="h-20 w-full rounded-lg" />
-      <USkeleton class="h-20 w-full rounded-lg" />
+    <!-- Loading -->
+    <div v-if="programStore.detailLoading" class="flex justify-center py-12">
+      <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
     </div>
 
     <div v-else-if="program">

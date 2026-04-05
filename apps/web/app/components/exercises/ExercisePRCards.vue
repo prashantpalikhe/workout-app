@@ -44,8 +44,8 @@ function prIcon(prType: string): string {
 </script>
 
 <template>
-  <div v-if="loading" class="grid grid-cols-2 sm:grid-cols-4 gap-3">
-    <USkeleton v-for="i in 4" :key="i" class="h-20 rounded-lg" />
+  <div v-if="loading" class="flex justify-center py-12">
+    <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
   </div>
 
   <div

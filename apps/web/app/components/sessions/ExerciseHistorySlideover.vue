@@ -52,12 +52,8 @@ function formatSetSummary(set: ExerciseHistorySession['sets'][number]) {
   <USlideover v-model:open="open" :title="`${exerciseName} History`" side="right">
     <template #body>
       <!-- Loading -->
-      <div v-if="loading" class="space-y-4">
-        <div v-for="i in 3" :key="i" class="space-y-2">
-          <USkeleton class="h-4 w-40" />
-          <USkeleton class="h-6 w-full" />
-          <USkeleton class="h-6 w-full" />
-        </div>
+      <div v-if="loading" class="flex justify-center py-12">
+        <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
       </div>
 
       <!-- Empty -->

@@ -58,15 +58,8 @@ function startWorkout() {
 
     <SessionsSessionFilters />
 
-    <!-- Loading -->
-    <div v-if="sessionStore.loading" class="space-y-3">
-      <USkeleton class="h-24 w-full rounded-lg" />
-      <USkeleton class="h-24 w-full rounded-lg" />
-      <USkeleton class="h-24 w-full rounded-lg" />
-    </div>
-
     <!-- Session list -->
-    <div v-else-if="sessionStore.sessions.length > 0" class="space-y-3">
+    <div v-if="sessionStore.sessions.length > 0" class="space-y-3">
       <SessionsSessionHistoryCard
         v-for="session in sessionStore.sessions"
         :key="session.id"

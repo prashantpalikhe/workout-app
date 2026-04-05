@@ -146,13 +146,7 @@ function getRowActions(exercise: Exercise) {
 
     <!-- Mobile: card list -->
     <div class="md:hidden mb-6 space-y-2">
-      <div
-        v-if="exerciseStore.loading && !exerciseStore.exercises.length"
-        class="space-y-2"
-      >
-        <USkeleton v-for="i in 5" :key="i" class="h-20 w-full rounded-lg" />
-      </div>
-      <template v-else-if="exerciseStore.exercises.length">
+      <template v-if="exerciseStore.exercises.length">
         <button
           v-for="exercise in exerciseStore.exercises"
           :key="exercise.id"

@@ -70,14 +70,9 @@ function formatDate(dateStr: string): string {
       description="Your best performances across all exercises"
     />
 
-    <!-- Loading -->
-    <div v-if="recordsStore.loading" class="space-y-4">
-      <USkeleton v-for="i in 3" :key="i" class="h-32 w-full rounded-lg" />
-    </div>
-
     <!-- Empty -->
     <div
-      v-else-if="recordsStore.records.length === 0"
+      v-if="recordsStore.records.length === 0"
       class="flex flex-col items-center justify-center py-16 text-center"
     >
       <UIcon name="i-lucide-trophy" class="size-12 text-muted mb-4" />

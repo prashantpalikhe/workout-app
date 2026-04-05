@@ -89,7 +89,7 @@ const statusColor: Record<string, string> = {
         </p>
       </div>
 
-      <div v-else class="space-y-3">
+      <div v-else class="space-y-3 sm:space-y-4">
         <UCard
           v-for="rel in trainers"
           :key="rel.id"
