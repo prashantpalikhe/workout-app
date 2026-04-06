@@ -98,11 +98,11 @@ export class ExercisesService {
         SELECT e.id
         FROM exercises e
         WHERE (e.is_global = true OR e.created_by = ${userId})
-          AND (${equipmentFilter}::text IS NULL OR e.equipment = ${equipmentFilter}::text)
-          AND (${movementFilter}::text IS NULL OR e.movement_pattern = ${movementFilter}::text)
+          AND (${equipmentFilter}::text IS NULL OR e.equipment::text = ${equipmentFilter}::text)
+          AND (${movementFilter}::text IS NULL OR e.movement_pattern::text = ${movementFilter}::text)
           AND (${muscleGroupFilter}::text IS NULL OR EXISTS (
             SELECT 1 FROM exercise_muscle_groups emg
-            WHERE emg.exercise_id = e.id AND emg.muscle_group_id = ${muscleGroupFilter}::text
+            WHERE emg.exercise_id = e.id AND emg.muscle_group_id::text = ${muscleGroupFilter}::text
           ))
           AND (word_similarity(${searchTerm}, e.name) > 0.15 OR e.name ILIKE ${searchPattern})
         ORDER BY word_similarity(${searchTerm}, e.name) DESC, e.name ASC
@@ -112,11 +112,11 @@ export class ExercisesService {
         SELECT COUNT(*)::bigint AS count
         FROM exercises e
         WHERE (e.is_global = true OR e.created_by = ${userId})
-          AND (${equipmentFilter}::text IS NULL OR e.equipment = ${equipmentFilter}::text)
-          AND (${movementFilter}::text IS NULL OR e.movement_pattern = ${movementFilter}::text)
+          AND (${equipmentFilter}::text IS NULL OR e.equipment::text = ${equipmentFilter}::text)
+          AND (${movementFilter}::text IS NULL OR e.movement_pattern::text = ${movementFilter}::text)
           AND (${muscleGroupFilter}::text IS NULL OR EXISTS (
             SELECT 1 FROM exercise_muscle_groups emg
-            WHERE emg.exercise_id = e.id AND emg.muscle_group_id = ${muscleGroupFilter}::text
+            WHERE emg.exercise_id = e.id AND emg.muscle_group_id::text = ${muscleGroupFilter}::text
           ))
           AND (word_similarity(${searchTerm}, e.name) > 0.15 OR e.name ILIKE ${searchPattern})
       `,
