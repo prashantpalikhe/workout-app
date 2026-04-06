@@ -1,5 +1,4 @@
 <script setup lang="ts">
-import type { TableColumn } from '#ui/types'
 import type { Exercise } from '~/stores/exercises'
 
 definePageMeta({
@@ -18,7 +17,6 @@ const editingExercise = ref<Exercise | null>(null)
 const showDeleteDialog = ref(false)
 const deletingExercise = ref<Exercise | null>(null)
 
-// Fetch on mount
 onMounted(async () => {
   await Promise.all([
     exerciseStore.fetchExercises(),
@@ -26,28 +24,8 @@ onMounted(async () => {
   ])
 })
 
-// Table columns
-const columns: TableColumn<Exercise>[] = [
-  {
-    accessorKey: 'name',
-    header: 'Name'
-  },
-  {
-    accessorKey: 'equipment',
-    header: 'Equipment'
-  },
-  {
-    accessorKey: 'muscleGroups',
-    header: 'Muscles'
-  },
-  {
-    id: 'actions',
-    header: ''
-  }
-]
-
 // Actions
-function openCreate() {
+function _openCreate() {
   editingExercise.value = null
   showFormModal.value = true
 }
@@ -127,119 +105,62 @@ function getRowActions(exercise: Exercise) {
       title="Exercises"
       description="Browse, search, and manage your exercises"
     >
-      <template #links>
+      <!-- <template #links>
         <UButton
           label="Create Exercise"
           icon="i-lucide-plus"
           @click="openCreate"
         />
-      </template>
+      </template> -->
     </AppPageHeader>
 
     <ExercisesExerciseFilters />
 
-    <!-- Mobile: card list -->
-    <div class="md:hidden mb-6 space-y-2">
-      <template v-if="exerciseStore.exercises.length">
-        <button
-          v-for="exercise in exerciseStore.exercises"
-          :key="exercise.id"
-          type="button"
-          class="w-full text-left flex items-center gap-3 p-3 rounded-lg border border-default bg-default hover:bg-elevated transition-colors"
-          @click="openDetail(exercise)"
-        >
-          <div class="flex-1 min-w-0">
-            <div class="flex items-center gap-2">
-              <span class="font-medium truncate">{{ exercise.name }}</span>
-              <UBadge
-                v-if="!exercise.isGlobal"
-                color="primary"
-                variant="subtle"
-                size="xs"
-              >
-                Custom
-              </UBadge>
-            </div>
-            <div class="mt-0.5 text-xs text-muted truncate">
-              {{
-                [
-                  formatEnum(exercise.equipment),
-                  formatEnum(exercise.movementPattern)
-                ]
-                  .filter(Boolean)
-                  .join(' · ') || '—'
-              }}
-            </div>
-            <div v-if="exercise.muscleGroups?.length" class="mt-2">
-              <ExercisesExerciseMuscleGroupBadges
-                :muscle-groups="exercise.muscleGroups"
-              />
-            </div>
-          </div>
-          <UDropdownMenu
-            :items="getRowActions(exercise)"
-            :content="{ align: 'end' }"
-          >
-            <UButton
-              icon="i-lucide-ellipsis-vertical"
-              color="neutral"
-              variant="ghost"
-              size="sm"
-              @click.stop
-            />
-          </UDropdownMenu>
-        </button>
-      </template>
-      <AppEmptyState
-        v-else
-        icon="i-lucide-search-x"
-        title="No exercises found"
-      >
-        <UButton
-          v-if="exerciseStore.hasActiveFilters"
-          label="Clear Filters"
-          variant="outline"
-          @click="exerciseStore.resetFilters()"
-        />
-      </AppEmptyState>
+    <!-- Loading -->
+    <div v-if="exerciseStore.loading" class="flex justify-center py-12">
+      <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
     </div>
 
-    <!-- Desktop: full table -->
-    <UTable
-      :data="exerciseStore.exercises"
-      :columns="columns"
-      :loading="exerciseStore.loading"
-      class="mb-6 hidden md:block"
-      :ui="{ tr: 'cursor-pointer' }"
-      @select="(_e: Event, row: any) => openDetail(row.original)"
-    >
-      <template #name-cell="{ row }">
-        <div class="flex items-center gap-2">
-          <span class="font-medium">{{ row.original.name }}</span>
-          <UBadge
-            v-if="!row.original.isGlobal"
-            color="primary"
-            variant="subtle"
-            size="xs"
-          >
-            Custom
-          </UBadge>
+    <!-- Exercise list -->
+    <div v-else-if="exerciseStore.exercises.length" class="mb-6 space-y-1">
+      <div
+        v-for="exercise in exerciseStore.exercises"
+        :key="exercise.id"
+        class="flex items-center gap-3 p-2 rounded-lg hover:bg-elevated transition-colors cursor-pointer"
+        @click="openDetail(exercise)"
+      >
+        <img
+          v-if="exercise.imageUrls?.[0]"
+          :src="exercise.imageUrls[0]"
+          :alt="exercise.name"
+          class="size-10 rounded-lg object-cover shrink-0 bg-elevated"
+        >
+        <div
+          v-else
+          class="size-10 rounded-lg bg-elevated flex items-center justify-center shrink-0"
+        >
+          <UIcon name="i-lucide-dumbbell" class="size-4 text-muted" />
         </div>
-      </template>
-
-      <template #equipment-cell="{ row }">
-        {{ formatEnum(row.original.equipment) }}
-      </template>
-
-      <template #muscleGroups-cell="{ row }">
-        <ExercisesExerciseMuscleGroupBadges
-          :muscle-groups="row.original.muscleGroups"
-        />
-      </template>
-
-      <template #actions-cell="{ row }">
+        <div class="min-w-0 flex-1">
+          <div class="flex items-center gap-1.5">
+            <span class="font-medium text-sm truncate">{{ exercise.name }}</span>
+            <UBadge
+              v-if="!exercise.isGlobal"
+              color="primary"
+              variant="subtle"
+              size="xs"
+              class="shrink-0"
+            >
+              Custom
+            </UBadge>
+          </div>
+          <span class="text-xs text-muted">
+            {{ [formatEnum(exercise.equipment), exercise.muscleGroups?.filter(mg => mg.role === 'PRIMARY').map(mg => mg.muscleGroup.name).join(', ')].filter(Boolean).join(' · ') }}
+          </span>
+        </div>
         <UDropdownMenu
-          :items="getRowActions(row.original)"
+          v-if="!exercise.isGlobal"
+          :items="getRowActions(exercise)"
           :content="{ align: 'end' }"
         >
           <UButton
@@ -250,24 +171,24 @@ function getRowActions(exercise: Exercise) {
             @click.stop
           />
         </UDropdownMenu>
-      </template>
+      </div>
+    </div>
 
-      <template #empty>
-        <AppEmptyState
-          icon="i-lucide-search-x"
-          title="No exercises found"
-        >
-          <UButton
-            v-if="exerciseStore.hasActiveFilters"
-            label="Clear Filters"
-            variant="outline"
-            @click="exerciseStore.resetFilters()"
-          />
-        </AppEmptyState>
-      </template>
-    </UTable>
+    <!-- Empty state -->
+    <AppEmptyState
+      v-else
+      icon="i-lucide-search-x"
+      title="No exercises found"
+    >
+      <UButton
+        v-if="exerciseStore.hasActiveFilters"
+        label="Clear Filters"
+        variant="outline"
+        @click="exerciseStore.resetFilters()"
+      />
+    </AppEmptyState>
 
-    <div v-if="exerciseStore.meta.totalPages > 1" class="flex justify-center">
+    <div v-if="exerciseStore.meta.totalPages > 1" class="flex justify-center mt-6">
       <UPagination
         :page="exerciseStore.meta.page"
         :total="exerciseStore.meta.total"

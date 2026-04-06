@@ -81,6 +81,9 @@ export const useExerciseStore = defineStore('exercises', () => {
       || !!filters.muscleGroupId
   )
 
+  const loadingMore = ref(false)
+  const hasMore = computed(() => meta.value.page < meta.value.totalPages)
+
   // ── Actions ──
   async function fetchExercises() {
     loading.value = true
@@ -99,6 +102,28 @@ export const useExerciseStore = defineStore('exercises', () => {
       meta.value = result.meta
     } finally {
       loading.value = false
+    }
+  }
+
+  async function fetchNextPage() {
+    if (loadingMore.value || !hasMore.value) return
+    loadingMore.value = true
+    try {
+      filters.page++
+      const query: Record<string, string | number> = {
+        page: filters.page,
+        limit: filters.limit
+      }
+      if (filters.search) query.search = filters.search
+      if (filters.equipment) query.equipment = filters.equipment
+      if (filters.movementPattern) query.movementPattern = filters.movementPattern
+      if (filters.muscleGroupId) query.muscleGroupId = filters.muscleGroupId
+
+      const result = await api<PaginatedResponse<Exercise>>('/exercises', { query })
+      exercises.value.push(...result.data)
+      meta.value = result.meta
+    } finally {
+      loadingMore.value = false
     }
   }
 
@@ -209,6 +234,9 @@ export const useExerciseStore = defineStore('exercises', () => {
     updateExercise,
     deleteExercise,
     setPage,
+    fetchNextPage,
+    loadingMore,
+    hasMore,
     resetFilters
   }
 })

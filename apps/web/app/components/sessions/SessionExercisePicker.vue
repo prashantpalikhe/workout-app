@@ -115,7 +115,15 @@ async function addExercise(exercise: Exercise) {
         icon="i-lucide-search"
         class="mb-4"
         autofocus
-      />
+      >
+        <template v-if="searchQuery" #trailing>
+          <UIcon
+            name="i-lucide-x"
+            class="size-4 cursor-pointer text-muted hover:text-default"
+            @click="searchQuery = ''"
+          />
+        </template>
+      </UInput>
 
       <div v-if="searchLoading" class="flex justify-center py-12">
         <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />

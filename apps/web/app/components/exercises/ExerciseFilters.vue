@@ -87,7 +87,15 @@ const filtersExpanded = ref(false)
         placeholder="Search exercises..."
         icon="i-lucide-search"
         class="flex-1 bg-black"
-      />
+      >
+        <template v-if="searchQuery" #trailing>
+          <UIcon
+            name="i-lucide-x"
+            class="size-4 cursor-pointer text-muted hover:text-default"
+            @click="searchQuery = ''"
+          />
+        </template>
+      </UInput>
       <!-- Filter toggle button -->
       <UButton
         :icon="
