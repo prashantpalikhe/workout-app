@@ -20,13 +20,15 @@ const _total = ref(0)
 const _sessionDefault = ref<number | null>(null)
 const _context = ref<RestTimerContext | null>(null)
 
-let _intervalId: ReturnType<typeof setInterval> | null = null
+// Timestamp-based tracking so the timer survives iOS background suspension
+let _endTime: number | null = null
+let _rafId: number | null = null
 let _dismissTimeout: ReturnType<typeof setTimeout> | null = null
 
 function _clearTimers() {
-  if (_intervalId) {
-    clearInterval(_intervalId)
-    _intervalId = null
+  if (_rafId) {
+    cancelAnimationFrame(_rafId)
+    _rafId = null
   }
   if (_dismissTimeout) {
     clearTimeout(_dismissTimeout)
@@ -70,10 +72,15 @@ function _vibrate() {
   }
 }
 
-function _onTick() {
-  _remaining.value--
-  if (_remaining.value <= 0) {
+function _tick() {
+  if (!_endTime) return
+
+  const now = Date.now()
+  const msLeft = _endTime - now
+
+  if (msLeft <= 0) {
     _remaining.value = 0
+    _endTime = null
     _isRunning.value = false
     _isCompleted.value = true
     _clearTimers()
@@ -82,8 +89,15 @@ function _onTick() {
     _dismissTimeout = setTimeout(() => {
       _isCompleted.value = false
     }, 3000)
+    return
   }
+
+  _remaining.value = Math.ceil(msLeft / 1000)
+  _rafId = requestAnimationFrame(_tick)
 }
+
+// When the app resumes from background, rAF fires and _tick recalculates
+// from _endTime — no missed time.
 
 export function useRestTimer() {
   const progress = computed(() =>
@@ -100,14 +114,16 @@ export function useRestTimer() {
     _clearTimers()
     _total.value = seconds
     _remaining.value = seconds
+    _endTime = Date.now() + seconds * 1000
     _isRunning.value = true
     _isCompleted.value = false
     if (context) _context.value = context
-    _intervalId = setInterval(_onTick, 1000)
+    _rafId = requestAnimationFrame(_tick)
   }
 
   function skip() {
     _clearTimers()
+    _endTime = null
     _isRunning.value = false
     _isCompleted.value = false
     _remaining.value = 0
@@ -119,10 +135,12 @@ export function useRestTimer() {
       _isCompleted.value = false
       _remaining.value = seconds
       _total.value = seconds
+      _endTime = Date.now() + seconds * 1000
       _isRunning.value = true
-      _intervalId = setInterval(_onTick, 1000)
+      _rafId = requestAnimationFrame(_tick)
       return
     }
+    _endTime = (_endTime ?? Date.now()) + seconds * 1000
     _remaining.value = Math.max(1, _remaining.value + seconds)
     _total.value = Math.max(1, _total.value + seconds)
   }
@@ -133,6 +151,7 @@ export function useRestTimer() {
 
   function reset() {
     _clearTimers()
+    _endTime = null
     _isRunning.value = false
     _isCompleted.value = false
     _remaining.value = 0
