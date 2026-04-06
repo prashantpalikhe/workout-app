@@ -2,6 +2,7 @@
 import type { NavigationMenuItem } from '@nuxt/ui'
 
 const authStore = useAuthStore()
+const sessionStore = useSessionStore()
 const route = useRoute()
 const sidebarOpen = ref(false)
 const mobileHeaderTitle = useState<string>('mobile-header-title', () => '')
@@ -149,10 +150,26 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
 
         <div class="mt-auto" />
 
-        <!-- Start Workout -->
-        <div class="mx-2 mb-4" :class="collapsed ? 'flex justify-center' : ''">
+        <!-- Start / Resume Workout (hidden on active session page) -->
+        <div
+          v-if="!(sessionStore.hasActiveSession && route.path === '/sessions/active')"
+          class="mx-2 mb-4"
+          :class="collapsed ? 'flex justify-center' : ''"
+        >
+          <UButton
+            v-if="sessionStore.hasActiveSession"
+            label="Resume Workout"
+            icon="i-lucide-play"
+            color="primary"
+            :block="!collapsed"
+            to="/sessions/active"
+          >
+            <template v-if="collapsed" #default>
+              <span class="sr-only">Resume Workout</span>
+            </template>
+          </UButton>
           <AppStartWorkoutButton
-            v-if="!collapsed"
+            v-else-if="!collapsed"
             label="Start Workout"
             block
             dropdown-side="top"
