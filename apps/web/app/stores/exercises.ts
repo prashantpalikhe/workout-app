@@ -84,8 +84,21 @@ export const useExerciseStore = defineStore('exercises', () => {
   const loadingMore = ref(false)
   const hasMore = computed(() => meta.value.page < meta.value.totalPages)
 
+  // Track whether the initial (unfiltered, page 1) fetch has completed
+  const initialLoaded = ref(false)
+
   // ── Actions ──
-  async function fetchExercises() {
+  async function fetchExercises(force = false) {
+    // Skip if already loaded with default filters and not forced
+    if (
+      !force
+      && initialLoaded.value
+      && !hasActiveFilters.value
+      && filters.page === 1
+    ) {
+      return
+    }
+
     loading.value = true
     try {
       const query: Record<string, string | number> = {
@@ -100,6 +113,10 @@ export const useExerciseStore = defineStore('exercises', () => {
       const result = await api<PaginatedResponse<Exercise>>('/exercises', { query })
       exercises.value = result.data
       meta.value = result.meta
+
+      if (!hasActiveFilters.value && filters.page === 1) {
+        initialLoaded.value = true
+      }
     } finally {
       loading.value = false
     }
@@ -148,7 +165,7 @@ export const useExerciseStore = defineStore('exercises', () => {
       method: 'POST',
       body: input
     })
-    await fetchExercises()
+    await fetchExercises(true)
     return created
   }
 
@@ -168,6 +185,8 @@ export const useExerciseStore = defineStore('exercises', () => {
     exercises.value = exercises.value.filter(e => e.id !== id)
     meta.value.total--
     if (selectedExercise.value?.id === id) selectedExercise.value = null
+    // Invalidate so next visit refetches fresh data
+    initialLoaded.value = false
   }
 
   function setPage(page: number) {
