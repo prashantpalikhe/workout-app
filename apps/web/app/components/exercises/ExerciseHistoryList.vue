@@ -5,7 +5,7 @@ defineProps<{
   sessions: ExerciseHistorySession[]
   loading: boolean
   trackingType: string
-  meta: { page: number; limit: number; total: number; totalPages: number }
+  meta: { page: number, limit: number, total: number, totalPages: number }
 }>()
 
 const emit = defineEmits<{

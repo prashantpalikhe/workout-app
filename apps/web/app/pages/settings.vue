@@ -217,8 +217,12 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
       <UCard v-if="false">
         <div class="space-y-5">
           <div>
-            <p class="font-medium">Appearance</p>
-            <p class="text-sm text-muted">Choose your preferred theme</p>
+            <p class="font-medium">
+              Appearance
+            </p>
+            <p class="text-sm text-muted">
+              Choose your preferred theme
+            </p>
           </div>
           <div class="flex gap-2">
             <UButton
@@ -240,8 +244,12 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">Units</p>
-              <p class="text-sm text-muted">Weight and measurement units</p>
+              <p class="font-medium">
+                Units
+              </p>
+              <p class="text-sm text-muted">
+                Weight and measurement units
+              </p>
             </div>
             <USelect
               v-model="unitPreference"
@@ -258,7 +266,9 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">Trainer Mode</p>
+              <p class="font-medium">
+                Trainer Mode
+              </p>
               <p class="text-sm text-muted">
                 Manage athletes and log workouts on their behalf
               </p>
@@ -286,7 +296,9 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
                 />
               </div>
               <div>
-                <p class="font-semibold">Disable Trainer Mode?</p>
+                <p class="font-semibold">
+                  Disable Trainer Mode?
+                </p>
                 <p class="text-sm text-muted mt-1">
                   All your active athlete relationships will be deactivated. You
                   can re-enable trainer mode later to reactivate them.
@@ -316,7 +328,9 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>
-              <p class="font-medium">Rest Timer</p>
+              <p class="font-medium">
+                Rest Timer
+              </p>
               <p class="text-sm text-muted">
                 Automatically start a countdown timer after completing a set
               </p>
@@ -325,7 +339,9 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
           </div>
 
           <div v-if="restTimerEnabled" class="pt-2 border-t border-default">
-            <p class="text-sm font-medium mb-3">Default Rest Duration</p>
+            <p class="text-sm font-medium mb-3">
+              Default Rest Duration
+            </p>
             <div class="flex items-center gap-2">
               <USelect
                 v-model.number="restMinutes"
@@ -354,14 +370,20 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
       <UCard>
         <div class="space-y-5">
           <div>
-            <p class="font-medium">Account</p>
-            <p class="text-sm text-muted">{{ authStore.user?.email }}</p>
+            <p class="font-medium">
+              Account
+            </p>
+            <p class="text-sm text-muted">
+              {{ authStore.user?.email }}
+            </p>
           </div>
 
           <!-- Password -->
           <div class="flex items-center justify-between pt-2 border-t border-default">
             <div>
-              <p class="text-sm font-medium">Password</p>
+              <p class="text-sm font-medium">
+                Password
+              </p>
               <p class="text-xs text-muted">
                 {{ hasPassword
                   ? 'Change your login password'
@@ -389,7 +411,9 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
           <!-- Danger zone -->
           <div class="flex items-center justify-between pt-2 border-t border-default">
             <div>
-              <p class="text-sm font-medium text-error">Delete Account</p>
+              <p class="text-sm font-medium text-error">
+                Delete Account
+              </p>
               <p class="text-xs text-muted">
                 Permanently remove your account and all your workouts
               </p>

@@ -46,7 +46,7 @@ async function submit() {
           description="Your workouts, programs, personal records, and all associated data will be permanently deleted."
         />
         <UFormField
-          label='Type "DELETE" to confirm'
+          label="Type &quot;DELETE&quot; to confirm"
           required
         >
           <UInput

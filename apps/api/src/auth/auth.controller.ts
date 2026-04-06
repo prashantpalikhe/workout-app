@@ -30,7 +30,12 @@ import {
   type SetPasswordInput,
 } from '@workout/shared';
 import { AuthService } from './auth.service';
-import { CurrentUser, Public, ZodValidationPipe, zodToOpenApi } from '../common';
+import {
+  CurrentUser,
+  Public,
+  ZodValidationPipe,
+  zodToOpenApi,
+} from '../common';
 
 @ApiTags('auth')
 @Controller('auth')

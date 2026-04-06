@@ -59,8 +59,12 @@ onMounted(() => {
             <UIcon name="i-lucide-dumbbell" class="size-5 text-primary" />
           </div>
           <div>
-            <p class="font-medium">Ready to work out?</p>
-            <p class="text-sm text-muted">Start a new session</p>
+            <p class="font-medium">
+              Ready to work out?
+            </p>
+            <p class="text-sm text-muted">
+              Start a new session
+            </p>
           </div>
         </div>
         <AppStartWorkoutButton />

@@ -38,38 +38,60 @@ const formattedDate = computed(() => {
   })
 })
 
-const totalSets = computed(() =>
-  session.value?.sessionExercises.reduce((sum, ex) => sum + ex.sets.length, 0) ?? 0
+const totalSets = computed(
+  () =>
+    session.value?.sessionExercises.reduce(
+      (sum, ex) => sum + ex.sets.length,
+      0
+    ) ?? 0
 )
 
-const completedSets = computed(() =>
-  session.value?.sessionExercises.reduce(
-    (sum, ex) => sum + ex.sets.filter(s => s.completed).length,
-    0
-  ) ?? 0
+const completedSets = computed(
+  () =>
+    session.value?.sessionExercises.reduce(
+      (sum, ex) => sum + ex.sets.filter(s => s.completed).length,
+      0
+    ) ?? 0
 )
 
 // Determine columns for an exercise's tracking type
 function getColumnLabels(trackingType: string) {
   const base = ['Set', 'Type']
   switch (trackingType) {
-    case 'WEIGHT_REPS': return [...base, 'Weight (kg)', 'Reps', 'RPE']
-    case 'REPS_ONLY': return [...base, 'Reps', 'RPE']
-    case 'DURATION': return [...base, 'Duration (s)', 'RPE']
-    case 'WEIGHT_DURATION': return [...base, 'Weight (kg)', 'Duration (s)', 'RPE']
-    case 'DISTANCE_DURATION': return [...base, 'Distance (km)', 'Duration (s)', 'RPE']
-    default: return [...base, 'Weight (kg)', 'Reps', 'RPE']
+    case 'WEIGHT_REPS':
+      return [...base, 'Weight (kg)', 'Reps', 'RPE']
+    case 'REPS_ONLY':
+      return [...base, 'Reps', 'RPE']
+    case 'DURATION':
+      return [...base, 'Duration (s)', 'RPE']
+    case 'WEIGHT_DURATION':
+      return [...base, 'Weight (kg)', 'Duration (s)', 'RPE']
+    case 'DISTANCE_DURATION':
+      return [...base, 'Distance (km)', 'Duration (s)', 'RPE']
+    default:
+      return [...base, 'Weight (kg)', 'Reps', 'RPE']
   }
 }
 
-function getSetValues(set: typeof session.value extends null ? never : NonNullable<typeof session.value>['sessionExercises'][0]['sets'][0], trackingType: string) {
+function getSetValues(
+  set: typeof session.value extends null
+    ? never
+    : NonNullable<typeof session.value>['sessionExercises'][0]['sets'][0],
+  trackingType: string
+) {
   switch (trackingType) {
-    case 'WEIGHT_REPS': return [set.weight ?? '-', set.reps ?? '-', set.rpe ?? '-']
-    case 'REPS_ONLY': return [set.reps ?? '-', set.rpe ?? '-']
-    case 'DURATION': return [set.durationSec ?? '-', set.rpe ?? '-']
-    case 'WEIGHT_DURATION': return [set.weight ?? '-', set.durationSec ?? '-', set.rpe ?? '-']
-    case 'DISTANCE_DURATION': return [set.distance ?? '-', set.durationSec ?? '-', set.rpe ?? '-']
-    default: return [set.weight ?? '-', set.reps ?? '-', set.rpe ?? '-']
+    case 'WEIGHT_REPS':
+      return [set.weight ?? '-', set.reps ?? '-', set.rpe ?? '-']
+    case 'REPS_ONLY':
+      return [set.reps ?? '-', set.rpe ?? '-']
+    case 'DURATION':
+      return [set.durationSec ?? '-', set.rpe ?? '-']
+    case 'WEIGHT_DURATION':
+      return [set.weight ?? '-', set.durationSec ?? '-', set.rpe ?? '-']
+    case 'DISTANCE_DURATION':
+      return [set.distance ?? '-', set.durationSec ?? '-', set.rpe ?? '-']
+    default:
+      return [set.weight ?? '-', set.reps ?? '-', set.rpe ?? '-']
   }
 }
 </script>
@@ -87,7 +109,10 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
           <div class="flex items-center gap-3 flex-wrap">
             <SessionsSessionStatusBadge :status="session.status" />
             <span class="text-sm text-muted">{{ formattedDate }}</span>
-            <span v-if="duration" class="text-sm text-muted flex items-center gap-1">
+            <span
+              v-if="duration"
+              class="text-sm text-muted flex items-center gap-1"
+            >
               <UIcon name="i-lucide-clock" class="size-3.5" />
               {{ duration }}
             </span>
@@ -153,10 +178,7 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
 
       <!-- Exercises -->
       <div class="space-y-4">
-        <UCard
-          v-for="exercise in session.sessionExercises"
-          :key="exercise.id"
-        >
+        <UCard v-for="exercise in session.sessionExercises" :key="exercise.id">
           <!-- Exercise header -->
           <div class="flex items-center gap-2 mb-3">
             <span class="font-medium">{{ exercise.exercise.name }}</span>
@@ -178,7 +200,10 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
           </div>
 
           <!-- Exercise notes -->
-          <p v-if="exercise.notes" class="text-sm text-muted mb-3 flex items-center gap-1.5">
+          <p
+            v-if="exercise.notes"
+            class="text-sm text-muted mb-3 flex items-center gap-1.5"
+          >
             <UIcon name="i-lucide-message-square" class="size-3.5 shrink-0" />
             {{ exercise.notes }}
           </p>
@@ -189,24 +214,28 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
               <thead>
                 <tr class="border-b border-default">
                   <th
-                    v-for="label in getColumnLabels(exercise.exercise.trackingType)"
+                    v-for="label in getColumnLabels(
+                      exercise.exercise.trackingType
+                    )"
                     :key="label"
                     class="text-left text-xs font-medium text-muted py-1 px-2"
                   >
                     {{ label }}
                   </th>
-                  <th class="text-left text-xs font-medium text-muted py-1 px-2">
+                  <th
+                    class="text-left text-xs font-medium text-muted py-1 px-2"
+                  >
                     Done
                   </th>
                 </tr>
               </thead>
               <tbody>
-                <template
-                  v-for="(set, i) in exercise.sets"
-                  :key="set.id"
-                >
+                <template v-for="(set, i) in exercise.sets" :key="set.id">
                   <tr
-                    :class="[set.completed ? '' : 'opacity-50', set.notes ? '' : 'border-b border-default last:border-0']"
+                    :class="[
+                      set.completed ? '' : 'opacity-50',
+                      set.notes ? '' : 'border-b border-default last:border-0'
+                    ]"
                   >
                     <td class="py-1.5 px-2">
                       {{ i + 1 }}
@@ -215,7 +244,10 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
                       {{ formatEnum(set.setType) }}
                     </td>
                     <td
-                      v-for="(val, vi) in getSetValues(set, exercise.exercise.trackingType)"
+                      v-for="(val, vi) in getSetValues(
+                        set,
+                        exercise.exercise.trackingType
+                      )"
                       :key="vi"
                       class="py-1.5 px-2"
                     >
@@ -223,7 +255,11 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
                     </td>
                     <td class="py-1.5 px-2 flex items-center gap-1">
                       <UIcon
-                        :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
+                        :name="
+                          set.completed
+                            ? 'i-lucide-check-circle-2'
+                            : 'i-lucide-circle'
+                        "
                         class="size-4"
                         :class="set.completed ? 'text-success' : 'text-muted'"
                       />
@@ -238,10 +274,22 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
                       </UBadge>
                     </td>
                   </tr>
-                  <tr v-if="set.notes" class="border-b border-default last:border-0">
-                    <td :colspan="getColumnLabels(exercise.exercise.trackingType).length + 1" class="py-1 px-2">
+                  <tr
+                    v-if="set.notes"
+                    class="border-b border-default last:border-0"
+                  >
+                    <td
+                      :colspan="
+                        getColumnLabels(exercise.exercise.trackingType).length
+                          + 1
+                      "
+                      class="py-1 px-2"
+                    >
                       <p class="text-xs text-muted flex items-center gap-1">
-                        <UIcon name="i-lucide-message-square" class="size-3 shrink-0" />
+                        <UIcon
+                          name="i-lucide-message-square"
+                          class="size-3 shrink-0"
+                        />
                         {{ set.notes }}
                       </p>
                     </td>
@@ -263,10 +311,6 @@ function getSetValues(set: typeof session.value extends null ? never : NonNullab
     </div>
 
     <!-- Not found -->
-    <AppEmptyState
-      v-else
-      icon="i-lucide-search-x"
-      title="Session not found"
-    />
+    <AppEmptyState v-else icon="i-lucide-search-x" title="Session not found" />
   </UContainer>
 </template>

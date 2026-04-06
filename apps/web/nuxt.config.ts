@@ -13,11 +13,6 @@ export default defineNuxtConfig({
 
   ssr: false,
 
-  colorMode: {
-    preference: 'dark',
-    fallback: 'dark'
-  },
-
   devtools: {
     enabled: true
   },
@@ -44,6 +39,11 @@ export default defineNuxtConfig({
   },
 
   css: ['~/assets/css/main.css'],
+
+  colorMode: {
+    preference: 'dark',
+    fallback: 'dark'
+  },
 
   runtimeConfig: {
     // Server-only — target for the /api proxy handler. Read at request time,

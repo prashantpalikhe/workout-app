@@ -1,8 +1,5 @@
 <script setup lang="ts">
-import {
-  EXERCISE_EQUIPMENT,
-  EXERCISE_MOVEMENT_PATTERNS
-} from '@workout/shared'
+import { EXERCISE_EQUIPMENT, EXERCISE_MOVEMENT_PATTERNS } from '@workout/shared'
 
 const exerciseStore = useExerciseStore()
 const { formatEnum } = useFormatEnum()
@@ -89,11 +86,15 @@ const filtersExpanded = ref(false)
         v-model="searchQuery"
         placeholder="Search exercises..."
         icon="i-lucide-search"
-        class="flex-1"
+        class="flex-1 bg-black"
       />
       <!-- Filter toggle button -->
       <UButton
-        :icon="filtersExpanded ? 'i-lucide-chevron-up' : 'i-lucide-sliders-horizontal'"
+        :icon="
+          filtersExpanded
+            ? 'i-lucide-chevron-up'
+            : 'i-lucide-sliders-horizontal'
+        "
         color="neutral"
         variant="outline"
         :aria-label="filtersExpanded ? 'Hide filters' : 'Show filters'"
@@ -137,7 +138,10 @@ const filtersExpanded = ref(false)
         @update:model-value="onMuscleGroupChange"
       />
 
-      <div v-if="exerciseStore.hasActiveFilters" class="flex justify-end sm:block">
+      <div
+        v-if="exerciseStore.hasActiveFilters"
+        class="flex justify-end sm:block"
+      >
         <UButton
           label="Clear"
           icon="i-lucide-x"

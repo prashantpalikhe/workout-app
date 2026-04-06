@@ -231,7 +231,7 @@ function getRowActions(exercise: Exercise) {
         {{ formatEnum(row.original.equipment) }}
       </template>
 
-<template #muscleGroups-cell="{ row }">
+      <template #muscleGroups-cell="{ row }">
         <ExercisesExerciseMuscleGroupBadges
           :muscle-groups="row.original.muscleGroups"
         />
