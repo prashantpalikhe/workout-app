@@ -1,5 +1,13 @@
-// Global exercise catalog — seeded into DB via prisma/seed.ts and used by
-// prisma/scripts/sync-exercise-images.ts to match against free-exercise-db.
+// Global exercise catalog — built from free-exercise-db (public domain)
+// https://github.com/yuhonas/free-exercise-db
+//
+// The raw JSON lives in free-exercise-db.json (873 exercises).
+// This file maps the raw data to our Prisma enums.
+
+import { readFileSync } from 'node:fs';
+import { join } from 'node:path';
+
+// ── Types matching our Prisma enums ─────────────────
 
 export type TrackingType =
   | 'WEIGHT_REPS'
@@ -35,798 +43,186 @@ export interface ExerciseSeed {
   equipment: Equipment;
   movementPattern: Movement;
   muscles: { name: string; role: MuscleRole }[];
+  instructions?: string;
+  imageUrls: string[];
 }
 
-export const exercises: ExerciseSeed[] = [
-  // ── Barbell Compounds ──────────────────────
-  {
-    name: 'Barbell Bench Press', // fe: Barbell_Bench_Press_-_Medium_Grip
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Front Delts', role: 'SECONDARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Incline Barbell Bench Press', // fe: Barbell_Incline_Bench_Press_-_Medium_Grip
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Front Delts', role: 'PRIMARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Barbell Back Squat', // fe: Barbell_Squat
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'SECONDARY' },
-      { name: 'Lower Back', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Barbell Front Squat', // fe: Front_Squat_Clean_Grip
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'SECONDARY' },
-      { name: 'Abs', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Conventional Deadlift', // fe: Barbell_Deadlift
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'HINGE',
-    muscles: [
-      { name: 'Hamstrings', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Lower Back', role: 'PRIMARY' },
-      { name: 'Quads', role: 'SECONDARY' },
-      { name: 'Traps', role: 'SECONDARY' },
-      { name: 'Forearms', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Romanian Deadlift',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'HINGE',
-    muscles: [
-      { name: 'Hamstrings', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Lower Back', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Barbell Overhead Press', // fe: Barbell_Shoulder_Press
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Front Delts', role: 'PRIMARY' },
-      { name: 'Side Delts', role: 'SECONDARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Barbell Bent-Over Row', // fe: Barbell_Rear_Delt_Row
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Upper Back', role: 'PRIMARY' },
-      { name: 'Biceps', role: 'SECONDARY' },
-      { name: 'Rear Delts', role: 'SECONDARY' },
-    ],
-  },
+// ── Raw shape from free-exercise-db.json ────────────
 
-  // ── Dumbbell ───────────────────────────────
-  {
-    name: 'Dumbbell Bench Press', // fe: Dumbbell_Bench_Press
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Front Delts', role: 'SECONDARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Dumbbell Shoulder Press', // fe: Dumbbell_Shoulder_Press
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Front Delts', role: 'PRIMARY' },
-      { name: 'Side Delts', role: 'SECONDARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Dumbbell Lateral Raise',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Side Delts', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Dumbbell Bicep Curl', // fe: Dumbbell_Bicep_Curl
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Biceps', role: 'PRIMARY' },
-      { name: 'Forearms', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Dumbbell Row', //Dumbbell_Incline_Row
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-      { name: 'Biceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Dumbbell Romanian Deadlift',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'HINGE',
-    muscles: [
-      { name: 'Hamstrings', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Lower Back', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Dumbbell Lunges', //fe: Dumbbell_Lunges
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Dumbbell Tricep Overhead Extension', 
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Triceps', role: 'PRIMARY' }],
-  },
+interface RawExercise {
+  id: string;
+  name: string;
+  force: string | null;
+  level: string;
+  mechanic: string | null;
+  equipment: string | null;
+  primaryMuscles: string[];
+  secondaryMuscles: string[];
+  instructions: string[];
+  category: string;
+  images: string[];
+}
 
-  // ── Cable ──────────────────────────────────
-  {
-    name: 'Cable Lat Pulldown',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'CABLE',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Biceps', role: 'SECONDARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Cable Row',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'CABLE',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Upper Back', role: 'PRIMARY' },
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Biceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Cable Tricep Pushdown',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'CABLE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Triceps', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Cable Face Pull',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'CABLE',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Rear Delts', role: 'PRIMARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-      { name: 'Rotator Cuff', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Cable Fly',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'CABLE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Chest', role: 'PRIMARY' }],
-  },
+// ── Mapping tables ──────────────────────────────────
 
-  // ── Machine ────────────────────────────────
-  {
-    name: 'Leg Press',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Leg Extension',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Quads', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Leg Curl',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Hamstrings', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Calf Raise Machine',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Calves', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Chest Press Machine',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Hip Abductor Machine',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Abductors', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Hip Adductor Machine',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Adductors', role: 'PRIMARY' }],
-  },
+const EQUIPMENT_MAP: Record<string, Equipment> = {
+  barbell: 'BARBELL',
+  dumbbell: 'DUMBBELL',
+  cable: 'CABLE',
+  machine: 'MACHINE',
+  'body only': 'BODYWEIGHT',
+  bands: 'BAND',
+  kettlebells: 'KETTLEBELL',
+  'e-z curl bar': 'BARBELL',
+  'exercise ball': 'OTHER',
+  'foam roll': 'OTHER',
+  'medicine ball': 'OTHER',
+  other: 'OTHER',
+};
 
-  // ── Bodyweight ─────────────────────────────
-  {
-    name: 'Pull-Up',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Biceps', role: 'SECONDARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Chin-Up',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Biceps', role: 'PRIMARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Push-Up',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-      { name: 'Front Delts', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Dip',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Triceps', role: 'PRIMARY' },
-      { name: 'Front Delts', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Plank',
-    trackingType: 'DURATION',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Abs', role: 'PRIMARY' },
-      { name: 'Obliques', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Hanging Leg Raise',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Abs', role: 'PRIMARY' },
-      { name: 'Hip Flexors', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Bodyweight Squat',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'SECONDARY' },
-    ],
-  },
+// free-exercise-db has 17 muscle names → our 22 muscle groups
+const MUSCLE_MAP: Record<string, string> = {
+  abdominals: 'Abs',
+  abductors: 'Abductors',
+  adductors: 'Adductors',
+  biceps: 'Biceps',
+  calves: 'Calves',
+  chest: 'Chest',
+  forearms: 'Forearms',
+  glutes: 'Glutes',
+  hamstrings: 'Hamstrings',
+  lats: 'Lats',
+  'lower back': 'Lower Back',
+  'middle back': 'Upper Back',
+  neck: 'Neck',
+  quadriceps: 'Quads',
+  shoulders: 'Front Delts', // broad "shoulders" → Front Delts as primary
+  traps: 'Traps',
+  triceps: 'Triceps',
+};
 
-  // ── Kettlebell ─────────────────────────────
-  {
-    name: 'Kettlebell Swing',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'KETTLEBELL',
-    movementPattern: 'HINGE',
-    muscles: [
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'PRIMARY' },
-      { name: 'Lower Back', role: 'SECONDARY' },
-      { name: 'Abs', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Kettlebell Goblet Squat',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'KETTLEBELL',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Abs', role: 'SECONDARY' },
-    ],
-  },
+// Image base URL for free-exercise-db hosted on GitHub Pages
+const IMAGE_BASE =
+  'https://raw.githubusercontent.com/yuhonas/free-exercise-db/main/exercises';
 
-  // ── Carry ──────────────────────────────────
-  {
-    name: "Farmer's Walk",
-    trackingType: 'DISTANCE_DURATION',
-    equipment: 'DUMBBELL',
-    movementPattern: 'CARRY',
-    muscles: [
-      { name: 'Forearms', role: 'PRIMARY' },
-      { name: 'Traps', role: 'PRIMARY' },
-      { name: 'Abs', role: 'SECONDARY' },
-    ],
-  },
+// ── Derive movement pattern from force + mechanic + muscles ──
 
-  // ── More Barbell ───────────────────────────
-  {
-    name: 'Decline Barbell Bench Press',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Front Delts', role: 'SECONDARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Sumo Deadlift',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'HINGE',
-    muscles: [
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'PRIMARY' },
-      { name: 'Quads', role: 'SECONDARY' },
-      { name: 'Lower Back', role: 'SECONDARY' },
-      { name: 'Adductors', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Barbell Hip Thrust',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'HINGE',
-    muscles: [
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Barbell Shrug',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Traps', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Barbell Bicep Curl',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Biceps', role: 'PRIMARY' },
-      { name: 'Forearms', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Close-Grip Barbell Bench Press',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Triceps', role: 'PRIMARY' },
-      { name: 'Chest', role: 'SECONDARY' },
-      { name: 'Front Delts', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Skull Crusher',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'BARBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Triceps', role: 'PRIMARY' }],
-  },
+function deriveMovementPattern(raw: RawExercise): Movement {
+  const muscles = raw.primaryMuscles.map((m) => m.toLowerCase());
+  const name = raw.name.toLowerCase();
+  const force = raw.force ?? '';
+  const mechanic = raw.mechanic ?? '';
 
-  // ── More Dumbbell ──────────────────────────
-  {
-    name: 'Incline Dumbbell Press',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Front Delts', role: 'PRIMARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Incline Dumbbell Fly',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Chest', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Hammer Curl',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Biceps', role: 'PRIMARY' },
-      { name: 'Forearms', role: 'PRIMARY' },
-    ],
-  },
-  {
-    name: 'Concentration Curl',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Biceps', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Dumbbell Rear Delt Fly',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Rear Delts', role: 'PRIMARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Bulgarian Split Squat',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Dumbbell Step-Up',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Dumbbell Shrug',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'DUMBBELL',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Traps', role: 'PRIMARY' }],
-  },
+  // Squat patterns
+  if (
+    name.includes('squat') ||
+    name.includes('leg press') ||
+    name.includes('lunge') ||
+    name.includes('step-up')
+  ) {
+    return 'SQUAT';
+  }
 
-  // ── More Cable ─────────────────────────────
-  {
-    name: 'Cable Bicep Curl',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'CABLE',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Biceps', role: 'PRIMARY' },
-      { name: 'Forearms', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Cable Lateral Raise',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'CABLE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Side Delts', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Cable Crossover',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'CABLE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Chest', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Straight-Arm Pulldown',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'CABLE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Lats', role: 'PRIMARY' }],
-  },
+  // Hinge patterns
+  if (
+    name.includes('deadlift') ||
+    name.includes('hip thrust') ||
+    name.includes('good morning') ||
+    name.includes('hyperextension') ||
+    name.includes('romanian') ||
+    name.includes('kettlebell swing')
+  ) {
+    return 'HINGE';
+  }
 
-  // ── More Machine ──────────────────────────
-  {
-    name: 'Pec Deck / Chest Fly Machine',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Chest', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Seated Cable Row Machine',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Upper Back', role: 'PRIMARY' },
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Biceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Lat Pulldown Machine',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Biceps', role: 'SECONDARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Seated Calf Raise',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Calves', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Preacher Curl Machine',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Biceps', role: 'PRIMARY' },
-      { name: 'Forearms', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Smith Machine Bench Press',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Front Delts', role: 'SECONDARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Smith Machine Squat',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'MACHINE',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'SECONDARY' },
-    ],
-  },
+  // Carry patterns
+  if (name.includes('carry') || name.includes("farmer's walk")) {
+    return 'CARRY';
+  }
 
-  // ── More Bodyweight ────────────────────────
-  {
-    name: 'Pike Push-Up',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Front Delts', role: 'PRIMARY' },
-      { name: 'Side Delts', role: 'SECONDARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Incline Push-Up',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Chest', role: 'PRIMARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-      { name: 'Front Delts', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Reverse Crunch',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Abs', role: 'PRIMARY' },
-      { name: 'Hip Flexors', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Bicycle Crunch',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'ISOLATION',
-    muscles: [
-      { name: 'Abs', role: 'PRIMARY' },
-      { name: 'Obliques', role: 'PRIMARY' },
-    ],
-  },
-  {
-    name: 'Glute Bridge',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'HINGE',
-    muscles: [
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Bodyweight Calf Raise',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'ISOLATION',
-    muscles: [{ name: 'Calves', role: 'PRIMARY' }],
-  },
-  {
-    name: 'Pistol Squat',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'SQUAT',
-    muscles: [
-      { name: 'Quads', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Hamstrings', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Australian Pull-Up',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BODYWEIGHT',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Biceps', role: 'SECONDARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-    ],
-  },
+  // Rotation patterns
+  if (
+    name.includes('twist') ||
+    name.includes('rotation') ||
+    name.includes('wood chop')
+  ) {
+    return 'ROTATION';
+  }
 
-  // ── More Kettlebell ────────────────────────
-  {
-    name: 'Kettlebell Turkish Get-Up',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'KETTLEBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Front Delts', role: 'PRIMARY' },
-      { name: 'Abs', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Kettlebell Row',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'KETTLEBELL',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Lats', role: 'PRIMARY' },
-      { name: 'Upper Back', role: 'PRIMARY' },
-      { name: 'Biceps', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Kettlebell Clean and Press',
-    trackingType: 'WEIGHT_REPS',
-    equipment: 'KETTLEBELL',
-    movementPattern: 'PUSH',
-    muscles: [
-      { name: 'Front Delts', role: 'PRIMARY' },
-      { name: 'Glutes', role: 'PRIMARY' },
-      { name: 'Quads', role: 'SECONDARY' },
-      { name: 'Triceps', role: 'SECONDARY' },
-    ],
-  },
+  // Isolation
+  if (mechanic === 'isolation') {
+    return 'ISOLATION';
+  }
 
-  // ── Band ───────────────────────────────────
-  {
-    name: 'Band Pull-Apart',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BAND',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Rear Delts', role: 'PRIMARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-      { name: 'Rotator Cuff', role: 'SECONDARY' },
-    ],
-  },
-  {
-    name: 'Band Face Pull',
-    trackingType: 'REPS_ONLY',
-    equipment: 'BAND',
-    movementPattern: 'PULL',
-    muscles: [
-      { name: 'Rear Delts', role: 'PRIMARY' },
-      { name: 'Upper Back', role: 'SECONDARY' },
-      { name: 'Rotator Cuff', role: 'SECONDARY' },
-    ],
-  },
-];
+  // Push/Pull from force field
+  if (force === 'push') return 'PUSH';
+  if (force === 'pull') return 'PULL';
+  if (force === 'static') return 'ISOLATION';
+
+  // Fallback: guess from primary muscles
+  if (muscles.some((m) => ['chest', 'shoulders', 'triceps'].includes(m))) {
+    return 'PUSH';
+  }
+  if (
+    muscles.some((m) => ['lats', 'biceps', 'middle back', 'traps'].includes(m))
+  ) {
+    return 'PULL';
+  }
+
+  return 'PUSH'; // safe fallback
+}
+
+// ── Derive tracking type from category + equipment ──
+
+function deriveTrackingType(raw: RawExercise): TrackingType {
+  const cat = raw.category.toLowerCase();
+  const name = raw.name.toLowerCase();
+
+  if (cat === 'cardio') return 'DURATION';
+  if (cat === 'stretching') return 'DURATION';
+
+  if (
+    name.includes('plank') ||
+    name.includes('hold') ||
+    name.includes('hang')
+  ) {
+    return 'DURATION';
+  }
+
+  if (raw.equipment === 'body only') return 'REPS_ONLY';
+
+  return 'WEIGHT_REPS';
+}
+
+// ── Build exercises from JSON ───────────────────────
+
+function loadRawExercises(): RawExercise[] {
+  const filePath = join(__dirname, 'free-exercise-db.json');
+  return JSON.parse(readFileSync(filePath, 'utf-8'));
+}
+
+function mapExercise(raw: RawExercise): ExerciseSeed {
+  const muscles: ExerciseSeed['muscles'] = [];
+
+  for (const m of raw.primaryMuscles) {
+    const mapped = MUSCLE_MAP[m.toLowerCase()];
+    if (mapped) muscles.push({ name: mapped, role: 'PRIMARY' });
+  }
+
+  for (const m of raw.secondaryMuscles) {
+    const mapped = MUSCLE_MAP[m.toLowerCase()];
+    if (mapped) muscles.push({ name: mapped, role: 'SECONDARY' });
+  }
+
+  return {
+    name: raw.name,
+    trackingType: deriveTrackingType(raw),
+    equipment: EQUIPMENT_MAP[raw.equipment ?? 'other'] ?? 'OTHER',
+    movementPattern: deriveMovementPattern(raw),
+    muscles,
+    instructions: raw.instructions.join('\n'),
+    imageUrls: raw.images.map((img) => `${IMAGE_BASE}/${img}`),
+  };
+}
+
+export const exercises: ExerciseSeed[] = loadRawExercises().map(mapExercise);
