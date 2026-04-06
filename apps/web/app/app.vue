@@ -8,8 +8,8 @@ useHead({
 })
 
 const title = 'Workout App'
-const description =
-  'Track your workouts, monitor progress, and achieve your fitness goals.'
+const description
+  = 'Track your workouts, monitor progress, and achieve your fitness goals.'
 
 useSeoMeta({
   title,
@@ -20,7 +20,7 @@ useSeoMeta({
 </script>
 
 <template>
-  <UApp>
+  <UApp :data-vaul-drawer-wrapper="true">
     <NuxtLayout>
       <NuxtPage />
     </NuxtLayout>

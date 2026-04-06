@@ -78,11 +78,18 @@ async function addExercise(exercise: Exercise) {
 </script>
 
 <template>
-  <USlideover
+  <UDrawer
     v-model:open="open"
-    title="Add Exercise"
+    :dismissible="true"
+    :should-scale-background="true"
   >
     <template #body>
+      <div class="flex items-center justify-between gap-4 mb-4">
+        <h2 class="font-semibold text-highlighted">
+          Add Exercise
+        </h2>
+        <UButton icon="i-lucide-x" color="neutral" variant="ghost" @click="open = false" />
+      </div>
       <UInput
         v-model="searchQuery"
         placeholder="Search exercises..."
@@ -159,12 +166,11 @@ async function addExercise(exercise: Exercise) {
           No exercises found
         </p>
       </div>
+      <ExercisesExerciseDetailSlideover
+        v-model="showPreview"
+        :exercise="previewExercise"
+        :loading="false"
+      />
     </template>
-  </USlideover>
-
-  <ExercisesExerciseDetailSlideover
-    v-model="showPreview"
-    :exercise="previewExercise"
-    :loading="false"
-  />
+  </UDrawer>
 </template>

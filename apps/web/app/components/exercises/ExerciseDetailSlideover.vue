@@ -20,10 +20,9 @@ const currentSlide = ref(0)
 </script>
 
 <template>
-  <USlideover
+  <UModal
     v-model:open="open"
     :title="exercise?.name || 'Exercise Detail'"
-    side="right"
   >
     <template #body>
       <div v-if="loading" class="flex justify-center py-12">
@@ -31,8 +30,8 @@ const currentSlide = ref(0)
       </div>
 
       <div v-else-if="exercise" class="space-y-6">
-        <!-- Images -->
-        <div v-if="exercise.imageUrls.length" class="relative -mx-4 -mt-4 overflow-hidden">
+        <!-- Image carousel -->
+        <div v-if="exercise.imageUrls.length" class="relative rounded-lg overflow-hidden">
           <UCarousel
             ref="carouselRef"
             v-slot="{ item }"
@@ -41,7 +40,7 @@ const currentSlide = ref(0)
             :ui="{ container: '-ms-0', item: 'ps-0' }"
             @select="currentSlide = $event"
           >
-            <img :src="item" :alt="exercise.name" class="w-full aspect-[4/3] object-cover">
+            <img :src="item" :alt="exercise.name" class="w-full aspect-[16/9] object-cover">
           </UCarousel>
 
           <!-- Counter -->
@@ -66,7 +65,7 @@ const currentSlide = ref(0)
           </template>
         </div>
 
-        <!-- Badge + details -->
+        <!-- Badges -->
         <div class="flex flex-wrap gap-1.5">
           <UBadge
             :color="exercise.isGlobal ? 'neutral' : 'primary'"
@@ -125,5 +124,5 @@ const currentSlide = ref(0)
         />
       </div>
     </template>
-  </USlideover>
+  </UModal>
 </template>
