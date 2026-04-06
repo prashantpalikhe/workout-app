@@ -215,9 +215,7 @@ const totalVolume = computed(() => {
 })
 
 const formattedVolume = computed(() => {
-  const v = totalVolume.value
-  if (v >= 1000) return `${(v / 1000).toFixed(1)}t`
-  return `${Math.round(v)} kg`
+  return `${Math.round(totalVolume.value).toLocaleString()} kg`
 })
 
 // Can edit program exercises if session is from an own program (not trainer-assigned)

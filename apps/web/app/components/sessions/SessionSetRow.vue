@@ -66,7 +66,7 @@ function onTouchMove(e: TouchEvent) {
 
 function onTouchEnd() {
   if (swipeAction.value === 'delete') {
-    deleteSet()
+    confirmDelete()
   } else if (swipeAction.value === 'note') {
     openNoteDialog()
   }
@@ -74,6 +74,13 @@ function onTouchEnd() {
   isSwiping.value = false
   swipeAction.value = 'none'
   isHorizontalSwipe = null
+}
+
+// ── Delete confirmation ──
+const showDeleteConfirm = ref(false)
+
+function confirmDelete() {
+  showDeleteConfirm.value = true
 }
 
 // ── Note dialog state ──
@@ -350,7 +357,7 @@ const actionDropdownItems = computed(() => [
       label: 'Delete Set',
       icon: 'i-lucide-trash-2',
       color: 'error' as const,
-      onSelect: () => deleteSet()
+      onSelect: () => confirmDelete()
     }
   ]
 ])
@@ -683,6 +690,30 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
             />
             <UButton label="Save" :loading="noteSaving" @click="saveNote" />
           </div>
+        </div>
+      </template>
+    </UModal>
+
+    <!-- Delete confirmation -->
+    <UModal v-model:open="showDeleteConfirm" title="Delete Set?">
+      <template #body>
+        <p class="text-sm text-muted">
+          Are you sure you want to delete set {{ setLabel }}? This can't be undone.
+        </p>
+      </template>
+      <template #footer>
+        <div class="flex justify-end gap-2">
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="outline"
+            @click="showDeleteConfirm = false"
+          />
+          <UButton
+            label="Delete"
+            color="error"
+            @click="showDeleteConfirm = false; deleteSet()"
+          />
         </div>
       </template>
     </UModal>

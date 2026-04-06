@@ -337,7 +337,7 @@ function formatPRValue(prType: string, value: number) {
         <UCard
           v-for="stat in [
             { label: 'Workouts', value: stats.totalWorkouts, icon: 'i-lucide-dumbbell' },
-            { label: 'Volume', value: `${Math.round(stats.totalVolume / 1000)}t`, icon: 'i-lucide-weight' },
+            { label: 'Volume', value: `${Math.round(stats.totalVolume).toLocaleString()} kg`, icon: 'i-lucide-weight' },
             { label: 'Streak', value: `${stats.currentStreak}d`, icon: 'i-lucide-flame' },
             { label: 'PRs', value: stats.totalPersonalRecords, icon: 'i-lucide-trophy' }
           ]" :key="stat.label"
