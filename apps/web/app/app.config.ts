@@ -67,6 +67,11 @@ export default defineAppConfig({
       defaultVariants: {
         size: 'lg'
       }
+    },
+    card: {
+      slots: {
+        root: 'bg-white/[0.03] dark:bg-white/[0.03] border-0'
+      }
     }
   }
 })

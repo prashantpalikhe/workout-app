@@ -5,7 +5,10 @@ const authStore = useAuthStore()
 const route = useRoute()
 const sidebarOpen = ref(false)
 const mobileHeaderTitle = useState<string>('mobile-header-title', () => '')
-const mobileHeaderBack = useState<string | null>('mobile-header-back', () => null)
+const mobileHeaderBack = useState<string | null>(
+  'mobile-header-back',
+  () => null
+)
 
 function onMobileBack() {
   if (mobileHeaderBack.value) goBack(mobileHeaderBack.value)
@@ -35,7 +38,7 @@ const navItems = computed<NavigationMenuItem[]>(() => [
     icon: 'i-lucide-timer',
     to: '/sessions',
     active: route.path.startsWith('/sessions')
-  },
+  }
   // {
   //   label: 'Records',
   //   icon: 'i-lucide-trophy',
@@ -76,9 +79,9 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
       v-model:open="sidebarOpen"
       collapsible
       resizable
+      toggle-side="right"
       :ui="{
-        footer:
-          'border-t border-default'
+        footer: 'border-t border-default'
       }"
     >
       <template #header="{ collapsed }">
@@ -87,11 +90,19 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
           class="flex items-center gap-2"
           :class="collapsed ? 'justify-center w-full' : ''"
         >
-          <img src="/logo-light.svg" alt="Workout" class="size-8 shrink-0 object-contain block dark:hidden">
-          <img src="/logo-dark.svg" alt="Workout" class="size-8 shrink-0 object-contain hidden dark:block">
-          <span v-if="!collapsed" class="font-semibold text-lg truncate"
-            >Workout</span
-          >
+          <img
+            src="/logo-light.svg"
+            alt="Workout"
+            class="size-8 shrink-0 object-contain block dark:hidden"
+          />
+          <img
+            src="/logo-dark.svg"
+            alt="Workout"
+            class="size-8 shrink-0 object-contain hidden dark:block"
+          />
+          <span v-if="!collapsed" class="font-semibold text-lg truncate">
+            Workout
+          </span>
         </NuxtLink>
       </template>
 
@@ -100,8 +111,12 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
         <NuxtLink
           v-if="authStore.user"
           to="/profile"
-          class="mx-2 mb-4 block transition-colors"
-          :class="collapsed ? 'flex justify-center' : 'rounded-lg bg-accented hover:bg-muted p-3'"
+          class="mt-2 block transition-colors"
+          :class="
+            collapsed
+              ? 'flex justify-center'
+              : 'rounded-lg bg-accented hover:bg-muted p-3'
+          "
         >
           <UAvatar
             v-if="collapsed"
@@ -120,9 +135,7 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
               <p class="text-sm font-semibold truncate">
                 {{ authStore.fullName }}
               </p>
-              <p class="text-xs text-muted truncate">
-                Athlete
-              </p>
+              <p class="text-xs text-muted truncate">Athlete</p>
             </div>
           </div>
         </NuxtLink>
@@ -180,7 +193,6 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
           icon="i-lucide-arrow-left"
           color="neutral"
           variant="ghost"
-          size="sm"
           aria-label="Back"
           @click="onMobileBack"
         />
@@ -189,7 +201,6 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
           icon="i-lucide-menu"
           color="neutral"
           variant="ghost"
-          size="sm"
           aria-label="Open menu"
           @click="sidebarOpen = true"
         />
@@ -198,8 +209,16 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
             <span class="font-semibold truncate">{{ mobileHeaderTitle }}</span>
           </template>
           <template v-else>
-            <img src="/logo-light.svg" alt="Workout" class="size-6 shrink-0 object-contain block dark:hidden">
-            <img src="/logo-dark.svg" alt="Workout" class="size-6 shrink-0 object-contain hidden dark:block">
+            <img
+              src="/logo-light.svg"
+              alt="Workout"
+              class="size-6 shrink-0 object-contain block dark:hidden"
+            />
+            <img
+              src="/logo-dark.svg"
+              alt="Workout"
+              class="size-6 shrink-0 object-contain hidden dark:block"
+            />
             <span class="font-semibold">Workout</span>
           </template>
         </div>

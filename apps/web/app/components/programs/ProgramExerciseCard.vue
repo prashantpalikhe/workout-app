@@ -86,7 +86,7 @@ const summary = computed(() => {
 </script>
 
 <template>
-  <div class="border border-default rounded-lg flex gap-3 items-start group">
+  <div class="bg-white/[0.03] rounded-lg flex gap-3 items-start group">
     <!-- Drag handle -->
     <div
       v-if="!readonly"
