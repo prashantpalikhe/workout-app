@@ -271,7 +271,7 @@ model Exercise {
   equipment       ExerciseEquipment?
   movementPattern ExerciseMovementPattern? @map("movement_pattern")
   imageUrls       String[]                 @default([]) @map("image_urls")
-  instructions    String?
+  instructions    String[]                 @default([])
   videoUrl        String?                  @map("video_url")
   isGlobal        Boolean                  @default(false) @map("is_global")
   createdAt       DateTime                 @default(now()) @map("created_at")
