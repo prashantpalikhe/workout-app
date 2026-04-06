@@ -28,8 +28,19 @@ const { formatEnum } = useFormatEnum()
       </div>
 
       <div v-else-if="exercise" class="space-y-6">
-        <!-- Badge -->
-        <div>
+        <!-- Images -->
+        <UCarousel
+          v-if="exercise.imageUrls.length"
+          v-slot="{ item }"
+          :items="exercise.imageUrls"
+          dots
+          class="rounded-lg overflow-hidden bg-elevated -mx-4 -mt-2"
+        >
+          <img :src="item" :alt="exercise.name" class="w-full aspect-[4/3] object-contain">
+        </UCarousel>
+
+        <!-- Badge + details -->
+        <div class="flex flex-wrap gap-1.5">
           <UBadge
             :color="exercise.isGlobal ? 'neutral' : 'primary'"
             :variant="exercise.isGlobal ? 'subtle' : 'solid'"
@@ -37,31 +48,16 @@ const { formatEnum } = useFormatEnum()
           >
             {{ exercise.isGlobal ? 'Global' : 'Custom' }}
           </UBadge>
+          <UBadge variant="subtle" size="sm">
+            {{ formatEnum(exercise.trackingType) }}
+          </UBadge>
+          <UBadge v-if="exercise.equipment" color="neutral" variant="subtle" size="sm">
+            {{ formatEnum(exercise.equipment) }}
+          </UBadge>
+          <UBadge v-if="exercise.movementPattern" color="neutral" variant="subtle" size="sm">
+            {{ formatEnum(exercise.movementPattern) }}
+          </UBadge>
         </div>
-
-        <!-- Details -->
-        <dl class="space-y-3">
-          <div>
-            <dt class="text-sm font-medium text-muted">
-              Tracking Type
-            </dt>
-            <dd>{{ formatEnum(exercise.trackingType) }}</dd>
-          </div>
-
-          <div v-if="exercise.equipment">
-            <dt class="text-sm font-medium text-muted">
-              Equipment
-            </dt>
-            <dd>{{ formatEnum(exercise.equipment) }}</dd>
-          </div>
-
-          <div v-if="exercise.movementPattern">
-            <dt class="text-sm font-medium text-muted">
-              Movement Pattern
-            </dt>
-            <dd>{{ formatEnum(exercise.movementPattern) }}</dd>
-          </div>
-        </dl>
 
         <!-- Muscle Groups -->
         <div v-if="exercise.muscleGroups.length > 0">
@@ -74,26 +70,19 @@ const { formatEnum } = useFormatEnum()
           />
         </div>
 
-        <!-- Instructions -->
-        <div>
-          <h3 class="text-sm font-medium text-muted mb-2">
-            Instructions
-          </h3>
-          <ol
-            v-if="exercise.instructions.length"
-            class="list-decimal list-inside text-sm space-y-1"
-          >
-            <li v-for="(step, i) in exercise.instructions" :key="i">
-              {{ step }}
-            </li>
-          </ol>
-          <p
-            v-else
-            class="text-sm text-muted italic"
-          >
-            No instructions provided.
-          </p>
-        </div>
+        <!-- Instructions (collapsible) -->
+        <UAccordion
+          v-if="exercise.instructions.length"
+          :items="[{ label: `Instructions (${exercise.instructions.length} steps)`, value: 'instructions' }]"
+        >
+          <template #body>
+            <ol class="list-decimal list-inside text-sm space-y-1.5">
+              <li v-for="(step, i) in exercise.instructions" :key="i">
+                {{ step }}
+              </li>
+            </ol>
+          </template>
+        </UAccordion>
       </div>
     </template>
 
