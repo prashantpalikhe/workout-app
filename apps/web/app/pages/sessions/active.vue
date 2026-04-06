@@ -42,7 +42,11 @@ async function saveRename() {
 }
 
 // ── Rest Timer ──────────────────────────────────
-const { restTimerEnabled, defaultRestSec, fetch: fetchSettings } = useUserSettings()
+const {
+  restTimerEnabled,
+  defaultRestSec,
+  fetch: fetchSettings
+} = useUserSettings()
 const restTimer = useRestTimer()
 
 const session = computed(() => sessionStore.activeSession)
@@ -50,9 +54,13 @@ const session = computed(() => sessionStore.activeSession)
 // ── Mobile header title override ───────────────
 const mobileHeaderTitle = useState<string>('mobile-header-title')
 
-watch(session, (s) => {
-  mobileHeaderTitle.value = s?.name ?? ''
-}, { immediate: true })
+watch(
+  session,
+  (s) => {
+    mobileHeaderTitle.value = s?.name ?? ''
+  },
+  { immediate: true }
+)
 
 onUnmounted(() => {
   mobileHeaderTitle.value = ''
@@ -64,9 +72,13 @@ const sessionNotesText = ref('')
 const sessionNoteSaving = ref(false)
 const hasSessionNote = computed(() => !!session.value?.notes)
 
-watch(session, (s) => {
-  if (s) sessionNotesText.value = s.notes ?? ''
-}, { immediate: true })
+watch(
+  session,
+  (s) => {
+    if (s) sessionNotesText.value = s.notes ?? ''
+  },
+  { immediate: true }
+)
 
 function openSessionNoteDialog() {
   sessionNotesText.value = session.value?.notes ?? ''
@@ -103,30 +115,32 @@ async function deleteSessionNote() {
 }
 
 onMounted(async () => {
-  await Promise.all([
-    sessionStore.fetchActive(),
-    fetchSettings()
-  ])
+  await Promise.all([sessionStore.fetchActive(), fetchSettings()])
 })
 
-function onSetCompleted(data: { setRestSec: number | null, exerciseRestSec: number | null }) {
+function onSetCompleted(
+  data: { setRestSec: number | null; exerciseRestSec: number | null },
+  exercise: SessionExercise
+) {
   if (!restTimerEnabled.value) return
 
   // Resolution: session-sticky override → set rest → exercise prescription → user default
-  const seconds = restTimer.sessionDefault.value
-    ?? data.setRestSec
-    ?? data.exerciseRestSec
-    ?? defaultRestSec.value
+  const seconds =
+    restTimer.sessionDefault.value ??
+    data.setRestSec ??
+    data.exerciseRestSec ??
+    defaultRestSec.value
 
   if (seconds > 0) {
-    restTimer.start(seconds)
+    const completedSets = exercise.sets.filter(s => s.completed).length
+    const lastSet = exercise.sets.find(s => s.completed && s.setNumber === completedSets)
+    restTimer.start(seconds, {
+      exerciseName: exercise.exercise.name,
+      setNumber: completedSets,
+      totalSets: exercise.sets.length,
+      weight: lastSet?.weight ?? null
+    })
   }
-}
-
-function onTimerSetDuration(seconds: number) {
-  restTimer.setDuration(seconds)
-  // Restart timer with new duration
-  restTimer.start(seconds)
 }
 
 function openSubstitute(exercise: SessionExercise) {
@@ -141,7 +155,10 @@ async function removeExercise(exercise: SessionExercise) {
     toast.add({ title: `${exercise.exercise.name} removed`, color: 'success' })
   } catch (err: unknown) {
     const fetchError = err as { data?: { message?: string } }
-    toast.add({ title: fetchError?.data?.message || 'Failed to remove exercise', color: 'error' })
+    toast.add({
+      title: fetchError?.data?.message || 'Failed to remove exercise',
+      color: 'error'
+    })
   }
 }
 
@@ -169,7 +186,9 @@ const dropdownItems = computed(() => [
       label: 'Abandon Workout',
       icon: 'i-lucide-x-circle',
       color: 'error' as const,
-      onSelect: () => { showAbandonDialog.value = true }
+      onSelect: () => {
+        showAbandonDialog.value = true
+      }
     }
   ]
 ])
@@ -178,7 +197,7 @@ const dropdownItems = computed(() => [
 const totalSets = computed(() => {
   if (!session.value) return 0
   return session.value.sessionExercises.reduce(
-    (sum, ex) => sum + ex.sets.filter(s => s.completed).length,
+    (sum, ex) => sum + ex.sets.filter((s) => s.completed).length,
     0
   )
 })
@@ -187,10 +206,10 @@ const totalVolume = computed(() => {
   if (!session.value) return 0
   return session.value.sessionExercises.reduce(
     (sum, ex) =>
-      sum
-      + ex.sets
-        .filter(s => s.completed && s.weight && s.reps)
-        .reduce((s, set) => s + (set.weight! * set.reps!), 0),
+      sum +
+      ex.sets
+        .filter((s) => s.completed && s.weight && s.reps)
+        .reduce((s, set) => s + set.weight! * set.reps!, 0),
     0
   )
 })
@@ -205,7 +224,9 @@ const formattedVolume = computed(() => {
 const canEditProgram = computed(() => {
   if (!session.value) return false
   // Has prescribed exercises but no trainer assignment = own program
-  const hasPrescribed = session.value.sessionExercises.some(e => e.prescribedExerciseId)
+  const hasPrescribed = session.value.sessionExercises.some(
+    (e) => e.prescribedExerciseId
+  )
   return hasPrescribed && !session.value.programAssignmentId
 })
 </script>
@@ -249,7 +270,7 @@ const canEditProgram = computed(() => {
       </Teleport>
 
       <!-- Desktop header -->
-      <UPageHeader class="hidden lg:block">
+      <UPageHeader class="hidden lg:block border-none">
         <template #title>
           <button
             type="button"
@@ -297,7 +318,9 @@ const canEditProgram = computed(() => {
       </UPageHeader>
 
       <!-- Mobile stats bar -->
-      <div class="lg:hidden flex items-center justify-between py-3 mb-3 border-b border-default text-sm">
+      <div
+        class="lg:hidden flex items-center justify-between py-2 mb-3 border-b border-default text-sm"
+      >
         <div class="flex items-center gap-1.5 text-muted">
           <UIcon name="i-lucide-clock" class="size-4" />
           <SessionsSessionTimer :started-at="session.startedAt" />
@@ -336,7 +359,7 @@ const canEditProgram = computed(() => {
           :can-edit-program="canEditProgram"
           @substitute="openSubstitute(exercise)"
           @remove="removeExercise(exercise)"
-          @set-completed="onSetCompleted"
+          @set-completed="(data) => onSetCompleted(data, exercise)"
         />
       </div>
 
@@ -357,11 +380,8 @@ const canEditProgram = computed(() => {
         description="Add your first exercise to get started."
       />
 
-      <!-- Bottom spacer so content scrolls past the rest timer overlay -->
-      <div
-        v-if="restTimer.isRunning.value || restTimer.isCompleted.value"
-        class="h-28"
-      />
+      <!-- Bottom spacer so content scrolls past the active session bar -->
+      <div class="h-24" />
     </div>
 
     <!-- Modals -->
@@ -369,7 +389,9 @@ const canEditProgram = computed(() => {
       v-if="session"
       v-model="showExercisePicker"
       :session-id="session.id"
-      :existing-exercise-ids="new Set(session.sessionExercises.map(e => e.exerciseId))"
+      :existing-exercise-ids="
+        new Set(session.sessionExercises.map((e) => e.exerciseId))
+      "
     />
     <SessionsSessionCompleteModal
       v-if="session"
@@ -403,14 +425,28 @@ const canEditProgram = computed(() => {
       </template>
       <template #footer>
         <div class="flex gap-2 justify-end w-full">
-          <UButton label="Cancel" color="neutral" variant="outline" size="sm" @click="renameDialogOpen = false" />
-          <UButton label="Save Changes" size="sm" :loading="renameSaving" @click="saveRename" />
+          <UButton
+            label="Cancel"
+            color="neutral"
+            variant="outline"
+            size="sm"
+            @click="renameDialogOpen = false"
+          />
+          <UButton
+            label="Save Changes"
+            size="sm"
+            :loading="renameSaving"
+            @click="saveRename"
+          />
         </div>
       </template>
     </UModal>
 
     <!-- Session note dialog -->
-    <UModal v-model:open="sessionNoteDialogOpen" :title="hasSessionNote ? 'Session Note' : 'Add Session Note'">
+    <UModal
+      v-model:open="sessionNoteDialogOpen"
+      :title="hasSessionNote ? 'Session Note' : 'Add Session Note'"
+    >
       <template #body>
         <UTextarea
           v-model="sessionNotesText"
@@ -420,7 +456,10 @@ const canEditProgram = computed(() => {
         />
       </template>
       <template #footer>
-        <div class="flex items-center" :class="hasSessionNote ? 'justify-between' : 'justify-end'">
+        <div
+          class="flex items-center"
+          :class="hasSessionNote ? 'justify-between' : 'justify-end'"
+        >
           <UButton
             v-if="hasSessionNote"
             label="Delete Note"
@@ -432,24 +471,24 @@ const canEditProgram = computed(() => {
             @click="deleteSessionNote"
           />
           <div class="flex gap-2">
-            <UButton label="Cancel" color="neutral" variant="outline" size="sm" @click="sessionNoteDialogOpen = false" />
-            <UButton label="Save" size="sm" :loading="sessionNoteSaving" @click="saveSessionNote" />
+            <UButton
+              label="Cancel"
+              color="neutral"
+              variant="outline"
+              size="sm"
+              @click="sessionNoteDialogOpen = false"
+            />
+            <UButton
+              label="Save"
+              size="sm"
+              :loading="sessionNoteSaving"
+              @click="saveSessionNote"
+            />
           </div>
         </div>
       </template>
     </UModal>
 
-    <!-- Rest Timer Overlay -->
-    <SessionsRestTimerOverlay
-      :is-running="restTimer.isRunning.value"
-      :is-completed="restTimer.isCompleted.value"
-      :remaining="restTimer.remaining.value"
-      :total="restTimer.total.value"
-      :progress="restTimer.progress.value"
-      :formatted-time="restTimer.formattedTime.value"
-      @skip="restTimer.skip()"
-      @add-time="restTimer.addTime($event)"
-      @set-duration="onTimerSetDuration"
-    />
+    <!-- Rest Timer Overlay is rendered in the layout (global, persists across navigations) -->
   </UContainer>
 </template>

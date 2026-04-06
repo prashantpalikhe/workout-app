@@ -101,6 +101,16 @@ function onSetCompleted(data: { setId: string, restSec: number | null }) {
   })
 }
 
+// Working set numbers (excludes warmups from counting)
+const workingSetNumbers = computed(() => {
+  let count = 0
+  return props.exercise.sets.map(s => {
+    if (s.setType === 'WARM_UP') return 0
+    count++
+    return count
+  })
+})
+
 // Column headers based on tracking type
 const showWeight = computed(() =>
   ['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(trackingType.value)
@@ -213,12 +223,11 @@ const dropdownItems = computed(() => {
     <!-- Column headers -->
     <div v-if="exercise.sets.length" class="flex items-center gap-1 sm:gap-1.5 px-1 pb-1 text-[10px] uppercase tracking-wider text-muted font-medium border-b border-default/50 mb-0.5">
       <span class="w-6 shrink-0 text-center">Set</span>
-      <span class="hidden md:block w-24 shrink-0">Type</span>
       <span v-if="showWeight" class="flex-1 min-w-0 text-center">kg</span>
       <span v-if="showReps" class="flex-1 min-w-0 text-center">Reps</span>
       <span v-if="showDuration" class="flex-1 min-w-0 text-center">Sec</span>
       <span v-if="showDistance" class="flex-1 min-w-0 text-center">km</span>
-      <span class="w-12 sm:w-14 shrink-0 text-center">RPE</span>
+      <span class="flex-1 min-w-0 text-center">RPE</span>
       <span class="w-7 sm:w-8 shrink-0" />
     </div>
 
@@ -231,6 +240,7 @@ const dropdownItems = computed(() => {
         :exercise-id="exercise.id"
         :set="set"
         :set-index="index"
+        :working-set-number="workingSetNumbers[index]"
         :tracking-type="trackingType"
         @set-completed="onSetCompleted"
       />

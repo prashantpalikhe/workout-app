@@ -59,6 +59,13 @@ const navItems = computed<NavigationMenuItem[]>(() => [
   //   : []),
 ])
 
+// Fetch active session on layout mount so sidebar + floating bar always know
+onMounted(() => {
+  if (authStore.user) {
+    sessionStore.fetchActive()
+  }
+})
+
 const footerNavItems = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Settings',
@@ -69,7 +76,7 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Logout',
     icon: 'i-lucide-log-out',
-    click: () => authStore.logout()
+    onSelect: () => authStore.logout()
   }
 ])
 </script>
@@ -245,9 +252,12 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
         />
       </div>
 
-      <div class="py-4 sm:py-6">
+      <div class="py-4 sm:py-6" :class="sessionStore.hasActiveSession ? 'pb-24' : ''">
         <slot />
       </div>
+
+      <!-- Unified active session bar (floating, persists across pages) -->
+      <SessionsActiveSessionBar />
     </div>
   </UDashboardGroup>
 </template>

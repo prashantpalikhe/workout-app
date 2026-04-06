@@ -7,11 +7,12 @@ const props = defineProps<{
   exerciseId: string
   set: SessionSet
   setIndex: number
+  workingSetNumber: number
   trackingType: string
 }>()
 
 const emit = defineEmits<{
-  'set-completed': [{ setId: string, restSec: number | null }]
+  'set-completed': [{ setId: string; restSec: number | null }]
 }>()
 
 const sessionStore = useSessionStore()
@@ -82,7 +83,9 @@ const hasNote = computed(() => !!props.set.notes)
 
 watch(
   () => props.set.notes,
-  (v) => { noteText.value = v ?? '' }
+  (v) => {
+    noteText.value = v ?? ''
+  }
 )
 
 function openNoteDialog() {
@@ -135,22 +138,34 @@ const form = reactive({
   rpe: props.set.rpe ?? (undefined as number | undefined)
 })
 
-// Sync from prop when set data changes externally
+// Sync from prop when set data changes externally (e.g. after API response)
 watch(
   () => props.set,
   (s) => {
-    form.setType = s.setType
-    form.weight = s.weight ?? undefined
-    form.reps = s.reps ?? undefined
-    form.durationSec = s.durationSec ?? undefined
-    form.distance = s.distance ?? undefined
-    form.rpe = s.rpe ?? undefined
+    // Only overwrite local form if the server value actually differs,
+    // to avoid resetting user edits during debounced auto-save
+    if (form.setType !== s.setType) form.setType = s.setType
+    const w = s.weight ?? undefined
+    const r = s.reps ?? undefined
+    const d = s.durationSec ?? undefined
+    const dist = s.distance ?? undefined
+    const rpe = s.rpe ?? undefined
+    if (form.weight !== w) form.weight = w
+    if (form.reps !== r) form.reps = r
+    if (form.durationSec !== d) form.durationSec = d
+    if (form.distance !== dist) form.distance = dist
+    if (form.rpe !== rpe) form.rpe = rpe
   },
   { deep: true }
 )
 
 // Auto-save on blur
-const { saving: _saving, error: _error, schedule, cancel } = useAutoSave(
+const {
+  saving: _saving,
+  error: _error,
+  schedule,
+  cancel
+} = useAutoSave(
   async () => {
     const payload: Record<string, unknown> = {}
     payload.setType = form.setType
@@ -220,15 +235,15 @@ async function deleteSet() {
   }
 }
 
-// Set type options for USelect
-const setTypeItems = SESSION_SET_TYPES.map(t => ({
-  label: formatEnum(t),
-  value: t
-}))
+// Set label — "W" for warm-up, sequential number (excluding warm-ups) for everything else
+const setLabel = computed(() => {
+  if (form.setType === 'WARM_UP') return 'W'
+  return String(props.workingSetNumber)
+})
 
 // Set number dropdown — set type only (desktop), set type + view note (mobile)
 const setTypeDropdownItems = computed(() => {
-  const typeItems = SESSION_SET_TYPES.map(t => ({
+  const typeItems = SESSION_SET_TYPES.map((t) => ({
     label: formatEnum(t),
     icon: form.setType === t ? 'i-lucide-check' : undefined,
     onSelect: () => {
@@ -241,7 +256,7 @@ const setTypeDropdownItems = computed(() => {
 })
 
 const mobileSetTypeDropdownItems = computed(() => {
-  const typeItems = SESSION_SET_TYPES.map(t => ({
+  const typeItems = SESSION_SET_TYPES.map((t) => ({
     label: formatEnum(t),
     icon: form.setType === t ? 'i-lucide-check' : undefined,
     onSelect: () => {
@@ -253,11 +268,13 @@ const mobileSetTypeDropdownItems = computed(() => {
   if (hasNote.value) {
     return [
       typeItems,
-      [{
-        label: 'View Note',
-        icon: 'i-lucide-message-square',
-        onSelect: () => openNoteDialog()
-      }]
+      [
+        {
+          label: 'View Note',
+          icon: 'i-lucide-message-square',
+          onSelect: () => openNoteDialog()
+        }
+      ]
     ]
   }
 
@@ -310,7 +327,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       <!-- Delete background (swipe left) -->
       <div
         v-show="swipeOffset < 0"
-        class="absolute inset-0 flex items-center justify-end px-4 text-error"
+        class="absolute inset-y-0 right-0 w-24 flex items-center justify-center text-error rounded-r-md"
         :class="swipeAction === 'delete' ? 'bg-error/25' : 'bg-error/10'"
       >
         <UIcon name="i-lucide-trash-2" class="size-5" />
@@ -318,7 +335,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       <!-- Note background (swipe right) -->
       <div
         v-show="swipeOffset > 0"
-        class="absolute inset-0 flex items-center justify-start px-4 text-info"
+        class="absolute inset-y-0 left-0 w-24 flex items-center justify-center text-info rounded-l-md"
         :class="swipeAction === 'note' ? 'bg-info/25' : 'bg-info/10'"
       >
         <UIcon name="i-lucide-message-square" class="size-5" />
@@ -329,18 +346,29 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         ref="rowRef"
         class="relative flex items-center gap-1 px-1 py-0.5 bg-default transition-transform"
         :class="set.completed ? 'bg-success/10' : 'hover:bg-elevated/50'"
-        :style="isSwiping ? { transform: `translateX(${swipeOffset}px)`, transition: 'none' } : { transform: 'translateX(0)' }"
+        :style="
+          isSwiping
+            ? { transform: `translateX(${swipeOffset}px)`, transition: 'none' }
+            : { transform: 'translateX(0)' }
+        "
         @touchstart.passive="onTouchStart"
         @touchmove="onTouchMove"
         @touchend="onTouchEnd"
       >
         <!-- Set number (tap for set type + view note on mobile) -->
-        <UDropdownMenu :items="mobileSetTypeDropdownItems" :content="{ align: 'start' as const }">
+        <UDropdownMenu
+          :items="mobileSetTypeDropdownItems"
+          :content="{ align: 'start' as const }"
+        >
           <button
             class="text-xs font-semibold shrink-0 w-6 py-0.5 text-center rounded transition-colors"
-            :class="hasNote ? 'bg-info/15 text-info hover:bg-info/25' : 'bg-elevated/60 hover:bg-elevated text-muted hover:text-default'"
+            :class="
+              hasNote
+                ? 'bg-info/15 text-info hover:bg-info/25'
+                : 'bg-elevated/60 hover:bg-elevated text-muted hover:text-default'
+            "
           >
-            {{ setIndex + 1 }}
+            {{ setLabel }}
           </button>
         </UDropdownMenu>
 
@@ -350,7 +378,6 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           v-model.number="form.weight"
           type="number"
           placeholder="kg"
-          size="xs"
           :step="0.5"
           :min="0"
           class="flex-1 min-w-0"
@@ -363,7 +390,6 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           v-model.number="form.reps"
           type="number"
           placeholder="Reps"
-          size="xs"
           :min="0"
           class="flex-1 min-w-0"
           :ui="{ base: 'text-center' }"
@@ -375,7 +401,6 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           v-model.number="form.durationSec"
           type="number"
           placeholder="Sec"
-          size="xs"
           :min="0"
           class="flex-1 min-w-0"
           :ui="{ base: 'text-center' }"
@@ -387,7 +412,6 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           v-model.number="form.distance"
           type="number"
           placeholder="km"
-          size="xs"
           :step="0.1"
           :min="0"
           class="flex-1 min-w-0"
@@ -399,11 +423,10 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           v-model.number="form.rpe"
           type="number"
           placeholder="RPE"
-          size="xs"
           :min="1"
           :max="10"
           :step="0.5"
-          class="w-12 sm:w-14 shrink-0"
+          class="flex-1 min-w-0"
           :ui="{ base: 'text-center' }"
           @blur="schedule()"
           @keyup.enter="onInputEnter"
@@ -412,14 +435,18 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         <!-- Complete button -->
         <button
           class="flex items-center justify-center size-7 shrink-0 rounded-md transition-colors"
-          :class="set.completed
-            ? 'text-success bg-success/10'
-            : 'text-muted hover:text-default hover:bg-elevated'"
+          :class="
+            set.completed
+              ? 'text-success bg-success/10'
+              : 'text-muted hover:text-default hover:bg-elevated'
+          "
           :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
           @click="toggleCompleted"
         >
           <UIcon
-            :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
+            :name="
+              set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'
+            "
             class="size-5"
           />
         </button>
@@ -432,23 +459,21 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       :class="set.completed ? 'bg-success/10' : 'hover:bg-elevated/50'"
     >
       <!-- Set number (tap for set type) -->
-      <UDropdownMenu :items="setTypeDropdownItems" :content="{ align: 'start' as const }">
+      <UDropdownMenu
+        :items="setTypeDropdownItems"
+        :content="{ align: 'start' as const }"
+      >
         <button
           class="text-xs font-semibold shrink-0 w-6 py-0.5 text-center rounded transition-colors"
-          :class="hasNote ? 'bg-info/15 text-info hover:bg-info/25' : 'bg-elevated/60 hover:bg-elevated text-muted hover:text-default'"
+          :class="
+            hasNote
+              ? 'bg-info/15 text-info hover:bg-info/25'
+              : 'bg-elevated/60 hover:bg-elevated text-muted hover:text-default'
+          "
         >
-          {{ setIndex + 1 }}
+          {{ setLabel }}
         </button>
       </UDropdownMenu>
-
-      <!-- Set type -->
-      <USelect
-        v-model="form.setType"
-        :items="setTypeItems"
-        size="xs"
-        class="w-24 shrink-0"
-        @update:model-value="schedule()"
-      />
 
       <!-- Data inputs -->
       <UInput
@@ -456,7 +481,6 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         v-model.number="form.weight"
         type="number"
         placeholder="kg"
-        size="xs"
         :step="0.5"
         :min="0"
         class="flex-1 min-w-0"
@@ -469,7 +493,6 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         v-model.number="form.reps"
         type="number"
         placeholder="Reps"
-        size="xs"
         :min="0"
         class="flex-1 min-w-0"
         :ui="{ base: 'text-center' }"
@@ -481,7 +504,6 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         v-model.number="form.durationSec"
         type="number"
         placeholder="Sec"
-        size="xs"
         :min="0"
         class="flex-1 min-w-0"
         :ui="{ base: 'text-center' }"
@@ -493,7 +515,6 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         v-model.number="form.distance"
         type="number"
         placeholder="km"
-        size="xs"
         :step="0.1"
         :min="0"
         class="flex-1 min-w-0"
@@ -505,11 +526,10 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         v-model.number="form.rpe"
         type="number"
         placeholder="RPE"
-        size="xs"
         :min="1"
         :max="10"
         :step="0.5"
-        class="w-14 shrink-0"
+        class="flex-1 min-w-0"
         :ui="{ base: 'text-center' }"
         @blur="schedule()"
         @keyup.enter="onInputEnter"
@@ -518,9 +538,11 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       <!-- Complete button -->
       <button
         class="flex items-center justify-center size-8 shrink-0 rounded-md transition-colors"
-        :class="set.completed
-          ? 'text-success bg-success/10'
-          : 'text-muted hover:text-default hover:bg-elevated'"
+        :class="
+          set.completed
+            ? 'text-success bg-success/10'
+            : 'text-muted hover:text-default hover:bg-elevated'
+        "
         :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
         @click="toggleCompleted"
       >
@@ -536,13 +558,15 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           icon="i-lucide-ellipsis-vertical"
           color="neutral"
           variant="ghost"
-          size="2xs"
         />
       </UDropdownMenu>
     </div>
 
     <!-- Note dialog -->
-    <UModal v-model:open="noteDialogOpen" :title="hasNote ? 'Set Note' : 'Add Note'">
+    <UModal
+      v-model:open="noteDialogOpen"
+      :title="hasNote ? 'Set Note' : 'Add Note'"
+    >
       <template #body>
         <UTextarea
           v-model="noteText"
@@ -552,20 +576,27 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         />
       </template>
       <template #footer>
-        <div class="flex items-center" :class="hasNote ? 'justify-between' : 'justify-end'">
+        <div
+          class="flex items-center"
+          :class="hasNote ? 'justify-between' : 'justify-end'"
+        >
           <UButton
             v-if="hasNote"
             label="Delete Note"
             color="error"
             variant="ghost"
-            size="sm"
             icon="i-lucide-trash-2"
             :loading="noteSaving"
             @click="deleteNote"
           />
           <div class="flex gap-2">
-            <UButton label="Cancel" color="neutral" variant="outline" size="sm" @click="noteDialogOpen = false" />
-            <UButton label="Save" size="sm" :loading="noteSaving" @click="saveNote" />
+            <UButton
+              label="Cancel"
+              color="neutral"
+              variant="outline"
+              @click="noteDialogOpen = false"
+            />
+            <UButton label="Save" :loading="noteSaving" @click="saveNote" />
           </div>
         </div>
       </template>
