@@ -27,13 +27,15 @@ const emit = defineEmits<{
 }>()
 
 const sessionStore = useSessionStore()
+const programStore = useProgramStore()
 const router = useRouter()
 const toast = useToast()
 
 const starting = ref(false)
 
 onMounted(() => {
-  sessionStore.fetchAssignments()
+  programStore.fetchPrograms()
+  programStore.fetchFolders()
 })
 
 async function startWorkout(opts: { assignmentId?: string, programId?: string, name?: string } = {}) {
@@ -59,29 +61,45 @@ async function startWorkout(opts: { assignmentId?: string, programId?: string, n
 }
 
 const programMenuItems = computed(() => {
-  if (!sessionStore.assignments.length) {
-    return [[
-      {
-        label: 'Create a program...',
-        icon: 'i-lucide-plus',
-        onSelect: () => router.push('/programs')
-      }
-    ]]
+  const { byFolder, unfiled } = programStore.programsByFolder
+  const groups: Array<Array<{ label: string, icon?: string, disabled?: boolean, onSelect?: () => void }>> = []
+
+  // Folder groups
+  for (const folder of programStore.folders) {
+    const folderPrograms = byFolder.get(folder.id)
+    if (!folderPrograms?.length) continue
+    groups.push([
+      { type: 'label' as const, label: folder.name, icon: 'i-lucide-folder' },
+      ...folderPrograms.map(p => ({
+        label: p.name,
+        icon: 'i-lucide-clipboard-list',
+        class: 'pl-7',
+        onSelect: () => startWorkout({ programId: p.id, name: p.name })
+      }))
+    ])
   }
-  return [
-    sessionStore.assignments.map(a => ({
-      label: a.program.name,
-      icon: 'i-lucide-clipboard-list',
-      onSelect: () => {
-        const id = a.id
-        if (id.startsWith('own:')) {
-          startWorkout({ programId: id.slice(4), name: a.program.name })
-        } else {
-          startWorkout({ assignmentId: id, name: a.program.name })
-        }
-      }
-    }))
-  ]
+
+  // Unfiled programs
+  if (unfiled.length) {
+    groups.push(
+      unfiled.map(p => ({
+        label: p.name,
+        icon: 'i-lucide-clipboard-list',
+        onSelect: () => startWorkout({ programId: p.id, name: p.name })
+      }))
+    )
+  }
+
+  // Fallback if no programs
+  if (!groups.length) {
+    groups.push([{
+      label: 'Create a program...',
+      icon: 'i-lucide-plus',
+      onSelect: () => router.push('/programs')
+    }])
+  }
+
+  return groups
 })
 </script>
 
