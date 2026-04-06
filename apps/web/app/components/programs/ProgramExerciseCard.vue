@@ -12,6 +12,7 @@ defineEmits<{
 
 const programStore = useProgramStore()
 const toast = useToast()
+const { formatEnum } = useFormatEnum()
 
 // Local reactive form state, initialized from prop
 const form = reactive({
@@ -103,16 +104,39 @@ const summary = computed(() => {
         class="w-full flex items-center justify-between gap-2 text-left"
         @click="expanded = !expanded"
       >
-        <div class="min-w-0 flex-1">
-          <div class="min-w-0">
-            <span class="font-medium truncate block">{{ exercise.exercise.name }}</span>
+        <div class="flex items-center gap-2.5 min-w-0 flex-1">
+          <img
+            v-if="exercise.exercise.imageUrls?.[0]"
+            :src="exercise.exercise.imageUrls[0]"
+            :alt="exercise.exercise.name"
+            class="size-9 rounded-full object-cover shrink-0 bg-elevated"
+          >
+          <div
+            v-else
+            class="size-9 rounded-full bg-elevated flex items-center justify-center shrink-0"
+          >
+            <UIcon name="i-lucide-dumbbell" class="size-4 text-muted" />
           </div>
-          <p v-if="!expanded && summary" class="text-xs text-muted truncate mt-0.5">
-            {{ summary }}
-          </p>
-          <p v-else-if="!expanded && !readonly" class="text-xs text-muted/70 mt-0.5">
-            Tap to set targets
-          </p>
+          <div class="min-w-0">
+            <div class="flex items-center gap-1.5 min-w-0">
+              <span class="font-medium truncate">{{ exercise.exercise.name }}</span>
+              <UBadge
+                v-if="exercise.exercise.equipment"
+                color="neutral"
+                variant="subtle"
+                size="xs"
+                class="shrink-0"
+              >
+                {{ formatEnum(exercise.exercise.equipment) }}
+              </UBadge>
+            </div>
+            <p v-if="!expanded && summary" class="text-xs text-muted truncate mt-0.5">
+              {{ summary }}
+            </p>
+            <p v-else-if="!expanded && !readonly" class="text-xs text-muted/70 mt-0.5">
+              Tap to set targets
+            </p>
+          </div>
         </div>
         <div class="flex items-center gap-1 shrink-0">
           <span v-if="saving" class="text-xs text-muted animate-pulse">Saving...</span>
@@ -132,7 +156,7 @@ const summary = computed(() => {
               v-model.number="form.targetSets"
               type="number"
               placeholder="3"
-                            :min="1"
+              :min="1"
               :disabled="readonly"
               @blur="schedule()"
               @keyup.enter="onInputEnter"
@@ -143,7 +167,7 @@ const summary = computed(() => {
             <UInput
               v-model="form.targetReps"
               placeholder="8-12"
-                            :disabled="readonly"
+              :disabled="readonly"
               @blur="schedule()"
               @keyup.enter="onInputEnter"
             />
@@ -154,7 +178,7 @@ const summary = computed(() => {
               v-model.number="form.targetRpe"
               type="number"
               placeholder="8"
-                            :min="1"
+              :min="1"
               :max="10"
               :step="0.5"
               :disabled="readonly"
@@ -167,7 +191,7 @@ const summary = computed(() => {
             <UInput
               v-model="form.targetTempo"
               placeholder="2-1-1-0"
-                            :disabled="readonly"
+              :disabled="readonly"
               @blur="schedule()"
               @keyup.enter="onInputEnter"
             />
@@ -178,7 +202,7 @@ const summary = computed(() => {
               v-model.number="form.restSec"
               type="number"
               placeholder="90"
-                            :min="0"
+              :min="0"
               :disabled="readonly"
               @blur="schedule()"
               @keyup.enter="onInputEnter"
@@ -200,7 +224,7 @@ const summary = computed(() => {
             v-model="form.notes"
             placeholder="Notes..."
             :rows="2"
-                        :disabled="readonly"
+            :disabled="readonly"
             class="w-full"
             @blur="schedule()"
           />
@@ -213,7 +237,7 @@ const summary = computed(() => {
             icon="i-lucide-trash-2"
             color="error"
             variant="ghost"
-                        @click="$emit('remove')"
+            @click="$emit('remove')"
           />
         </div>
       </div>

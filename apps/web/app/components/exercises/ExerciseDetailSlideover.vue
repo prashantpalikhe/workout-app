@@ -14,6 +14,9 @@ const emit = defineEmits<{
 const open = defineModel<boolean>({ default: false })
 
 const { formatEnum } = useFormatEnum()
+
+const carouselRef = ref()
+const currentSlide = ref(0)
 </script>
 
 <template>
@@ -29,15 +32,39 @@ const { formatEnum } = useFormatEnum()
 
       <div v-else-if="exercise" class="space-y-6">
         <!-- Images -->
-        <UCarousel
-          v-if="exercise.imageUrls.length"
-          v-slot="{ item }"
-          :items="exercise.imageUrls"
-          dots
-          class="rounded-lg overflow-hidden bg-elevated -mx-4 -mt-2"
-        >
-          <img :src="item" :alt="exercise.name" class="w-full aspect-[4/3] object-contain">
-        </UCarousel>
+        <div v-if="exercise.imageUrls.length" class="relative -mx-4 -mt-4 overflow-hidden">
+          <UCarousel
+            ref="carouselRef"
+            v-slot="{ item }"
+            :items="exercise.imageUrls"
+            class="overflow-hidden"
+            :ui="{ container: '-ms-0', item: 'ps-0' }"
+            @select="currentSlide = $event"
+          >
+            <img :src="item" :alt="exercise.name" class="w-full aspect-[4/3] object-cover">
+          </UCarousel>
+
+          <!-- Counter -->
+          <div v-if="exercise.imageUrls.length > 1" class="absolute bottom-3 right-3 px-2 py-0.5 rounded-full bg-black/50 text-white text-xs backdrop-blur-sm">
+            {{ currentSlide + 1 }} / {{ exercise.imageUrls.length }}
+          </div>
+
+          <!-- Prev / Next -->
+          <template v-if="exercise.imageUrls.length > 1">
+            <button
+              class="absolute left-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-black/40 text-white backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-all"
+              @click="carouselRef?.emblaApi?.scrollPrev()"
+            >
+              <UIcon name="i-lucide-chevron-left" class="size-5" />
+            </button>
+            <button
+              class="absolute right-2 top-1/2 -translate-y-1/2 size-8 rounded-full bg-black/40 text-white backdrop-blur-sm flex items-center justify-center hover:bg-black/60 transition-all"
+              @click="carouselRef?.emblaApi?.scrollNext()"
+            >
+              <UIcon name="i-lucide-chevron-right" class="size-5" />
+            </button>
+          </template>
+        </div>
 
         <!-- Badge + details -->
         <div class="flex flex-wrap gap-1.5">
@@ -67,19 +94,17 @@ const { formatEnum } = useFormatEnum()
           <ExercisesExerciseMuscleMap :highlighted-muscles="exercise.muscleGroups" />
         </div>
 
-        <!-- Instructions (collapsible) -->
-        <UAccordion
-          v-if="exercise.instructions.length"
-          :items="[{ label: `Instructions (${exercise.instructions.length} steps)`, value: 'instructions' }]"
-        >
-          <template #body>
-            <ol class="list-decimal list-inside text-sm space-y-1.5">
-              <li v-for="(step, i) in exercise.instructions" :key="i">
-                {{ step }}
-              </li>
-            </ol>
-          </template>
-        </UAccordion>
+        <!-- Instructions -->
+        <div v-if="exercise.instructions.length">
+          <h3 class="text-sm font-medium text-muted mb-2">
+            Instructions
+          </h3>
+          <ol class="list-decimal list-inside text-sm space-y-1.5">
+            <li v-for="(step, i) in exercise.instructions" :key="i">
+              {{ step }}
+            </li>
+          </ol>
+        </div>
       </div>
     </template>
 

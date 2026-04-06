@@ -23,6 +23,7 @@ export interface ProgramExercise {
     name: string
     equipment: string | null
     trackingType: string
+    imageUrls: string[]
   }
 }
 

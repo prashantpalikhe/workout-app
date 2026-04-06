@@ -21,6 +21,13 @@ const searchQuery = ref('')
 const searchResults = ref<Exercise[]>([])
 const searchLoading = ref(false)
 const adding = ref<string | null>(null)
+const previewExercise = ref<Exercise | null>(null)
+const showPreview = ref(false)
+
+function openPreview(exercise: Exercise) {
+  previewExercise.value = exercise
+  showPreview.value = true
+}
 
 interface PaginatedResponse<T> {
   data: T[]
@@ -78,7 +85,7 @@ async function addExercise(exercise: Exercise) {
 </script>
 
 <template>
-  <UModal
+  <USlideover
     v-model:open="open"
     title="Add Exercise"
   >
@@ -95,37 +102,58 @@ async function addExercise(exercise: Exercise) {
         <UIcon name="i-lucide-loader-2" class="size-6 animate-spin text-muted" />
       </div>
 
-      <div v-else class="space-y-1 max-h-80 overflow-y-auto">
+      <div v-else class="space-y-0.5">
         <div
           v-for="exercise in searchResults"
           :key="exercise.id"
-          class="flex items-center justify-between gap-3 p-2 rounded-md hover:bg-elevated"
+          class="flex items-center gap-3 p-2 rounded-lg"
+          :class="existingExerciseIds.has(exercise.id) ? 'opacity-50' : ''"
         >
-          <div class="min-w-0 flex-1">
-            <span class="font-medium text-sm">{{ exercise.name }}</span>
-            <UBadge
-              v-if="exercise.equipment"
-              variant="subtle"
-              size="xs"
-              class="ml-2"
+          <!-- Thumbnail: tap to preview -->
+          <button
+            type="button"
+            class="shrink-0 cursor-pointer"
+            @click="openPreview(exercise)"
+          >
+            <img
+              v-if="exercise.imageUrls?.[0]"
+              :src="exercise.imageUrls[0]"
+              :alt="exercise.name"
+              class="size-10 rounded-lg object-cover bg-elevated"
             >
+            <div
+              v-else
+              class="size-10 rounded-lg bg-elevated flex items-center justify-center"
+            >
+              <UIcon name="i-lucide-dumbbell" class="size-3.5 text-muted" />
+            </div>
+          </button>
+          <!-- Name + equipment: tap to preview -->
+          <button
+            type="button"
+            class="min-w-0 flex-1 text-left cursor-pointer"
+            @click="openPreview(exercise)"
+          >
+            <span class="font-medium text-sm block truncate">{{ exercise.name }}</span>
+            <span v-if="exercise.equipment" class="text-xs text-muted">
               {{ formatEnum(exercise.equipment) }}
-            </UBadge>
-          </div>
-
+            </span>
+          </button>
+          <!-- Add / Added -->
           <UButton
             v-if="existingExerciseIds.has(exercise.id)"
             label="Added"
+            icon="i-lucide-check"
             size="xs"
-            color="neutral"
+            color="success"
             variant="ghost"
             disabled
           />
           <UButton
             v-else
             label="Add"
-            size="xs"
             icon="i-lucide-plus"
+            size="xs"
             :loading="adding === exercise.id"
             @click="addExercise(exercise)"
           />
@@ -139,5 +167,11 @@ async function addExercise(exercise: Exercise) {
         </p>
       </div>
     </template>
-  </UModal>
+  </USlideover>
+
+  <ExercisesExerciseDetailSlideover
+    v-model="showPreview"
+    :exercise="previewExercise"
+    :loading="false"
+  />
 </template>
