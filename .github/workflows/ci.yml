@@ -6,6 +6,11 @@ on:
   pull_request:
     branches: [main]
 
+env:
+  # Prisma needs DATABASE_URL at generate time (postinstall), even though
+  # it doesn't connect. Provide a dummy value for jobs without a real DB.
+  DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
+
 jobs:
   api-tests:
     runs-on: ubuntu-latest
@@ -18,7 +23,6 @@ jobs:
           cache: pnpm
       - run: pnpm install
       - run: pnpm --filter @workout/shared build
-      - run: pnpm --filter @workout/api prisma:generate
       - run: pnpm --filter @workout/api test
 
   e2e:
@@ -63,9 +67,6 @@ jobs:
 
       - name: Build shared package
         run: pnpm --filter @workout/shared build
-
-      - name: Generate Prisma client
-        run: pnpm --filter @workout/api prisma:generate
 
       - name: Install Playwright browsers
         run: cd apps/web && pnpm exec playwright install chromium --with-deps
