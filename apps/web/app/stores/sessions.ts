@@ -52,6 +52,7 @@ export interface SessionExercise {
     name: string
     equipment: string | null
     trackingType: string
+    imageUrls: string[]
   }
   sets: SessionSet[]
 }

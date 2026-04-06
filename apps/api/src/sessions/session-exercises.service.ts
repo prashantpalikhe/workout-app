@@ -21,6 +21,7 @@ export class SessionExercisesService {
         name: true,
         equipment: true,
         trackingType: true,
+        imageUrls: true,
       },
     },
     prescribedExercise: {

@@ -104,7 +104,7 @@ async function deleteSessionNote() {
   if (!session.value) return
   sessionNoteSaving.value = true
   try {
-    await sessionStore.updateSession(session.value.id, { notes: undefined })
+    await sessionStore.updateSession(session.value.id, { notes: null })
     sessionNotesText.value = ''
     sessionNoteDialogOpen.value = false
   } catch {
@@ -119,17 +119,17 @@ onMounted(async () => {
 })
 
 function onSetCompleted(
-  data: { setRestSec: number | null; exerciseRestSec: number | null },
+  data: { setRestSec: number | null, exerciseRestSec: number | null },
   exercise: SessionExercise
 ) {
   if (!restTimerEnabled.value) return
 
   // Resolution: session-sticky override → set rest → exercise prescription → user default
-  const seconds =
-    restTimer.sessionDefault.value ??
-    data.setRestSec ??
-    data.exerciseRestSec ??
-    defaultRestSec.value
+  const seconds
+    = restTimer.sessionDefault.value
+      ?? data.setRestSec
+      ?? data.exerciseRestSec
+      ?? defaultRestSec.value
 
   if (seconds > 0) {
     const completedSets = exercise.sets.filter(s => s.completed).length
@@ -197,7 +197,7 @@ const dropdownItems = computed(() => [
 const totalSets = computed(() => {
   if (!session.value) return 0
   return session.value.sessionExercises.reduce(
-    (sum, ex) => sum + ex.sets.filter((s) => s.completed).length,
+    (sum, ex) => sum + ex.sets.filter(s => s.completed).length,
     0
   )
 })
@@ -206,9 +206,9 @@ const totalVolume = computed(() => {
   if (!session.value) return 0
   return session.value.sessionExercises.reduce(
     (sum, ex) =>
-      sum +
-      ex.sets
-        .filter((s) => s.completed && s.weight && s.reps)
+      sum
+      + ex.sets
+        .filter(s => s.completed && s.weight && s.reps)
         .reduce((s, set) => s + set.weight! * set.reps!, 0),
     0
   )
@@ -225,7 +225,7 @@ const canEditProgram = computed(() => {
   if (!session.value) return false
   // Has prescribed exercises but no trainer assignment = own program
   const hasPrescribed = session.value.sessionExercises.some(
-    (e) => e.prescribedExerciseId
+    e => e.prescribedExerciseId
   )
   return hasPrescribed && !session.value.programAssignmentId
 })
@@ -285,19 +285,19 @@ const canEditProgram = computed(() => {
           </button>
         </template>
         <template #description>
-          <div class="flex items-center gap-4 text-sm">
-            <span class="flex items-center gap-1.5 text-muted">
-              <UIcon name="i-lucide-clock" class="size-4" />
-              <SessionsSessionTimer :started-at="session.startedAt" />
-            </span>
-            <span class="flex items-center gap-1.5 text-muted">
-              <UIcon name="i-lucide-dumbbell" class="size-4" />
-              {{ totalSets }} sets
-            </span>
-            <span class="flex items-center gap-1.5 text-muted">
-              <UIcon name="i-lucide-weight" class="size-4" />
-              {{ formattedVolume }}
-            </span>
+          <div class="flex items-center gap-6 text-sm">
+            <div>
+              <span class="text-[11px] text-muted uppercase tracking-wide mr-1.5">Duration</span>
+              <span class="font-semibold text-primary"><SessionsSessionTimer :started-at="session.startedAt" /></span>
+            </div>
+            <div>
+              <span class="text-[11px] text-muted uppercase tracking-wide mr-1.5">Volume</span>
+              <span class="font-semibold">{{ formattedVolume }}</span>
+            </div>
+            <div>
+              <span class="text-[11px] text-muted uppercase tracking-wide mr-1.5">Sets</span>
+              <span class="font-semibold">{{ totalSets }}</span>
+            </div>
           </div>
         </template>
         <template #links>
@@ -317,33 +317,34 @@ const canEditProgram = computed(() => {
         </template>
       </UPageHeader>
 
-      <!-- Mobile stats bar -->
+      <!-- Mobile stats bar (Hevy-style: label above value) -->
       <div
-        class="lg:hidden flex items-center justify-between py-2 mb-3 border-b border-default text-sm"
+        class="lg:hidden flex items-center justify-between py-3 mb-2 text-sm"
       >
-        <div class="flex items-center gap-1.5 text-muted">
-          <UIcon name="i-lucide-clock" class="size-4" />
-          <SessionsSessionTimer :started-at="session.startedAt" />
+        <div class="text-center">
+          <div class="text-[11px] text-muted uppercase tracking-wide">
+            Duration
+          </div>
+          <div class="font-semibold text-primary">
+            <SessionsSessionTimer :started-at="session.startedAt" />
+          </div>
         </div>
-        <div class="flex items-center gap-1.5 text-muted">
-          <UIcon name="i-lucide-dumbbell" class="size-4" />
-          <span>{{ totalSets }} sets</span>
+        <div class="text-center">
+          <div class="text-[11px] text-muted uppercase tracking-wide">
+            Volume
+          </div>
+          <div class="font-semibold">
+            {{ formattedVolume }}
+          </div>
         </div>
-        <div class="flex items-center gap-1.5 text-muted">
-          <UIcon name="i-lucide-weight" class="size-4" />
-          <span>{{ formattedVolume }}</span>
+        <div class="text-center">
+          <div class="text-[11px] text-muted uppercase tracking-wide">
+            Sets
+          </div>
+          <div class="font-semibold">
+            {{ totalSets }}
+          </div>
         </div>
-      </div>
-
-      <!-- Session note indicator -->
-      <div v-if="hasSessionNote" class="mb-3">
-        <button
-          class="flex items-center gap-1.5 text-xs text-info hover:underline"
-          @click="openSessionNoteDialog"
-        >
-          <UIcon name="i-lucide-message-square" class="size-3.5" />
-          Session note
-        </button>
       </div>
 
       <!-- Exercise list -->
@@ -363,11 +364,11 @@ const canEditProgram = computed(() => {
         />
       </div>
 
-      <!-- Add Exercise button (below exercises, like Hevy) -->
+      <!-- Add Exercise button (prominent, like Hevy) -->
       <UButton
         label="Add Exercise"
         icon="i-lucide-plus"
-        variant="outline"
+        color="primary"
         class="w-full mt-4 justify-center"
         @click="showExercisePicker = true"
       />

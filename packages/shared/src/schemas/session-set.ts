@@ -13,7 +13,7 @@ export const createSessionSetInputSchema = z.object({
   tempo: tempoStringSchema.optional(),
   restSec: positiveInt.optional(),
   completed: z.boolean().default(false),
-  notes: z.string().max(500).optional(),
+  notes: z.string().max(500).nullish(),
 });
 export type CreateSessionSetInput = z.infer<typeof createSessionSetInputSchema>;
 

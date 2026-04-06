@@ -12,7 +12,7 @@ const props = defineProps<{
 }>()
 
 const emit = defineEmits<{
-  'set-completed': [{ setId: string; restSec: number | null }]
+  'set-completed': [{ setId: string, restSec: number | null }]
 }>()
 
 const sessionStore = useSessionStore()
@@ -117,7 +117,7 @@ async function deleteNote() {
       props.sessionId,
       props.exerciseId,
       props.set.id,
-      { notes: undefined }
+      { notes: null }
     )
     noteText.value = ''
     noteDialogOpen.value = false
@@ -243,7 +243,7 @@ const setLabel = computed(() => {
 
 // Set number dropdown — set type only (desktop), set type + view note (mobile)
 const setTypeDropdownItems = computed(() => {
-  const typeItems = SESSION_SET_TYPES.map((t) => ({
+  const typeItems = SESSION_SET_TYPES.map(t => ({
     label: formatEnum(t),
     icon: form.setType === t ? 'i-lucide-check' : undefined,
     onSelect: () => {
@@ -256,7 +256,7 @@ const setTypeDropdownItems = computed(() => {
 })
 
 const mobileSetTypeDropdownItems = computed(() => {
-  const typeItems = SESSION_SET_TYPES.map((t) => ({
+  const typeItems = SESSION_SET_TYPES.map(t => ({
     label: formatEnum(t),
     icon: form.setType === t ? 'i-lucide-check' : undefined,
     onSelect: () => {
@@ -344,7 +344,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       <!-- Swipeable row -->
       <div
         ref="rowRef"
-        class="relative flex items-center gap-1 px-1 py-0.5 bg-default transition-transform"
+        class="relative flex items-center gap-1 px-1 py-1 transition-transform"
         :class="set.completed ? 'bg-success/10' : 'hover:bg-elevated/50'"
         :style="
           isSwiping
@@ -361,12 +361,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           :content="{ align: 'start' as const }"
         >
           <button
-            class="text-xs font-semibold shrink-0 w-6 py-0.5 text-center rounded transition-colors"
-            :class="
-              hasNote
-                ? 'bg-info/15 text-info hover:bg-info/25'
-                : 'bg-elevated/60 hover:bg-elevated text-muted hover:text-default'
-            "
+            class="text-xs font-bold shrink-0 w-7 py-1 text-center rounded transition-colors text-muted"
           >
             {{ setLabel }}
           </button>
@@ -376,58 +371,61 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         <UInput
           v-if="showWeight"
           v-model.number="form.weight"
-          type="number"
+          type="text"
+          inputmode="decimal"
           placeholder="kg"
-          :step="0.5"
-          :min="0"
           class="flex-1 min-w-0"
-          :ui="{ base: 'text-center' }"
+          variant="none"
+          :ui="{ base: 'text-center font-semibold !px-0' }"
           @blur="schedule()"
           @keyup.enter="onInputEnter"
         />
         <UInput
           v-if="showReps"
           v-model.number="form.reps"
-          type="number"
+          type="text"
+          inputmode="decimal"
           placeholder="Reps"
-          :min="0"
+
           class="flex-1 min-w-0"
-          :ui="{ base: 'text-center' }"
+          variant="none"
+          :ui="{ base: 'text-center font-semibold !px-0' }"
           @blur="schedule()"
           @keyup.enter="onInputEnter"
         />
         <UInput
           v-if="showDuration"
           v-model.number="form.durationSec"
-          type="number"
+          type="text"
+          inputmode="decimal"
           placeholder="Sec"
-          :min="0"
+
           class="flex-1 min-w-0"
-          :ui="{ base: 'text-center' }"
+          variant="none"
+          :ui="{ base: 'text-center font-semibold !px-0' }"
           @blur="schedule()"
           @keyup.enter="onInputEnter"
         />
         <UInput
           v-if="showDistance"
           v-model.number="form.distance"
-          type="number"
+          type="text"
+          inputmode="decimal"
           placeholder="km"
-          :step="0.1"
-          :min="0"
           class="flex-1 min-w-0"
-          :ui="{ base: 'text-center' }"
+          variant="none"
+          :ui="{ base: 'text-center font-semibold !px-0' }"
           @blur="schedule()"
           @keyup.enter="onInputEnter"
         />
         <UInput
           v-model.number="form.rpe"
-          type="number"
+          type="text"
+          inputmode="decimal"
           placeholder="RPE"
-          :min="1"
-          :max="10"
-          :step="0.5"
           class="flex-1 min-w-0"
-          :ui="{ base: 'text-center' }"
+          variant="none"
+          :ui="{ base: 'text-center font-semibold !px-0' }"
           @blur="schedule()"
           @keyup.enter="onInputEnter"
         />
@@ -453,9 +451,19 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       </div>
     </div>
 
+    <!-- Inline note (mobile) -->
+    <button
+      v-if="hasNote"
+      class="md:hidden flex items-center gap-1 px-1 pl-9 pb-1 text-xs text-info hover:underline truncate"
+      @click="openNoteDialog"
+    >
+      <UIcon name="i-lucide-message-square" class="size-3 shrink-0" />
+      <span class="truncate">{{ set.notes }}</span>
+    </button>
+
     <!-- Desktop row (no swipe) -->
     <div
-      class="hidden md:flex items-center gap-1.5 px-1.5 py-0.5 transition-colors"
+      class="hidden md:flex items-center gap-1.5 px-1.5 py-1 transition-colors"
       :class="set.completed ? 'bg-success/10' : 'hover:bg-elevated/50'"
     >
       <!-- Set number (tap for set type) -->
@@ -464,12 +472,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         :content="{ align: 'start' as const }"
       >
         <button
-          class="text-xs font-semibold shrink-0 w-6 py-0.5 text-center rounded transition-colors"
-          :class="
-            hasNote
-              ? 'bg-info/15 text-info hover:bg-info/25'
-              : 'bg-elevated/60 hover:bg-elevated text-muted hover:text-default'
-          "
+          class="text-xs font-bold shrink-0 w-7 py-1 text-center rounded transition-colors text-muted"
         >
           {{ setLabel }}
         </button>
@@ -479,58 +482,59 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       <UInput
         v-if="showWeight"
         v-model.number="form.weight"
-        type="number"
+        type="text"
+        inputmode="decimal"
         placeholder="kg"
-        :step="0.5"
-        :min="0"
+        variant="none"
         class="flex-1 min-w-0"
-        :ui="{ base: 'text-center' }"
+        :ui="{ base: 'text-center font-semibold !px-0' }"
         @blur="schedule()"
         @keyup.enter="onInputEnter"
       />
       <UInput
         v-if="showReps"
         v-model.number="form.reps"
-        type="number"
+        type="text"
+        inputmode="decimal"
         placeholder="Reps"
-        :min="0"
+        variant="none"
         class="flex-1 min-w-0"
-        :ui="{ base: 'text-center' }"
+        :ui="{ base: 'text-center font-semibold !px-0' }"
         @blur="schedule()"
         @keyup.enter="onInputEnter"
       />
       <UInput
         v-if="showDuration"
         v-model.number="form.durationSec"
-        type="number"
+        type="text"
+        inputmode="decimal"
         placeholder="Sec"
-        :min="0"
+        variant="none"
         class="flex-1 min-w-0"
-        :ui="{ base: 'text-center' }"
+        :ui="{ base: 'text-center font-semibold !px-0' }"
         @blur="schedule()"
         @keyup.enter="onInputEnter"
       />
       <UInput
         v-if="showDistance"
         v-model.number="form.distance"
-        type="number"
+        type="text"
+        inputmode="decimal"
         placeholder="km"
-        :step="0.1"
-        :min="0"
+        variant="none"
         class="flex-1 min-w-0"
-        :ui="{ base: 'text-center' }"
+        :ui="{ base: 'text-center font-semibold !px-0' }"
         @blur="schedule()"
         @keyup.enter="onInputEnter"
       />
       <UInput
         v-model.number="form.rpe"
-        type="number"
+        type="text"
+        inputmode="decimal"
         placeholder="RPE"
-        :min="1"
-        :max="10"
-        :step="0.5"
+        variant="none"
         class="flex-1 min-w-0"
-        :ui="{ base: 'text-center' }"
+        :ui="{ base: 'text-center font-semibold !px-0' }"
         @blur="schedule()"
         @keyup.enter="onInputEnter"
       />
@@ -561,6 +565,16 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         />
       </UDropdownMenu>
     </div>
+
+    <!-- Inline note (desktop) -->
+    <button
+      v-if="hasNote"
+      class="hidden md:flex items-center gap-1 px-1.5 pl-10 pb-1 text-xs text-info hover:underline truncate"
+      @click="openNoteDialog"
+    >
+      <UIcon name="i-lucide-message-square" class="size-3 shrink-0" />
+      <span class="truncate">{{ set.notes }}</span>
+    </button>
 
     <!-- Note dialog -->
     <UModal
