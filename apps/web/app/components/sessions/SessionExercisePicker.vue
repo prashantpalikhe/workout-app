@@ -53,12 +53,22 @@ watch(searchQuery, () => {
   searchTimeout = setTimeout(searchExercises, 300)
 })
 
+const ready = ref(false)
+
 watch(open, (val) => {
   if (val) {
     searchQuery.value = ''
-    searchExercises()
+    searchResults.value = []
+    ready.value = false
   }
 })
+
+function onDrawerAnimationEnd() {
+  if (open.value && !ready.value) {
+    ready.value = true
+    searchExercises()
+  }
+}
 
 async function addExercise(exercise: Exercise) {
   adding.value = exercise.id
@@ -89,6 +99,8 @@ async function addExercise(exercise: Exercise) {
     v-model:open="open"
     :dismissible="true"
     :should-scale-background="true"
+    :ui="{ content: 'h-[96%]' }"
+    @animation-end="onDrawerAnimationEnd"
   >
     <template #body>
       <div class="flex items-center justify-between gap-4 mb-4">
