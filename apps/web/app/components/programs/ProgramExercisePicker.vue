@@ -123,18 +123,17 @@ async function addExercise(exercise: Exercise) {
       </div>
 
       <div v-else class="space-y-0.5">
-        <div
+        <button
           v-for="exercise in searchResults"
           :key="exercise.id"
-          class="flex items-center gap-3 p-2 rounded-lg"
-          :class="addedExerciseIds.has(exercise.id) ? 'opacity-50' : ''"
+          type="button"
+          class="flex items-center gap-3 p-2 rounded-lg w-full text-left transition-colors"
+          :class="addedExerciseIds.has(exercise.id) ? 'opacity-50 cursor-default' : 'hover:bg-elevated/50 cursor-pointer'"
+          :disabled="addedExerciseIds.has(exercise.id) || adding === exercise.id"
+          @click="!addedExerciseIds.has(exercise.id) && addExercise(exercise)"
         >
-          <!-- Thumbnail: tap to preview -->
-          <button
-            type="button"
-            class="shrink-0 cursor-pointer"
-            @click="openPreview(exercise)"
-          >
+          <!-- Thumbnail -->
+          <div class="shrink-0">
             <img
               v-if="exercise.imageUrls?.[0]"
               :src="exercise.imageUrls[0]"
@@ -147,37 +146,36 @@ async function addExercise(exercise: Exercise) {
             >
               <UIcon name="i-lucide-dumbbell" class="size-3.5 text-muted" />
             </div>
-          </button>
-          <!-- Name + equipment: tap to preview -->
-          <button
-            type="button"
-            class="min-w-0 flex-1 text-left cursor-pointer"
-            @click="openPreview(exercise)"
-          >
+          </div>
+          <!-- Name + equipment -->
+          <div class="min-w-0 flex-1">
             <span class="font-medium text-sm block truncate">{{ exercise.name }}</span>
             <span v-if="exercise.equipment" class="text-xs text-muted">
               {{ formatEnum(exercise.equipment) }}
             </span>
-          </button>
-          <!-- Add / Added -->
-          <UButton
-            v-if="addedExerciseIds.has(exercise.id)"
-            label="Added"
-            icon="i-lucide-check"
-            size="xs"
-            color="success"
-            variant="ghost"
-            disabled
+          </div>
+          <!-- Loading spinner when adding -->
+          <UIcon
+            v-if="adding === exercise.id"
+            name="i-lucide-loader-2"
+            class="size-4 animate-spin text-muted shrink-0"
           />
+          <!-- Added indicator -->
+          <UIcon
+            v-else-if="addedExerciseIds.has(exercise.id)"
+            name="i-lucide-check"
+            class="size-4 text-success shrink-0"
+          />
+          <!-- View detail button -->
           <UButton
             v-else
-            label="Add"
-            icon="i-lucide-plus"
+            icon="i-lucide-info"
             size="xs"
-            :loading="adding === exercise.id"
-            @click="addExercise(exercise)"
+            color="neutral"
+            variant="ghost"
+            @click.stop="openPreview(exercise)"
           />
-        </div>
+        </button>
 
         <p
           v-if="searchResults.length === 0"
