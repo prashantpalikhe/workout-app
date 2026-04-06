@@ -64,10 +64,7 @@ const { formatEnum } = useFormatEnum()
           <h3 class="text-sm font-medium text-muted mb-2">
             Muscle Groups
           </h3>
-          <ExercisesExerciseMuscleGroupBadges
-            :muscle-groups="exercise.muscleGroups"
-            :max="20"
-          />
+          <ExercisesExerciseMuscleMap :highlighted-muscles="exercise.muscleGroups" />
         </div>
 
         <!-- Instructions (collapsible) -->
