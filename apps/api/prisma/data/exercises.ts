@@ -43,7 +43,7 @@ export interface ExerciseSeed {
   equipment: Equipment;
   movementPattern: Movement;
   muscles: { name: string; role: MuscleRole }[];
-  instructions?: string;
+  instructions: string[];
   imageUrls: string[];
 }
 
@@ -220,7 +220,7 @@ function mapExercise(raw: RawExercise): ExerciseSeed {
     equipment: EQUIPMENT_MAP[raw.equipment ?? 'other'] ?? 'OTHER',
     movementPattern: deriveMovementPattern(raw),
     muscles,
-    instructions: raw.instructions.join('\n'),
+    instructions: raw.instructions,
     imageUrls: raw.images.map((img) => `${IMAGE_BASE}/${img}`),
   };
 }

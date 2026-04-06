@@ -124,13 +124,15 @@ function onHistoryPage(page: number) {
           </div>
 
           <!-- Instructions -->
-          <div v-if="exercise.instructions">
+          <div v-if="exercise.instructions.length">
             <p class="text-xs text-muted mb-1">
               Instructions
             </p>
-            <p class="text-sm whitespace-pre-line">
-              {{ exercise.instructions }}
-            </p>
+            <ol class="list-decimal list-inside text-sm space-y-1">
+              <li v-for="(step, i) in exercise.instructions" :key="i">
+                {{ step }}
+              </li>
+            </ol>
           </div>
 
           <!-- Video -->

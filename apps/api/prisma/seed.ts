@@ -90,7 +90,7 @@ async function seedExercises() {
           equipment: ex.equipment,
           movementPattern: ex.movementPattern,
           imageUrls: ex.imageUrls,
-          instructions: ex.instructions ?? null,
+          instructions: ex.instructions,
         },
       });
       exerciseId = existing.id;
@@ -102,7 +102,7 @@ async function seedExercises() {
           equipment: ex.equipment,
           movementPattern: ex.movementPattern,
           imageUrls: ex.imageUrls,
-          instructions: ex.instructions ?? null,
+          instructions: ex.instructions,
           isGlobal: true,
         },
       });
@@ -114,7 +114,12 @@ async function seedExercises() {
       where: { exerciseId },
     });
 
+    // Deduplicate muscles by (name) — some source data has duplicates
+    const seenMuscles = new Set<string>();
     for (const muscle of ex.muscles) {
+      if (seenMuscles.has(muscle.name)) continue;
+      seenMuscles.add(muscle.name);
+
       const muscleGroupId = mgMap.get(muscle.name);
       if (!muscleGroupId) {
         console.warn(

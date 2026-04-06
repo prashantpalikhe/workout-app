@@ -79,12 +79,14 @@ const { formatEnum } = useFormatEnum()
           <h3 class="text-sm font-medium text-muted mb-2">
             Instructions
           </h3>
-          <p
-            v-if="exercise.instructions"
-            class="text-sm whitespace-pre-wrap"
+          <ol
+            v-if="exercise.instructions.length"
+            class="list-decimal list-inside text-sm space-y-1"
           >
-            {{ exercise.instructions }}
-          </p>
+            <li v-for="(step, i) in exercise.instructions" :key="i">
+              {{ step }}
+            </li>
+          </ol>
           <p
             v-else
             class="text-sm text-muted italic"

@@ -56,7 +56,7 @@ watch(
       state.trackingType = ex.trackingType
       state.equipment = ex.equipment || ''
       state.movementPattern = ex.movementPattern || ''
-      state.instructions = ex.instructions || ''
+      state.instructions = ex.instructions?.join('\n') || ''
     } else {
       state.name = ''
       state.trackingType = ''
@@ -95,11 +95,16 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
   error.value = ''
   submitting.value = true
 
+  // Convert newline-separated textarea text to string array
+  const instructionsArray = event.data.instructions
+    ? event.data.instructions.split('\n').map(s => s.trim()).filter(Boolean)
+    : undefined
+
   const payload = {
     ...event.data,
     equipment: event.data.equipment || undefined,
     movementPattern: event.data.movementPattern || undefined,
-    instructions: event.data.instructions || undefined
+    instructions: instructionsArray
   }
 
   try {
@@ -174,7 +179,7 @@ async function onSubmit(event: FormSubmitEvent<FormData>) {
         <UFormField label="Instructions" name="instructions" class="mb-6">
           <UTextarea
             v-model="state.instructions"
-            placeholder="Describe how to perform this exercise..."
+            placeholder="One step per line..."
             :rows="3"
           />
         </UFormField>

@@ -12,7 +12,7 @@ export const createExerciseInputSchema = z.object({
   equipment: z.enum(EXERCISE_EQUIPMENT as [string, ...string[]]).optional(),
   movementPattern: z.enum(EXERCISE_MOVEMENT_PATTERNS as [string, ...string[]]).optional(),
   imageUrls: z.array(z.string().max(500)).max(10).optional(),
-  instructions: z.string().max(2000).optional(),
+  instructions: z.array(z.string().max(500)).max(50).optional(),
   videoUrl: z.string().url().optional(),
 });
 export type CreateExerciseInput = z.infer<typeof createExerciseInputSchema>;
