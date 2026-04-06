@@ -79,6 +79,9 @@ jobs:
           JWT_SECRET: e2e-test-secret-at-least-32-characters-long
           JWT_REFRESH_SECRET: e2e-test-refresh-secret-at-least-32-chars
           NUXT_API_PROXY_URL: http://localhost:3002/api
+          RESEND_API_KEY: re_test_fake_key_for_ci
+          MAIL_FROM: test@example.com
+          FRONTEND_URL: http://localhost:3010
 
       - name: Upload test report
         uses: actions/upload-artifact@v4
