@@ -20,62 +20,6 @@ const sessionStore = useSessionStore()
 const toast = useToast()
 const { formatEnum } = useFormatEnum()
 
-// ── Swipe state ──
-const rowRef = ref<HTMLElement | null>(null)
-const swipeOffset = ref(0)
-const isSwiping = ref(false)
-const swipeAction = ref<'none' | 'delete' | 'note'>('none')
-let touchStartX = 0
-let touchStartY = 0
-let isHorizontalSwipe: boolean | null = null
-const SWIPE_THRESHOLD = 80
-
-function onTouchStart(e: TouchEvent) {
-  touchStartX = e.touches[0].clientX
-  touchStartY = e.touches[0].clientY
-  isHorizontalSwipe = null
-  isSwiping.value = false
-}
-
-function onTouchMove(e: TouchEvent) {
-  const dx = e.touches[0].clientX - touchStartX
-  const dy = e.touches[0].clientY - touchStartY
-
-  // Determine swipe direction on first significant move
-  if (isHorizontalSwipe === null && (Math.abs(dx) > 5 || Math.abs(dy) > 5)) {
-    isHorizontalSwipe = Math.abs(dx) > Math.abs(dy)
-  }
-
-  if (!isHorizontalSwipe) return
-
-  e.preventDefault()
-  isSwiping.value = true
-  // Clamp offset with resistance
-  const maxSwipe = 120
-  const clamped = Math.max(-maxSwipe, Math.min(maxSwipe, dx))
-  swipeOffset.value = clamped
-
-  if (clamped <= -SWIPE_THRESHOLD) {
-    swipeAction.value = 'delete'
-  } else if (clamped >= SWIPE_THRESHOLD) {
-    swipeAction.value = 'note'
-  } else {
-    swipeAction.value = 'none'
-  }
-}
-
-function onTouchEnd() {
-  if (swipeAction.value === 'delete') {
-    confirmDelete()
-  } else if (swipeAction.value === 'note') {
-    openNoteDialog()
-  }
-  swipeOffset.value = 0
-  isSwiping.value = false
-  swipeAction.value = 'none'
-  isHorizontalSwipe = null
-}
-
 // ── Delete confirmation ──
 const showDeleteConfirm = ref(false)
 
@@ -329,20 +273,21 @@ const mobileSetTypeDropdownItems = computed(() => {
     }
   }))
 
-  if (hasNote.value) {
-    return [
-      typeItems,
-      [
-        {
-          label: 'View Note',
-          icon: 'i-lucide-message-square',
-          onSelect: () => openNoteDialog()
-        }
-      ]
-    ]
-  }
+  const actionItems = [
+    {
+      label: hasNote.value ? 'View Note' : 'Add Note',
+      icon: 'i-lucide-message-square',
+      onSelect: () => openNoteDialog()
+    },
+    {
+      label: 'Delete Set',
+      icon: 'i-lucide-trash-2',
+      color: 'error' as const,
+      onSelect: () => confirmDelete()
+    }
+  ]
 
-  return [typeItems]
+  return [typeItems, actionItems]
 })
 
 // Desktop three-dots menu — note + delete
@@ -386,38 +331,11 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
 
 <template>
   <div>
-    <!-- Swipe background layers (mobile only) -->
-    <div class="relative md:hidden overflow-hidden">
-      <!-- Delete background (swipe left) -->
+    <!-- Mobile row -->
+    <div class="md:hidden">
       <div
-        v-show="swipeOffset < 0"
-        class="absolute inset-y-0 right-0 w-24 flex items-center justify-center text-error rounded-r-md"
-        :class="swipeAction === 'delete' ? 'bg-error/25' : 'bg-error/10'"
-      >
-        <UIcon name="i-lucide-trash-2" class="size-5" />
-      </div>
-      <!-- Note background (swipe right) -->
-      <div
-        v-show="swipeOffset > 0"
-        class="absolute inset-y-0 left-0 w-24 flex items-center justify-center text-info rounded-l-md"
-        :class="swipeAction === 'note' ? 'bg-info/25' : 'bg-info/10'"
-      >
-        <UIcon name="i-lucide-message-square" class="size-5" />
-      </div>
-
-      <!-- Swipeable row -->
-      <div
-        ref="rowRef"
-        class="relative flex items-center gap-1 px-1 py-1 transition-transform"
+        class="flex items-center gap-1 px-1 py-1"
         :class="set.completed ? 'bg-success/10' : 'hover:bg-elevated/50'"
-        :style="
-          isSwiping
-            ? { transform: `translateX(${swipeOffset}px)`, transition: 'none' }
-            : { transform: 'translateX(0)' }
-        "
-        @touchstart.passive="onTouchStart"
-        @touchmove="onTouchMove"
-        @touchend="onTouchEnd"
       >
         <!-- Set number (tap for set type + view note on mobile) -->
         <UDropdownMenu
