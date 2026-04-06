@@ -485,6 +485,7 @@ model PersonalRecord {
   value        Float
   achievedOn   DateTime           @map("achieved_on") @db.Date
   sessionSetId String?            @unique @map("session_set_id") @db.Uuid
+  isBaseline   Boolean            @default(false) @map("is_baseline")
 
   athlete    User        @relation(fields: [athleteId], references: [id], onDelete: Cascade)
   exercise   Exercise    @relation(fields: [exerciseId], references: [id], onDelete: Restrict)

@@ -26,6 +26,7 @@ interface CandidatePR {
   prType: PersonalRecordType;
   value: number;
   setId: string;
+  isBaseline: boolean;
 }
 
 @Injectable()
@@ -93,12 +94,14 @@ export class RecordsService {
           select: { value: true },
         });
 
-        if (!existingBest || candidate.value > existingBest.value) {
+        const isBaseline = !existingBest;
+        if (isBaseline || candidate.value > existingBest!.value) {
           newPRs.push({
             exerciseId,
             prType,
             value: candidate.value,
             setId: candidate.setId,
+            isBaseline,
           });
         }
       }
@@ -128,6 +131,7 @@ export class RecordsService {
           value: pr.value,
           achievedOn: session.startedAt,
           sessionSetId: canAssignSet ? pr.setId : null,
+          isBaseline: pr.isBaseline,
         };
       });
 
@@ -155,6 +159,7 @@ export class RecordsService {
       value: pr.value,
       achievedOn: pr.achievedOn.toISOString(),
       sessionSetId: pr.sessionSetId,
+      isBaseline: pr.isBaseline,
     }));
   }
 
@@ -164,6 +169,7 @@ export class RecordsService {
 
     const where = {
       athleteId: userId,
+      isBaseline: false,
       ...(exerciseId && { exerciseId }),
       ...(prType && { prType: prType as PrismaPersonalRecordType }),
     };
@@ -204,7 +210,7 @@ export class RecordsService {
   async findByExercise(userId: string, exerciseId: string) {
     // Get the best (highest value) for each PR type
     const allRecords = await this.prisma.personalRecord.findMany({
-      where: { athleteId: userId, exerciseId },
+      where: { athleteId: userId, exerciseId, isBaseline: false },
       orderBy: { value: 'desc' },
     });
 
@@ -289,6 +295,9 @@ export class RecordsService {
         select: { value: true },
       });
 
+      // No historical record → not a PR (first-time exercise), skip
+      if (!existingBest) continue;
+
       // Check against in-session completed sets
       const sessionBest =
         sessionSets.length > 0
@@ -296,11 +305,11 @@ export class RecordsService {
           : null;
 
       const bestValue = Math.max(
-        existingBest?.value ?? 0,
+        existingBest.value,
         sessionBest?.value ?? 0,
       );
 
-      if (bestValue === 0 || candidate.value > bestValue) {
+      if (candidate.value > bestValue) {
         const label =
           prType === PersonalRecordType.ONE_REP_MAX
             ? '1RM'

@@ -12,6 +12,7 @@ import type {
 } from '@workout/shared';
 import { PrismaService } from '../prisma';
 import { RecordsService } from '../records';
+import { normalizeSession } from './normalize-session';
 
 @Injectable()
 export class SessionsService {
@@ -48,7 +49,7 @@ export class SessionsService {
           orderBy: { setNumber: 'asc' as const },
           include: {
             personalRecord: {
-              select: { id: true, prType: true, value: true },
+              select: { id: true, prType: true, value: true, isBaseline: true },
             },
           },
         },
@@ -114,7 +115,7 @@ export class SessionsService {
       return this.startFromOwnProgram(userId, dto, loggedById);
     }
 
-    return this.prisma.workoutSession.create({
+    const session = await this.prisma.workoutSession.create({
       data: {
         athleteId: userId,
         name: dto.name || 'Freestyle Workout',
@@ -123,13 +124,15 @@ export class SessionsService {
       },
       include: this.sessionInclude,
     });
+    return normalizeSession(session);
   }
 
   async findActive(userId: string) {
-    return this.prisma.workoutSession.findFirst({
+    const session = await this.prisma.workoutSession.findFirst({
       where: { athleteId: userId, status: 'IN_PROGRESS' },
       include: this.sessionInclude,
     });
+    return session ? normalizeSession(session) : null;
   }
 
   async findAll(userId: string, filters: SessionHistoryFilter) {
@@ -161,7 +164,7 @@ export class SessionsService {
     ]);
 
     return {
-      data,
+      data: data.map(normalizeSession),
       meta: {
         page,
         limit,
@@ -182,18 +185,19 @@ export class SessionsService {
     }
 
     this.assertOwnership(session, userId);
-    return session;
+    return normalizeSession(session);
   }
 
   async update(userId: string, id: string, dto: UpdateSessionInput) {
     const session = await this.findById(userId, id);
     this.assertInProgress(session);
 
-    return this.prisma.workoutSession.update({
+    const updated = await this.prisma.workoutSession.update({
       where: { id },
       data: dto,
       include: this.sessionInclude,
     });
+    return normalizeSession(updated);
   }
 
   async complete(userId: string, id: string, dto: CompleteSessionInput) {
@@ -213,14 +217,14 @@ export class SessionsService {
     // Detect personal records synchronously
     const newPersonalRecords = await this.recordsService.detectPRs(userId, id);
 
-    return { ...completed, newPersonalRecords };
+    return { ...normalizeSession(completed), newPersonalRecords };
   }
 
   async abandon(userId: string, id: string) {
     const session = await this.findById(userId, id);
     this.assertInProgress(session);
 
-    return this.prisma.workoutSession.update({
+    const abandoned = await this.prisma.workoutSession.update({
       where: { id },
       data: {
         status: 'ABANDONED',
@@ -228,6 +232,7 @@ export class SessionsService {
       },
       include: this.sessionInclude,
     });
+    return normalizeSession(abandoned);
   }
 
   // Private helpers
@@ -299,7 +304,7 @@ export class SessionsService {
       include: this.sessionInclude,
     });
 
-    return session;
+    return normalizeSession(session);
   }
 
   private async startFromOwnProgram(
@@ -331,7 +336,7 @@ export class SessionsService {
 
     const sessionName = dto.name || program.name;
 
-    return this.prisma.workoutSession.create({
+    const session = await this.prisma.workoutSession.create({
       data: {
         athleteId: userId,
         name: sessionName,
@@ -348,6 +353,7 @@ export class SessionsService {
       },
       include: this.sessionInclude,
     });
+    return normalizeSession(session);
   }
 
   /**

@@ -277,6 +277,7 @@ const dropdownItems = computed(() => {
         :key="set.id"
         :session-id="sessionId"
         :exercise-id="exercise.id"
+        :real-exercise-id="exercise.exercise.id"
         :set="set"
         :set-index="index"
         :working-set-number="workingSetNumbers[index]"

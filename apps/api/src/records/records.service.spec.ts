@@ -53,7 +53,7 @@ describe('RecordsService', () => {
       expect(result).toEqual([]);
     });
 
-    it('should create PRs when no existing records', async () => {
+    it('should create baseline PRs when no existing records', async () => {
       const set = makeSet();
       prisma.sessionSet.findMany.mockResolvedValue([set]);
       prisma.workoutSession.findUniqueOrThrow.mockResolvedValue({
@@ -75,7 +75,7 @@ describe('RecordsService', () => {
 
       const result = await service.detectPRs(userId, sessionId);
 
-      // WEIGHT_REPS should produce 4 PR types
+      // WEIGHT_REPS should produce 4 PR types, all baselines
       expect(result.length).toBe(4);
       expect(result.map((r: any) => r.prType)).toEqual(
         expect.arrayContaining([
@@ -85,6 +85,48 @@ describe('RecordsService', () => {
           'MAX_VOLUME',
         ]),
       );
+      // All should be marked as baselines
+      expect(result.every((r: any) => r.isBaseline === true)).toBe(true);
+
+      // Verify isBaseline was passed to Prisma create
+      const createCalls = prisma.personalRecord.create.mock.calls;
+      for (const call of createCalls) {
+        expect(call[0].data.isBaseline).toBe(true);
+      }
+    });
+
+    it('should set isBaseline false when beating existing record', async () => {
+      const set = makeSet({ weight: 120, reps: 5 });
+      prisma.sessionSet.findMany.mockResolvedValue([set]);
+      prisma.workoutSession.findUniqueOrThrow.mockResolvedValue({
+        startedAt: new Date('2026-03-10'),
+      });
+
+      // Existing PR is lower
+      prisma.personalRecord.findFirst.mockResolvedValue({ value: 80 });
+
+      prisma.$transaction.mockImplementation(async (calls: Promise<any>[]) => {
+        return Promise.all(calls);
+      });
+      prisma.personalRecord.create.mockImplementation(
+        async ({ data }: any) => ({
+          id: 'pr-1',
+          ...data,
+          exercise: { name: 'Bench Press' },
+        }),
+      );
+
+      const result = await service.detectPRs(userId, sessionId);
+
+      expect(result.length).toBeGreaterThan(0);
+      // None should be baselines
+      expect(result.every((r: any) => r.isBaseline === false)).toBe(true);
+
+      // Verify isBaseline was passed as false to Prisma create
+      const createCalls = prisma.personalRecord.create.mock.calls;
+      for (const call of createCalls) {
+        expect(call[0].data.isBaseline).toBe(false);
+      }
     });
 
     it('should not create PR when value is lower than existing', async () => {
@@ -203,6 +245,20 @@ describe('RecordsService', () => {
       expect(result.data[0].exerciseName).toBe('Bench Press');
       expect(result.meta.total).toBe(1);
     });
+
+    it('should exclude baseline records from listing', async () => {
+      prisma.personalRecord.findMany.mockResolvedValue([]);
+      prisma.personalRecord.count.mockResolvedValue(0);
+
+      await service.findAll(userId, { page: 1, limit: 20 });
+
+      // Verify isBaseline: false is in the where clause
+      const findManyCall = prisma.personalRecord.findMany.mock.calls[0][0];
+      expect(findManyCall.where.isBaseline).toBe(false);
+
+      const countCall = prisma.personalRecord.count.mock.calls[0][0];
+      expect(countCall.where.isBaseline).toBe(false);
+    });
   });
 
   describe('findByExercise', () => {
@@ -245,6 +301,78 @@ describe('RecordsService', () => {
       expect(result.find((r: any) => r.prType === 'MAX_WEIGHT')?.value).toBe(
         100,
       );
+    });
+
+    it('should exclude baseline records', async () => {
+      prisma.personalRecord.findMany.mockResolvedValue([]);
+
+      await service.findByExercise(userId, exerciseId);
+
+      const findManyCall = prisma.personalRecord.findMany.mock.calls[0][0];
+      expect(findManyCall.where.isBaseline).toBe(false);
+    });
+  });
+
+  describe('checkPR', () => {
+    beforeEach(() => {
+      prisma.exercise = { findUnique: vi.fn() };
+    });
+
+    it('should return isPR false when no existing records (first-time exercise)', async () => {
+      prisma.exercise.findUnique.mockResolvedValue({
+        trackingType: 'WEIGHT_REPS',
+      });
+      prisma.personalRecord.findFirst.mockResolvedValue(null); // no history
+
+      const result = await service.checkPR(userId, {
+        exerciseId,
+        weight: 100,
+        reps: 5,
+      });
+
+      expect(result.isPR).toBe(false);
+      expect(result.prTypes).toEqual([]);
+    });
+
+    it('should return isPR false even when second set beats first set in first-ever session', async () => {
+      prisma.exercise.findUnique.mockResolvedValue({
+        trackingType: 'WEIGHT_REPS',
+      });
+      // No saved records
+      prisma.personalRecord.findFirst.mockResolvedValue(null);
+      // In-session set exists (set 1 was lighter)
+      prisma.sessionSet.findMany.mockResolvedValue([
+        makeSet({ id: 'set-prev', weight: 80, reps: 5 }),
+      ]);
+
+      const result = await service.checkPR(userId, {
+        exerciseId,
+        sessionId,
+        weight: 100,
+        reps: 5,
+      });
+
+      expect(result.isPR).toBe(false);
+      expect(result.prTypes).toEqual([]);
+    });
+
+    it('should return isPR true when beating existing record', async () => {
+      prisma.exercise.findUnique.mockResolvedValue({
+        trackingType: 'WEIGHT_REPS',
+      });
+      // Existing record at 80
+      prisma.personalRecord.findFirst.mockResolvedValue({ value: 80 });
+      prisma.sessionSet.findMany.mockResolvedValue([]);
+
+      const result = await service.checkPR(userId, {
+        exerciseId,
+        sessionId,
+        weight: 100,
+        reps: 5,
+      });
+
+      expect(result.isPR).toBe(true);
+      expect(result.prTypes.length).toBeGreaterThan(0);
     });
   });
 });

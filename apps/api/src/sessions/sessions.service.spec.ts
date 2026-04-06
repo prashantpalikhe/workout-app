@@ -30,6 +30,25 @@ const mockCompletedSession = {
   completedAt: new Date('2026-03-07T11:00:00Z'),
 };
 
+const makeSessionWithPR = (isBaseline: boolean) => ({
+  ...mockSession,
+  sessionExercises: [
+    {
+      id: 'se-1',
+      exerciseId: 'ex-1',
+      exercise: { id: 'ex-1', name: 'Bench Press', equipment: 'BARBELL', trackingType: 'WEIGHT_REPS', imageUrls: [] },
+      prescribedExercise: null,
+      sets: [
+        {
+          id: 'set-1',
+          setNumber: 1,
+          personalRecord: { id: 'pr-1', prType: 'MAX_WEIGHT', value: 100, isBaseline },
+        },
+      ],
+    },
+  ],
+});
+
 const mockAssignment = {
   id: 'assign-1',
   athleteId: 'user-1',
@@ -344,6 +363,55 @@ describe('SessionsService', () => {
       await expect(service.abandon('other-user', 'session-1')).rejects.toThrow(
         ForbiddenException,
       );
+    });
+  });
+
+  describe('baseline PR normalization', () => {
+    it('should strip baseline personalRecord from findById response', async () => {
+      prisma.workoutSession.findUnique.mockResolvedValue(
+        makeSessionWithPR(true),
+      );
+
+      const result = await service.findById('user-1', 'session-1');
+
+      const set = result.sessionExercises[0].sets[0];
+      expect(set.personalRecord).toBeNull();
+    });
+
+    it('should keep genuine personalRecord in findById response', async () => {
+      prisma.workoutSession.findUnique.mockResolvedValue(
+        makeSessionWithPR(false),
+      );
+
+      const result = await service.findById('user-1', 'session-1');
+
+      const set = result.sessionExercises[0].sets[0];
+      expect(set.personalRecord).not.toBeNull();
+      expect(set.personalRecord.prType).toBe('MAX_WEIGHT');
+      // isBaseline should be stripped from the response
+      expect(set.personalRecord).not.toHaveProperty('isBaseline');
+    });
+
+    it('should strip baseline personalRecord from findAll response', async () => {
+      prisma.workoutSession.findMany.mockResolvedValue([
+        makeSessionWithPR(true),
+      ]);
+      prisma.workoutSession.count.mockResolvedValue(1);
+
+      const result = await service.findAll('user-1', { page: 1, limit: 20 });
+
+      const set = result.data[0].sessionExercises[0].sets[0];
+      expect(set.personalRecord).toBeNull();
+    });
+
+    it('should strip baseline personalRecord from start response', async () => {
+      prisma.workoutSession.findFirst.mockResolvedValue(null);
+      prisma.workoutSession.create.mockResolvedValue(makeSessionWithPR(true));
+
+      const result = await service.start('user-1', {});
+
+      const set = result.sessionExercises[0].sets[0];
+      expect(set.personalRecord).toBeNull();
     });
   });
 });

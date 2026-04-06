@@ -34,6 +34,10 @@ describe('ExercisesService', () => {
       update: ReturnType<typeof vi.fn>;
       delete: ReturnType<typeof vi.fn>;
     };
+    sessionExercise: {
+      findMany: ReturnType<typeof vi.fn>;
+      count: ReturnType<typeof vi.fn>;
+    };
     $queryRawUnsafe: ReturnType<typeof vi.fn>;
     $queryRaw: ReturnType<typeof vi.fn>;
   };
@@ -47,6 +51,10 @@ describe('ExercisesService', () => {
         create: vi.fn(),
         update: vi.fn(),
         delete: vi.fn(),
+      },
+      sessionExercise: {
+        findMany: vi.fn(),
+        count: vi.fn(),
       },
       $queryRawUnsafe: vi.fn(),
       // $queryRaw is called as a tagged template literal, so the mock
@@ -264,6 +272,97 @@ describe('ExercisesService', () => {
 
       await expect(service.delete('user-1', 'ex-1')).rejects.toThrow(
         ForbiddenException,
+      );
+    });
+  });
+
+  describe('getHistory', () => {
+    it('should null out baseline personalRecord on sets', async () => {
+      prisma.exercise.findUnique.mockResolvedValue(mockExercise);
+      prisma.sessionExercise.findMany.mockResolvedValue([
+        {
+          workoutSession: {
+            id: 'session-1',
+            name: 'Push Day',
+            startedAt: new Date('2026-03-10'),
+          },
+          sets: [
+            {
+              id: 'set-1',
+              setNumber: 1,
+              setType: 'WORKING',
+              weight: 100,
+              reps: 5,
+              durationSec: null,
+              distance: null,
+              rpe: 8,
+              tempo: null,
+              restSec: 90,
+              completed: true,
+              personalRecord: {
+                id: 'pr-1',
+                prType: 'MAX_WEIGHT',
+                value: 100,
+                isBaseline: true,
+              },
+            },
+          ],
+        },
+      ]);
+      prisma.sessionExercise.count.mockResolvedValue(1);
+
+      const result = await service.getHistory('user-1', 'ex-1', {
+        page: 1,
+        limit: 20,
+      });
+
+      expect(result.data[0].sets[0].personalRecord).toBeNull();
+    });
+
+    it('should keep genuine personalRecord on sets', async () => {
+      prisma.exercise.findUnique.mockResolvedValue(mockExercise);
+      prisma.sessionExercise.findMany.mockResolvedValue([
+        {
+          workoutSession: {
+            id: 'session-1',
+            name: 'Push Day',
+            startedAt: new Date('2026-03-10'),
+          },
+          sets: [
+            {
+              id: 'set-1',
+              setNumber: 1,
+              setType: 'WORKING',
+              weight: 120,
+              reps: 5,
+              durationSec: null,
+              distance: null,
+              rpe: 9,
+              tempo: null,
+              restSec: 90,
+              completed: true,
+              personalRecord: {
+                id: 'pr-2',
+                prType: 'MAX_WEIGHT',
+                value: 120,
+                isBaseline: false,
+              },
+            },
+          ],
+        },
+      ]);
+      prisma.sessionExercise.count.mockResolvedValue(1);
+
+      const result = await service.getHistory('user-1', 'ex-1', {
+        page: 1,
+        limit: 20,
+      });
+
+      expect(result.data[0].sets[0].personalRecord).not.toBeNull();
+      expect(result.data[0].sets[0].personalRecord.prType).toBe('MAX_WEIGHT');
+      // isBaseline should not leak to the response
+      expect(result.data[0].sets[0].personalRecord).not.toHaveProperty(
+        'isBaseline',
       );
     });
   });

@@ -345,7 +345,7 @@ export class ExercisesService {
             orderBy: { setNumber: 'asc' as const },
             include: {
               personalRecord: {
-                select: { id: true, prType: true, value: true },
+                select: { id: true, prType: true, value: true, isBaseline: true },
               },
             },
           },
@@ -373,7 +373,11 @@ export class ExercisesService {
         tempo: s.tempo,
         restSec: s.restSec,
         completed: s.completed,
-        personalRecord: s.personalRecord,
+        personalRecord: s.personalRecord?.isBaseline
+          ? null
+          : s.personalRecord
+            ? { id: s.personalRecord.id, prType: s.personalRecord.prType, value: s.personalRecord.value }
+            : null,
       })),
     }));
 

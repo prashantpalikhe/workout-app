@@ -58,7 +58,7 @@ export class UserStatsService {
       }),
 
       this.prisma.personalRecord.count({
-        where: { athleteId: userId },
+        where: { athleteId: userId, isBaseline: false },
       }),
 
       this.prisma.user.findUniqueOrThrow({

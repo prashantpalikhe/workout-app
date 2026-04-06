@@ -306,4 +306,24 @@ describe('UserStatsService', () => {
       expect(result.workoutDays).toEqual([]);
     });
   });
+
+  describe('baseline PR exclusion', () => {
+    it('should exclude baseline records from totalPersonalRecords count', async () => {
+      prisma.workoutSession.count.mockResolvedValue(1);
+      prisma.$queryRaw
+        .mockResolvedValueOnce([{ total_volume: 0 }])
+        .mockResolvedValueOnce([]);
+      prisma.sessionExercise.findMany.mockResolvedValue([]);
+      prisma.personalRecord.count.mockResolvedValue(3);
+      prisma.user.findUniqueOrThrow.mockResolvedValue({
+        createdAt: new Date(),
+      });
+
+      await service.getStats(userId);
+
+      // Verify the count call includes isBaseline: false filter
+      const countCall = prisma.personalRecord.count.mock.calls[0][0];
+      expect(countCall.where.isBaseline).toBe(false);
+    });
+  });
 });

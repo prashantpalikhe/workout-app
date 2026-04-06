@@ -5,6 +5,7 @@ import type { SessionSet } from '~/stores/sessions'
 const props = defineProps<{
   sessionId: string
   exerciseId: string
+  realExerciseId: string
   set: SessionSet
   setIndex: number
   workingSetNumber: number
@@ -192,6 +193,9 @@ const {
   }
 )
 
+// ── PR check state (local, not persisted) ──
+const prLabels = ref<string[]>([])
+
 // Completed checkbox — immediate save (no debounce)
 // Includes all current form data so a pending auto-save can't race with it
 async function toggleCompleted() {
@@ -213,12 +217,41 @@ async function toggleCompleted() {
         completed: !wasCompleted
       }
     )
-    // Emit only when marking a set as complete (not when uncompleting)
     if (!wasCompleted) {
+      // Emit only when marking a set as complete (not when uncompleting)
       emit('set-completed', { setId: props.set.id, restSec: props.set.restSec })
+      checkForPR()
+    } else {
+      // Uncompleting — clear PR indicator
+      prLabels.value = []
     }
   } catch {
     toast.add({ title: 'Failed to update set', color: 'error' })
+  }
+}
+
+async function checkForPR() {
+  try {
+    const result = await sessionStore.checkPR(props.realExerciseId, {
+      sessionId: props.sessionId,
+      excludeSetId: props.set.id,
+      weight: form.weight,
+      reps: form.reps,
+      durationSec: form.durationSec,
+      distance: form.distance
+    })
+    if (result.isPR) {
+      prLabels.value = result.prTypes.map(p => p.label)
+      toast.add({
+        title: `New PR: ${prLabels.value.join(', ')}`,
+        icon: 'i-lucide-trophy',
+        color: 'warning'
+      })
+    } else {
+      prLabels.value = []
+    }
+  } catch {
+    // PR check is non-critical — silently ignore failures
   }
 }
 
@@ -434,16 +467,22 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         <button
           class="flex items-center justify-center size-7 shrink-0 rounded-md transition-colors"
           :class="
-            set.completed
-              ? 'text-success bg-success/10'
-              : 'text-muted hover:text-default hover:bg-elevated'
+            prLabels.length > 0
+              ? 'text-warning bg-warning/10'
+              : set.completed
+                ? 'text-success bg-success/10'
+                : 'text-muted hover:text-default hover:bg-elevated'
           "
           :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
           @click="toggleCompleted"
         >
           <UIcon
             :name="
-              set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'
+              prLabels.length > 0
+                ? 'i-lucide-trophy'
+                : set.completed
+                  ? 'i-lucide-check-circle-2'
+                  : 'i-lucide-circle'
             "
             class="size-5"
           />
@@ -543,15 +582,23 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       <button
         class="flex items-center justify-center size-8 shrink-0 rounded-md transition-colors"
         :class="
-          set.completed
-            ? 'text-success bg-success/10'
-            : 'text-muted hover:text-default hover:bg-elevated'
+          prLabels.length > 0
+            ? 'text-warning bg-warning/10'
+            : set.completed
+              ? 'text-success bg-success/10'
+              : 'text-muted hover:text-default hover:bg-elevated'
         "
         :aria-label="set.completed ? 'Mark incomplete' : 'Mark complete'"
         @click="toggleCompleted"
       >
         <UIcon
-          :name="set.completed ? 'i-lucide-check-circle-2' : 'i-lucide-circle'"
+          :name="
+            prLabels.length > 0
+              ? 'i-lucide-trophy'
+              : set.completed
+                ? 'i-lucide-check-circle-2'
+                : 'i-lucide-circle'
+          "
           class="size-5"
         />
       </button>

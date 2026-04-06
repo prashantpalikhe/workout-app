@@ -9,6 +9,7 @@ import type {
   UpdateSessionExerciseInput,
 } from '@workout/shared';
 import { PrismaService } from '../prisma';
+import { normalizeExercise } from './normalize-session';
 
 @Injectable()
 export class SessionExercisesService {
@@ -40,7 +41,7 @@ export class SessionExercisesService {
       orderBy: { setNumber: 'asc' as const },
       include: {
         personalRecord: {
-          select: { id: true, prType: true, value: true },
+          select: { id: true, prType: true, value: true, isBaseline: true },
         },
       },
     },
@@ -59,7 +60,7 @@ export class SessionExercisesService {
       sortOrder = (maxSort._max.sortOrder ?? -1) + 1;
     }
 
-    return this.prisma.sessionExercise.create({
+    const exercise = await this.prisma.sessionExercise.create({
       data: {
         workoutSessionId: sessionId,
         exerciseId: dto.exerciseId,
@@ -67,6 +68,7 @@ export class SessionExercisesService {
       },
       include: this.exerciseInclude,
     });
+    return normalizeExercise(exercise);
   }
 
   async update(
@@ -84,11 +86,12 @@ export class SessionExercisesService {
       data.isSubstitution = true;
     }
 
-    return this.prisma.sessionExercise.update({
+    const exercise = await this.prisma.sessionExercise.update({
       where: { id: sessionExerciseId },
       data,
       include: this.exerciseInclude,
     });
+    return normalizeExercise(exercise);
   }
 
   async remove(userId: string, sessionId: string, sessionExerciseId: string) {
