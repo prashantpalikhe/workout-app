@@ -139,12 +139,25 @@ const form = reactive({
   rpe: props.set.rpe ?? (undefined as number | undefined)
 })
 
+// Dirty tracking — prevents the watch from overwriting user edits
+// with stale API responses from a previous auto-save.
+const dirty = ref(false)
+let editVersion = 0
+
+function markDirtyAndSchedule() {
+  dirty.value = true
+  editVersion++
+  schedule()
+}
+
 // Sync from prop when set data changes externally (e.g. after API response)
 watch(
   () => props.set,
   (s) => {
-    // Only overwrite local form if the server value actually differs,
-    // to avoid resetting user edits during debounced auto-save
+    // Skip sync while the user has unsaved local edits — the auto-save
+    // response for a previous save could otherwise overwrite newer input.
+    if (dirty.value) return
+
     if (form.setType !== s.setType) form.setType = s.setType
     const w = s.weight ?? undefined
     const r = s.reps ?? undefined
@@ -168,6 +181,8 @@ const {
   cancel
 } = useAutoSave(
   async () => {
+    const versionAtSaveStart = editVersion
+
     const payload: Record<string, unknown> = {}
     payload.setType = form.setType
     payload.weight = form.weight || undefined
@@ -184,6 +199,11 @@ const {
       props.set.id,
       payload
     )
+
+    // Only clear dirty if the user didn't edit again while the save was in-flight
+    if (editVersion === versionAtSaveStart) {
+      dirty.value = false
+    }
   },
   {
     debounceMs: 400,
@@ -217,6 +237,10 @@ async function toggleCompleted() {
         completed: !wasCompleted
       }
     )
+    // Clear dirty only after the save succeeds — the API response triggers
+    // the watch, but the store update happens synchronously inside updateSet
+    // before this line runs, so the watch was still guarded by dirty=true.
+    dirty.value = false
     if (!wasCompleted) {
       // Emit only when marking a set as complete (not when uncompleting)
       emit('set-completed', { setId: props.set.id, restSec: props.set.restSec })
@@ -281,7 +305,7 @@ const setTypeDropdownItems = computed(() => {
     icon: form.setType === t ? 'i-lucide-check' : undefined,
     onSelect: () => {
       form.setType = t
-      schedule()
+      markDirtyAndSchedule()
     }
   }))
 
@@ -294,7 +318,7 @@ const mobileSetTypeDropdownItems = computed(() => {
     icon: form.setType === t ? 'i-lucide-check' : undefined,
     onSelect: () => {
       form.setType = t
-      schedule()
+      markDirtyAndSchedule()
     }
   }))
 
@@ -410,7 +434,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           class="flex-1 min-w-0"
           variant="none"
           :ui="{ base: 'text-center font-semibold !px-0' }"
-          @blur="schedule()"
+          @blur="markDirtyAndSchedule()"
           @keyup.enter="onInputEnter"
         />
         <UInput
@@ -423,7 +447,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           class="flex-1 min-w-0"
           variant="none"
           :ui="{ base: 'text-center font-semibold !px-0' }"
-          @blur="schedule()"
+          @blur="markDirtyAndSchedule()"
           @keyup.enter="onInputEnter"
         />
         <UInput
@@ -436,7 +460,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           class="flex-1 min-w-0"
           variant="none"
           :ui="{ base: 'text-center font-semibold !px-0' }"
-          @blur="schedule()"
+          @blur="markDirtyAndSchedule()"
           @keyup.enter="onInputEnter"
         />
         <UInput
@@ -448,7 +472,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           class="flex-1 min-w-0"
           variant="none"
           :ui="{ base: 'text-center font-semibold !px-0' }"
-          @blur="schedule()"
+          @blur="markDirtyAndSchedule()"
           @keyup.enter="onInputEnter"
         />
         <UInput
@@ -459,7 +483,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
           class="flex-1 min-w-0"
           variant="none"
           :ui="{ base: 'text-center font-semibold !px-0' }"
-          @blur="schedule()"
+          @blur="markDirtyAndSchedule()"
           @keyup.enter="onInputEnter"
         />
 
@@ -527,7 +551,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         variant="none"
         class="flex-1 min-w-0"
         :ui="{ base: 'text-center font-semibold !px-0' }"
-        @blur="schedule()"
+        @blur="markDirtyAndSchedule()"
         @keyup.enter="onInputEnter"
       />
       <UInput
@@ -539,7 +563,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         variant="none"
         class="flex-1 min-w-0"
         :ui="{ base: 'text-center font-semibold !px-0' }"
-        @blur="schedule()"
+        @blur="markDirtyAndSchedule()"
         @keyup.enter="onInputEnter"
       />
       <UInput
@@ -551,7 +575,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         variant="none"
         class="flex-1 min-w-0"
         :ui="{ base: 'text-center font-semibold !px-0' }"
-        @blur="schedule()"
+        @blur="markDirtyAndSchedule()"
         @keyup.enter="onInputEnter"
       />
       <UInput
@@ -563,7 +587,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         variant="none"
         class="flex-1 min-w-0"
         :ui="{ base: 'text-center font-semibold !px-0' }"
-        @blur="schedule()"
+        @blur="markDirtyAndSchedule()"
         @keyup.enter="onInputEnter"
       />
       <UInput
@@ -574,7 +598,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         variant="none"
         class="flex-1 min-w-0"
         :ui="{ base: 'text-center font-semibold !px-0' }"
-        @blur="schedule()"
+        @blur="markDirtyAndSchedule()"
         @keyup.enter="onInputEnter"
       />
 
