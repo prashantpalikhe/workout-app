@@ -28,6 +28,13 @@ export class ExercisesService {
     const { page, limit, equipment, movementPattern, muscleGroupId, search } =
       filters;
 
+    // When searching, use pg_trgm fuzzy match via raw SQL for the ID list,
+    // then hydrate with Prisma for includes. This keeps fuzzy ranking while
+    // preserving the full Prisma relation loading.
+    if (search) {
+      return this.findAllFuzzy(userId, filters);
+    }
+
     const where = {
       // Show global exercises + user's own custom exercises
       OR: [{ isGlobal: true }, { createdById: userId }],
@@ -39,9 +46,6 @@ export class ExercisesService {
       }),
       ...(muscleGroupId && {
         muscleGroups: { some: { muscleGroupId } },
-      }),
-      ...(search && {
-        name: { contains: search, mode: 'insensitive' as const },
       }),
     };
 
@@ -59,6 +63,83 @@ export class ExercisesService {
       }),
       this.prisma.exercise.count({ where }),
     ]);
+
+    return {
+      data,
+      meta: {
+        page,
+        limit,
+        total,
+        totalPages: Math.ceil(total / limit),
+      },
+    };
+  }
+
+  /**
+   * Fuzzy search using pg_trgm similarity + ILIKE fallback.
+   * Returns results ranked by similarity score (best match first).
+   */
+  private async findAllFuzzy(userId: string, filters: ExerciseFilter) {
+    const { page, limit, search } = filters;
+
+    const offset = (page - 1) * limit;
+    const searchTerm = search!;
+    const searchPattern = `%${searchTerm}%`;
+
+    // All filter values are parameterised — inactive filters pass null and
+    // the `IS NULL` check short-circuits the condition, keeping the query
+    // fully safe against SQL injection.
+    const equipmentFilter = filters.equipment ?? null;
+    const movementFilter = filters.movementPattern ?? null;
+    const muscleGroupFilter = filters.muscleGroupId ?? null;
+
+    const [rows, countResult] = await Promise.all([
+      this.prisma.$queryRaw<{ id: string }[]>`
+        SELECT e.id
+        FROM exercises e
+        WHERE (e.is_global = true OR e.created_by = ${userId})
+          AND (${equipmentFilter}::text IS NULL OR e.equipment = ${equipmentFilter}::text)
+          AND (${movementFilter}::text IS NULL OR e.movement_pattern = ${movementFilter}::text)
+          AND (${muscleGroupFilter}::text IS NULL OR EXISTS (
+            SELECT 1 FROM exercise_muscle_groups emg
+            WHERE emg.exercise_id = e.id AND emg.muscle_group_id = ${muscleGroupFilter}::text
+          ))
+          AND (word_similarity(${searchTerm}, e.name) > 0.15 OR e.name ILIKE ${searchPattern})
+        ORDER BY word_similarity(${searchTerm}, e.name) DESC, e.name ASC
+        LIMIT ${limit} OFFSET ${offset}
+      `,
+      this.prisma.$queryRaw<{ count: bigint }[]>`
+        SELECT COUNT(*)::bigint AS count
+        FROM exercises e
+        WHERE (e.is_global = true OR e.created_by = ${userId})
+          AND (${equipmentFilter}::text IS NULL OR e.equipment = ${equipmentFilter}::text)
+          AND (${movementFilter}::text IS NULL OR e.movement_pattern = ${movementFilter}::text)
+          AND (${muscleGroupFilter}::text IS NULL OR EXISTS (
+            SELECT 1 FROM exercise_muscle_groups emg
+            WHERE emg.exercise_id = e.id AND emg.muscle_group_id = ${muscleGroupFilter}::text
+          ))
+          AND (word_similarity(${searchTerm}, e.name) > 0.15 OR e.name ILIKE ${searchPattern})
+      `,
+    ]);
+
+    const total = Number(countResult[0]?.count ?? 0);
+    const ids = rows.map((r) => r.id);
+
+    // Hydrate with Prisma to get includes
+    const exercises = ids.length
+      ? await this.prisma.exercise.findMany({
+          where: { id: { in: ids } },
+          include: {
+            muscleGroups: {
+              include: { muscleGroup: true },
+            },
+          },
+        })
+      : [];
+
+    // Preserve similarity ranking order
+    const exerciseMap = new Map(exercises.map((e) => [e.id, e]));
+    const data = ids.map((id) => exerciseMap.get(id)!).filter(Boolean);
 
     return {
       data,

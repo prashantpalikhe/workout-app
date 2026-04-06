@@ -34,6 +34,8 @@ describe('ExercisesService', () => {
       update: ReturnType<typeof vi.fn>;
       delete: ReturnType<typeof vi.fn>;
     };
+    $queryRawUnsafe: ReturnType<typeof vi.fn>;
+    $queryRaw: ReturnType<typeof vi.fn>;
   };
 
   beforeEach(async () => {
@@ -46,6 +48,10 @@ describe('ExercisesService', () => {
         update: vi.fn(),
         delete: vi.fn(),
       },
+      $queryRawUnsafe: vi.fn(),
+      // $queryRaw is called as a tagged template literal, so the mock
+      // receives (strings[], ...values) — vi.fn() handles this fine.
+      $queryRaw: vi.fn(),
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -88,18 +94,52 @@ describe('ExercisesService', () => {
       expect(where.equipment).toBe('BARBELL');
     });
 
-    it('should apply search filter with case-insensitive contains', async () => {
-      prisma.exercise.findMany.mockResolvedValue([]);
-      prisma.exercise.count.mockResolvedValue(0);
+    it('should use fuzzy search via $queryRaw when search term provided', async () => {
+      prisma.$queryRaw
+        .mockResolvedValueOnce([{ id: 'ex-1' }]) // IDs
+        .mockResolvedValueOnce([{ count: 1n }]); // count
+      prisma.exercise.findMany.mockResolvedValue([mockExercise]);
 
-      await service.findAll('user-1', {
+      const result = await service.findAll('user-1', {
         page: 1,
         limit: 20,
         search: 'bench',
       });
 
-      const where = prisma.exercise.findMany.mock.calls[0][0].where;
-      expect(where.name).toEqual({ contains: 'bench', mode: 'insensitive' });
+      // Should use parameterised $queryRaw (tagged template) for fuzzy search
+      expect(prisma.$queryRaw).toHaveBeenCalledTimes(2);
+      // Tagged template: first arg is a TemplateStringsArray containing the SQL fragments
+      const templateStrings = prisma.$queryRaw.mock.calls[0][0];
+      const sqlText = Array.isArray(templateStrings)
+        ? templateStrings.join('')
+        : String(templateStrings);
+      expect(sqlText).toContain('word_similarity');
+      expect(sqlText).toContain('ILIKE');
+      // Should hydrate results with Prisma
+      expect(prisma.exercise.findMany).toHaveBeenCalledWith(
+        expect.objectContaining({
+          where: { id: { in: ['ex-1'] } },
+        }),
+      );
+      expect(result.data).toHaveLength(1);
+      expect(result.meta.total).toBe(1);
+    });
+
+    it('should return empty results for fuzzy search with no matches', async () => {
+      prisma.$queryRaw
+        .mockResolvedValueOnce([]) // no IDs
+        .mockResolvedValueOnce([{ count: 0n }]);
+
+      const result = await service.findAll('user-1', {
+        page: 1,
+        limit: 20,
+        search: 'xyznonexistent',
+      });
+
+      expect(result.data).toHaveLength(0);
+      expect(result.meta.total).toBe(0);
+      // Should NOT call findMany when no IDs returned
+      expect(prisma.exercise.findMany).not.toHaveBeenCalled();
     });
 
     it('should apply muscleGroupId filter', async () => {
