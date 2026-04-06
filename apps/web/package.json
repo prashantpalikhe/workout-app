@@ -8,7 +8,10 @@
     "preview": "nuxt preview",
     "postinstall": "nuxt prepare",
     "lint": "eslint .",
-    "typecheck": "nuxt typecheck"
+    "typecheck": "nuxt typecheck",
+    "test:e2e": "playwright test",
+    "test:e2e:ui": "playwright test --ui",
+    "test:e2e:headed": "playwright test --headed"
   },
   "dependencies": {
     "@iconify-json/lucide": "^1.2.95",
@@ -30,7 +33,10 @@
   },
   "devDependencies": {
     "@nuxt/eslint": "^1.15.2",
+    "@playwright/test": "^1.59.1",
+    "@types/pg": "^8.18.0",
     "eslint": "^10.0.2",
+    "pg": "^8.20.0",
     "typescript": "^5.9.3",
     "vue-tsc": "^3.2.5"
   }
