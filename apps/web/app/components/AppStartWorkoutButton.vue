@@ -13,9 +13,13 @@
 withDefaults(defineProps<{
   label?: string
   icon?: string
+  block?: boolean
+  dropdownSide?: 'top' | 'bottom'
 }>(), {
   label: 'Start',
-  icon: 'i-lucide-play'
+  icon: 'i-lucide-play',
+  block: false,
+  dropdownSide: 'bottom'
 })
 
 const emit = defineEmits<{
@@ -82,16 +86,17 @@ const programMenuItems = computed(() => {
 </script>
 
 <template>
-  <UFieldGroup>
+  <UFieldGroup :class="block ? 'w-full' : ''">
     <UButton
       :label="label"
       :icon="icon"
       :loading="starting"
+      :class="block ? 'flex-1' : ''"
       @click="startWorkout()"
     />
-    <UDropdownMenu :items="programMenuItems" :content="{ align: 'end' }">
+    <UDropdownMenu :items="programMenuItems" :content="{ align: 'end', side: dropdownSide }">
       <UButton
-        icon="i-lucide-chevron-down"
+        :icon="dropdownSide === 'top' ? 'i-lucide-chevron-up' : 'i-lucide-chevron-down'"
         aria-label="Start from program"
       />
     </UDropdownMenu>

@@ -213,8 +213,8 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
     </div>
 
     <div v-else class="space-y-6">
-      <!-- Appearance -->
-      <UCard>
+      <!-- Appearance (hidden for now) -->
+      <UCard v-if="false">
         <div class="space-y-5">
           <div>
             <p class="font-medium">Appearance</p>
@@ -253,8 +253,8 @@ const secondOptions = Array.from({ length: 12 }, (_, i) => ({
         </div>
       </UCard>
 
-      <!-- Trainer Mode -->
-      <UCard>
+      <!-- Trainer Mode (hidden for now) -->
+      <UCard v-if="false">
         <div class="space-y-5">
           <div class="flex items-center justify-between">
             <div>

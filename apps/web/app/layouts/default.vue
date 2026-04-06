@@ -53,17 +53,19 @@ const navItems = computed<NavigationMenuItem[]>(() => [
   //       }
   //     ]
   //   : []),
-  {
-    label: 'Profile',
-    icon: 'i-lucide-user',
-    to: '/profile',
-    active: route.path === '/profile'
-  },
+])
+
+const footerNavItems = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Settings',
     icon: 'i-lucide-settings',
     to: '/settings',
     active: route.path === '/settings'
+  },
+  {
+    label: 'Logout',
+    icon: 'i-lucide-log-out',
+    click: () => authStore.logout()
   }
 ])
 </script>
@@ -94,6 +96,37 @@ const navItems = computed<NavigationMenuItem[]>(() => [
       </template>
 
       <template #default="{ collapsed }">
+        <!-- Profile card -->
+        <NuxtLink
+          v-if="authStore.user"
+          to="/profile"
+          class="mx-2 mb-4 block transition-colors"
+          :class="collapsed ? 'flex justify-center' : 'rounded-lg bg-accented hover:bg-muted p-3'"
+        >
+          <UAvatar
+            v-if="collapsed"
+            :src="authStore.user?.avatarUrl || undefined"
+            :alt="authStore.fullName"
+            size="sm"
+          />
+          <div v-else class="flex items-center gap-3">
+            <UAvatar
+              :src="authStore.user?.avatarUrl || undefined"
+              :alt="authStore.fullName"
+              size="lg"
+              class="shrink-0"
+            />
+            <div class="min-w-0 flex-1">
+              <p class="text-sm font-semibold truncate">
+                {{ authStore.fullName }}
+              </p>
+              <p class="text-xs text-muted truncate">
+                Athlete
+              </p>
+            </div>
+          </div>
+        </NuxtLink>
+
         <UNavigationMenu
           :collapsed="collapsed"
           :items="navItems"
@@ -102,40 +135,35 @@ const navItems = computed<NavigationMenuItem[]>(() => [
         />
 
         <div class="mt-auto" />
-      </template>
 
-      <template #footer="{ collapsed }">
-        <div
-          v-if="authStore.user"
-          class="flex items-center w-full"
-          :class="collapsed ? 'justify-center' : 'gap-2'"
-        >
-          <NuxtLink
-            to="/profile"
-            class="flex items-center gap-2 min-w-0 flex-1"
-            :class="collapsed ? 'justify-center' : ''"
-          >
-            <UAvatar
-              :src="authStore.user?.avatarUrl || undefined"
-              :alt="authStore.fullName"
-              size="sm"
-              class="shrink-0"
-            />
-            <span v-if="!collapsed" class="text-sm font-medium truncate">{{
-              authStore.fullName
-            }}</span>
-          </NuxtLink>
-          <UButton
+        <!-- Start Workout -->
+        <div class="mx-2 mb-4" :class="collapsed ? 'flex justify-center' : ''">
+          <AppStartWorkoutButton
             v-if="!collapsed"
-            icon="i-lucide-log-out"
-            color="neutral"
-            variant="ghost"
-            size="xs"
-            aria-label="Logout"
-            @click="authStore.logout()"
+            label="Start Workout"
+            block
+            dropdown-side="top"
+          />
+          <UButton
+            v-else
+            icon="i-lucide-play"
+            color="primary"
+            variant="solid"
+            size="sm"
+            aria-label="Start Workout"
+            @click="navigateTo('/sessions/active')"
           />
         </div>
+
+        <UNavigationMenu
+          :collapsed="collapsed"
+          :items="footerNavItems"
+          orientation="vertical"
+          :ui="{ link: 'py-2.5' }"
+        />
       </template>
+
+      <template #footer />
     </UDashboardSidebar>
 
     <div class="flex-1 overflow-y-auto min-h-svh">
