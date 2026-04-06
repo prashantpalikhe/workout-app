@@ -12,6 +12,7 @@ export type StartSessionInput = z.infer<typeof startSessionInputSchema>;
 export const completeSessionInputSchema = z.object({
   overallRpe: rpeSchema.optional(),
   notes: z.string().max(1000).nullish(),
+  completedAt: z.string().datetime().optional(),
 });
 export type CompleteSessionInput = z.infer<typeof completeSessionInputSchema>;
 

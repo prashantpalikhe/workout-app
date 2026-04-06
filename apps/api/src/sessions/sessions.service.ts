@@ -3,6 +3,7 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import type {
   StartSessionInput,
@@ -204,12 +205,27 @@ export class SessionsService {
     const session = await this.findById(userId, id);
     this.assertInProgress(session);
 
+    let completedAt = new Date();
+    if (dto.completedAt) {
+      const parsed = new Date(dto.completedAt);
+      if (parsed < session.startedAt) {
+        throw new BadRequestException(
+          'completedAt cannot be before session start',
+        );
+      }
+      if (parsed > new Date()) {
+        throw new BadRequestException('completedAt cannot be in the future');
+      }
+      completedAt = parsed;
+    }
+
     const completed = await this.prisma.workoutSession.update({
       where: { id },
       data: {
-        ...dto,
+        overallRpe: dto.overallRpe,
+        notes: dto.notes,
         status: 'COMPLETED',
-        completedAt: new Date(),
+        completedAt,
       },
       include: this.sessionInclude,
     });

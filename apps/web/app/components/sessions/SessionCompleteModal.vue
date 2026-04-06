@@ -11,20 +11,56 @@ const emit = defineEmits<{
 
 const open = defineModel<boolean>({ default: false })
 
-const sessionStore = useSessionStore()
 const router = useRouter()
 const toast = useToast()
+
+const sessionStore = useSessionStore()
 
 const overallRpe = ref<number | undefined>(undefined)
 const notes = ref('')
 const submitting = ref(false)
 const error = ref<string | null>(null)
 
+// Long session warning (> 3 hours)
+const LONG_SESSION_MS = 3 * 60 * 60 * 1000
+const isLongSession = ref(false)
+const endTime = ref('')
+const endTimeChanged = ref(false)
+
+function toLocalDatetimeString(date: Date): string {
+  const y = date.getFullYear()
+  const mo = String(date.getMonth() + 1).padStart(2, '0')
+  const d = String(date.getDate()).padStart(2, '0')
+  const h = String(date.getHours()).padStart(2, '0')
+  const min = String(date.getMinutes()).padStart(2, '0')
+  return `${y}-${mo}-${d}T${h}:${min}`
+}
+
+function formatDuration(ms: number): string {
+  const hours = Math.floor(ms / (1000 * 60 * 60))
+  const minutes = Math.floor((ms % (1000 * 60 * 60)) / (1000 * 60))
+  if (hours === 0) return `${minutes} minutes`
+  return `${hours} hour${hours !== 1 ? 's' : ''} ${minutes} minute${minutes !== 1 ? 's' : ''}`
+}
+
+const durationText = ref('')
+const showWarning = computed(() => isLongSession.value && !sessionStore.isTrainerMode)
+const minEndTime = computed(() => toLocalDatetimeString(new Date(props.session.startedAt)))
+const maxEndTime = ref('')
+
 watch(open, (val) => {
   if (val) {
     overallRpe.value = undefined
     notes.value = ''
     error.value = null
+
+    const durationMs = Date.now() - new Date(props.session.startedAt).getTime()
+    isLongSession.value = durationMs > LONG_SESSION_MS
+    const now = new Date()
+    endTime.value = toLocalDatetimeString(now)
+    maxEndTime.value = toLocalDatetimeString(now)
+    endTimeChanged.value = false
+    durationText.value = formatDuration(durationMs)
   }
 })
 
@@ -40,10 +76,26 @@ async function completeWorkout() {
   // which would unmount this component via the parent's v-if guard.
   const sessionId = props.session.id
   try {
-    await sessionStore.completeSession(sessionId, {
+    const input: Record<string, unknown> = {
       overallRpe: overallRpe.value,
-      notes: notes.value.trim() || undefined
-    })
+      notes: notes.value.trim() || undefined,
+    }
+    if (showWarning.value && endTimeChanged.value) {
+      const endDate = new Date(endTime.value)
+      const startDate = new Date(props.session.startedAt)
+      if (endDate < startDate) {
+        error.value = 'End time cannot be before the workout started'
+        submitting.value = false
+        return
+      }
+      if (endDate > new Date()) {
+        error.value = 'End time cannot be in the future'
+        submitting.value = false
+        return
+      }
+      input.completedAt = endDate.toISOString()
+    }
+    await sessionStore.completeSession(sessionId, input as any)
     toast.add({ title: 'Workout completed!', color: 'success' })
     open.value = false
     emit('completed', sessionId)
@@ -76,6 +128,21 @@ async function completeWorkout() {
         class="mb-4"
       />
 
+      <!-- Long session warning -->
+      <UAlert
+        v-if="showWarning"
+        color="warning"
+        icon="i-lucide-clock"
+        class="mb-4"
+      >
+        <template #title>
+          This workout has been running for {{ durationText }}.
+        </template>
+        <template #description>
+          Did you forget to finish? You can adjust the end time below.
+        </template>
+      </UAlert>
+
       <!-- Summary -->
       <div class="flex gap-4 mb-4 text-sm text-muted">
         <span>{{ exerciseCount }} exercise{{ exerciseCount !== 1 ? 's' : '' }}</span>
@@ -83,6 +150,17 @@ async function completeWorkout() {
       </div>
 
       <div class="space-y-4">
+        <UFormField v-if="showWarning" label="End time">
+          <input
+            v-model="endTime"
+            type="datetime-local"
+            :min="minEndTime"
+            :max="maxEndTime"
+            class="w-full rounded-md border border-default bg-default px-3 py-2 text-sm focus:outline-none focus:ring-2 focus:ring-primary"
+            @change="endTimeChanged = true"
+          >
+        </UFormField>
+
         <UFormField label="Overall RPE" hint="1-10">
           <UInput
             v-model.number="overallRpe"

@@ -194,7 +194,7 @@ export const useSessionStore = defineStore('sessions', () => {
     return updated
   }
 
-  async function completeSession(id: string, input: CompleteSessionInput) {
+  async function completeSession(id: string, input: CompleteSessionInput & { completedAt?: string }) {
     const completed = await api<WorkoutSession>(`${sessionsBase()}/${id}/complete`, {
       method: 'POST',
       body: input

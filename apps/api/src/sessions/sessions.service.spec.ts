@@ -4,6 +4,7 @@ import {
   NotFoundException,
   ForbiddenException,
   ConflictException,
+  BadRequestException,
 } from '@nestjs/common';
 import { SessionsService } from './sessions.service';
 import { PrismaService } from '../prisma';
@@ -330,6 +331,60 @@ describe('SessionsService', () => {
       await expect(service.complete('user-1', 'session-2', {})).rejects.toThrow(
         ConflictException,
       );
+    });
+
+    it('should use provided completedAt when valid', async () => {
+      const customTime = new Date('2026-03-07T10:30:00Z');
+      prisma.workoutSession.findUnique.mockResolvedValue(mockSession);
+      prisma.workoutSession.update.mockResolvedValue({
+        ...mockSession,
+        status: 'COMPLETED',
+        completedAt: customTime,
+      });
+
+      await service.complete('user-1', 'session-1', {
+        completedAt: customTime.toISOString(),
+      });
+
+      const args = prisma.workoutSession.update.mock.calls[0][0];
+      expect(args.data.completedAt).toEqual(customTime);
+    });
+
+    it('should use current time when completedAt not provided', async () => {
+      prisma.workoutSession.findUnique.mockResolvedValue(mockSession);
+      prisma.workoutSession.update.mockResolvedValue({
+        ...mockSession,
+        status: 'COMPLETED',
+      });
+
+      const before = new Date();
+      await service.complete('user-1', 'session-1', {});
+      const after = new Date();
+
+      const args = prisma.workoutSession.update.mock.calls[0][0];
+      expect(args.data.completedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
+      expect(args.data.completedAt.getTime()).toBeLessThanOrEqual(after.getTime());
+    });
+
+    it('should reject completedAt before session start', async () => {
+      prisma.workoutSession.findUnique.mockResolvedValue(mockSession);
+
+      await expect(
+        service.complete('user-1', 'session-1', {
+          completedAt: new Date('2026-03-07T09:00:00Z').toISOString(), // before startedAt 10:00
+        }),
+      ).rejects.toThrow(BadRequestException);
+    });
+
+    it('should reject completedAt in the future', async () => {
+      prisma.workoutSession.findUnique.mockResolvedValue(mockSession);
+
+      const future = new Date(Date.now() + 60 * 60 * 1000); // 1 hour from now
+      await expect(
+        service.complete('user-1', 'session-1', {
+          completedAt: future.toISOString(),
+        }),
+      ).rejects.toThrow(BadRequestException);
     });
   });
 
