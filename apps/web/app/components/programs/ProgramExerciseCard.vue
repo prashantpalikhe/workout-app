@@ -24,8 +24,21 @@ const form = reactive({
   notes: props.exercise.notes ?? ''
 })
 
+// Dirty tracking — prevents the watch from overwriting user edits
+// with stale API responses (e.g. after reorder replaces the program).
+const dirty = ref(false)
+let editVersion = 0
+
+function markDirtyAndSchedule() {
+  dirty.value = true
+  editVersion++
+  schedule()
+}
+
 // Sync from prop when exercise data changes externally (e.g., after reorder API response)
 watch(() => props.exercise, (ex) => {
+  if (dirty.value) return
+
   form.targetSets = ex.targetSets ?? undefined
   form.targetReps = ex.targetReps ?? ''
   form.targetRpe = ex.targetRpe ?? undefined
@@ -35,8 +48,10 @@ watch(() => props.exercise, (ex) => {
 }, { deep: true })
 
 // Auto-save on blur
-const { saving, error, schedule } = useAutoSave(
+const { saving, error, schedule, flush } = useAutoSave(
   async () => {
+    const versionAtSaveStart = editVersion
+
     const payload: Record<string, unknown> = {}
     payload.targetSets = form.targetSets || undefined
     payload.targetReps = form.targetReps || undefined
@@ -50,6 +65,10 @@ const { saving, error, schedule } = useAutoSave(
       props.exercise.id,
       payload
     )
+
+    if (editVersion === versionAtSaveStart) {
+      dirty.value = false
+    }
   },
   {
     debounceMs: 400,
@@ -58,6 +77,8 @@ const { saving, error, schedule } = useAutoSave(
     }
   }
 )
+
+defineExpose({ flush })
 
 // Expand/collapse
 const expanded = ref(false)
@@ -158,7 +179,7 @@ const summary = computed(() => {
               placeholder="3"
               :min="1"
               :disabled="readonly"
-              @blur="schedule()"
+              @blur="markDirtyAndSchedule()"
               @keyup.enter="onInputEnter"
             />
           </UFormField>
@@ -168,7 +189,7 @@ const summary = computed(() => {
               v-model="form.targetReps"
               placeholder="8-12"
               :disabled="readonly"
-              @blur="schedule()"
+              @blur="markDirtyAndSchedule()"
               @keyup.enter="onInputEnter"
             />
           </UFormField>
@@ -182,7 +203,7 @@ const summary = computed(() => {
               :max="10"
               :step="0.5"
               :disabled="readonly"
-              @blur="schedule()"
+              @blur="markDirtyAndSchedule()"
               @keyup.enter="onInputEnter"
             />
           </UFormField>
@@ -192,7 +213,7 @@ const summary = computed(() => {
               v-model="form.targetTempo"
               placeholder="2-1-1-0"
               :disabled="readonly"
-              @blur="schedule()"
+              @blur="markDirtyAndSchedule()"
               @keyup.enter="onInputEnter"
             />
           </UFormField>
@@ -204,7 +225,7 @@ const summary = computed(() => {
               placeholder="90"
               :min="0"
               :disabled="readonly"
-              @blur="schedule()"
+              @blur="markDirtyAndSchedule()"
               @keyup.enter="onInputEnter"
             />
           </UFormField>
@@ -226,7 +247,7 @@ const summary = computed(() => {
             :rows="2"
             :disabled="readonly"
             class="w-full"
-            @blur="schedule()"
+            @blur="markDirtyAndSchedule()"
           />
         </div>
 

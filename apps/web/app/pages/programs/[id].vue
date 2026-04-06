@@ -10,6 +10,9 @@ const route = useRoute()
 const programStore = useProgramStore()
 const toast = useToast()
 
+// Refs to exercise card components so we can flush pending saves before reorder
+const exerciseCardRefs = new Map<string, { flush: () => void }>()
+
 const authStore = useAuthStore()
 const programId = computed(() => route.params.id as string)
 
@@ -43,9 +46,15 @@ const exerciseList = computed({
   }
 })
 
-// DnD reorder
+// DnD reorder — flush pending auto-saves first so they aren't lost
 async function onDragEnd() {
   if (!program.value) return
+
+  // Flush any pending field auto-saves before sending reorder
+  for (const cardRef of exerciseCardRefs.values()) {
+    cardRef.flush?.()
+  }
+
   const items = program.value.exercises.map((e, i) => ({
     id: e.id,
     sortOrder: i
@@ -165,6 +174,7 @@ async function onDeleteConfirm() {
       >
         <template #item="{ element }">
           <ProgramsProgramExerciseCard
+            :ref="(el: any) => { if (el) exerciseCardRefs.set(element.id, el as { flush: () => void }); else exerciseCardRefs.delete(element.id) }"
             :exercise="element"
             :readonly="!isOwner"
             @remove="onRemoveExercise(element)"
