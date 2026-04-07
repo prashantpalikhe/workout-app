@@ -1,3 +1,5 @@
+import { resolve } from 'node:path'
+
 // https://nuxt.com/docs/api/configuration/nuxt-config
 export default defineNuxtConfig({
   modules: [
@@ -8,8 +10,29 @@ export default defineNuxtConfig({
     '@nuxt/image',
     '@nuxtjs/i18n',
     '@pinia/nuxt',
-    '@nuxt/scripts'
+    '@nuxt/scripts',
+    '@vite-pwa/nuxt'
   ],
+
+  pwa: {
+    strategies: 'injectManifest',
+    srcDir: resolve(__dirname, 'app'),
+    filename: 'service-worker.ts',
+    registerType: 'prompt',
+    injectRegister: false,
+    manifest: false, // we already have public/manifest.webmanifest linked in <head>
+    injectManifest: {
+      globPatterns: ['**/*.{js,css,html,ico,png,svg,woff,woff2}'],
+      // Never cache API proxy routes or server middleware
+      globIgnores: ['server/**/*', 'api/**/*']
+    },
+    devOptions: {
+      enabled: false // set to true to test SW in dev mode
+    },
+    client: {
+      installPrompt: true
+    }
+  },
 
   ssr: false,
 
