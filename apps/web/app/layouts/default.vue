@@ -66,6 +66,35 @@ onMounted(() => {
   }
 })
 
+// iOS WebKit bug workaround: after resuming from background, the compositor's
+// hit-test tree can become stale, causing touch events to land on the scroll
+// container div instead of the actual UI elements inside it. Scrolling fixes it
+// because it forces a recomposite. We replicate that by nudging scroll position
+// on visibility change.
+const scrollContainer = ref<HTMLElement | null>(null)
+
+onMounted(() => {
+  document.addEventListener('visibilitychange', onVisibilityChange)
+})
+
+onBeforeUnmount(() => {
+  document.removeEventListener('visibilitychange', onVisibilityChange)
+})
+
+function onVisibilityChange() {
+  if (document.visibilityState !== 'visible') return
+
+  const el = scrollContainer.value
+  if (!el) return
+
+  // Force recomposite by nudging scroll + toggling transform
+  const scrollTop = el.scrollTop
+  el.scrollTop = scrollTop + 1
+  requestAnimationFrame(() => {
+    el.scrollTop = scrollTop
+  })
+}
+
 const footerNavItems = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Settings',
@@ -203,7 +232,7 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
       <template #footer />
     </UDashboardSidebar>
 
-    <div class="flex-1 overflow-y-auto min-h-svh">
+    <div ref="scrollContainer" class="flex-1 overflow-y-auto min-h-svh overscroll-y-none">
       <!-- Mobile header with hamburger -->
       <div
         class="lg:hidden sticky top-0 z-20 bg-default flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default"
