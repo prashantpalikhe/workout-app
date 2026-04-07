@@ -204,7 +204,7 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
       <template #footer />
     </UDashboardSidebar>
 
-    <div class="flex-1 overflow-y-auto min-h-svh overscroll-y-none">
+    <div class="flex-1 overflow-y-auto min-h-svh">
       <!-- Mobile header with hamburger -->
       <div
         class="lg:hidden sticky top-0 z-20 bg-default flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default"
@@ -260,8 +260,5 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
       <!-- Unified active session bar (floating, persists across pages) -->
       <SessionsActiveSessionBar />
     </div>
-
-    <!-- Debug overlay for scroll/performance troubleshooting (remove when done) -->
-    <AppDebugOverlay />
   </UDashboardGroup>
 </template>
