@@ -23,11 +23,12 @@ let visibleSince = 0
 // Touch & scroll event tracking
 const touchState = ref('idle') // idle, touching, scrolling
 const lastTouchTime = ref('')
-const touchEventLog = ref<{ time: string; event: string; target: string }[]>([])
+const touchEventLog = ref<{ time: string; event: string; target: string; elementFromPoint?: string; mismatch?: boolean }[]>([])
 const scrollEventLog = ref<{ time: string; target: string; scrollTop: number }[]>([])
 const touchCount = ref({ start: 0, move: 0, end: 0, cancel: 0 })
 const scrollCount = ref(0)
 const pointerEvents = ref({ down: 0, move: 0, up: 0, cancel: 0 })
+const hitTestMismatches = ref(0)
 
 let rafId: number | null = null
 
@@ -156,7 +157,19 @@ function elLabel(el: EventTarget | null): string {
 function logTouch(eventName: string, e: TouchEvent | PointerEvent) {
   const target = elLabel(e.target)
   const time = new Date().toLocaleTimeString()
-  touchEventLog.value.unshift({ time, event: eventName, target })
+
+  // On touchstart, compare e.target vs elementFromPoint
+  let elementFromPoint: string | undefined
+  let mismatch = false
+  if (eventName === 'touchstart' && 'touches' in e && e.touches.length > 0) {
+    const touch = e.touches[0]
+    const efp = document.elementFromPoint(touch.clientX, touch.clientY)
+    elementFromPoint = elLabel(efp)
+    mismatch = target !== elementFromPoint
+    if (mismatch) hitTestMismatches.value++
+  }
+
+  touchEventLog.value.unshift({ time, event: eventName, target, elementFromPoint, mismatch })
   if (touchEventLog.value.length > 15) touchEventLog.value.pop()
 }
 
@@ -335,10 +348,17 @@ onBeforeUnmount(() => {
         <div>Scroll events: <span style="color: #0ff;">{{ scrollCount }}</span></div>
       </div>
 
+      <div v-if="hitTestMismatches > 0" style="margin-top: 4px; border-top: 1px solid #333; padding-top: 4px;">
+        <strong style="color: #f00;">HIT-TEST MISMATCHES: {{ hitTestMismatches }}</strong>
+      </div>
+
       <div v-if="touchEventLog.length" style="margin-top: 4px; border-top: 1px solid #333; padding-top: 4px;">
         <strong style="color: #ff0;">Touch event log:</strong>
-        <div v-for="(entry, i) in touchEventLog" :key="'t'+i">
+        <div v-for="(entry, i) in touchEventLog" :key="'t'+i" :style="{ background: entry.mismatch ? 'rgba(255,0,0,0.2)' : 'none' }">
           <span style="color: #888;">{{ entry.time }}</span> <span style="color: #0ff;">{{ entry.event }}</span> → {{ entry.target }}
+          <template v-if="entry.elementFromPoint">
+            <br>&nbsp;&nbsp;efp: <span :style="{ color: entry.mismatch ? '#f00' : '#0f0' }">{{ entry.elementFromPoint }}</span>
+          </template>
         </div>
       </div>
 
