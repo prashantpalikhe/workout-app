@@ -259,5 +259,8 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
       <!-- Unified active session bar (floating, persists across pages) -->
       <SessionsActiveSessionBar />
     </div>
+
+    <!-- Debug overlay for scroll/performance troubleshooting (remove when done) -->
+    <AppDebugOverlay />
   </UDashboardGroup>
 </template>
