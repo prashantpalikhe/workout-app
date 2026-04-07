@@ -20,6 +20,15 @@ const visibilityState = ref('')
 const timeSinceVisible = ref(0)
 let visibleSince = 0
 
+// Touch & scroll event tracking
+const touchState = ref('idle') // idle, touching, scrolling
+const lastTouchTime = ref('')
+const touchEventLog = ref<{ time: string; event: string; target: string }[]>([])
+const scrollEventLog = ref<{ time: string; target: string; scrollTop: number }[]>([])
+const touchCount = ref({ start: 0, move: 0, end: 0, cancel: 0 })
+const scrollCount = ref(0)
+const pointerEvents = ref({ down: 0, move: 0, up: 0, cancel: 0 })
+
 let rafId: number | null = null
 
 function getActiveElementInfo() {
@@ -134,23 +143,121 @@ function resetMaxDelta() {
   longFrameLog.value = []
 }
 
+function elLabel(el: EventTarget | null): string {
+  if (!el || !(el instanceof Element)) return '?'
+  const tag = el.tagName.toLowerCase()
+  const id = el.id ? `#${el.id}` : ''
+  const cls = el.className && typeof el.className === 'string'
+    ? `.${el.className.split(' ').filter(Boolean).slice(0, 1).join('.')}`
+    : ''
+  return `${tag}${id}${cls}`
+}
+
+function logTouch(eventName: string, e: TouchEvent | PointerEvent) {
+  const target = elLabel(e.target)
+  const time = new Date().toLocaleTimeString()
+  touchEventLog.value.unshift({ time, event: eventName, target })
+  if (touchEventLog.value.length > 15) touchEventLog.value.pop()
+}
+
+function resetTouchStats() {
+  touchCount.value = { start: 0, move: 0, end: 0, cancel: 0 }
+  pointerEvents.value = { down: 0, move: 0, up: 0, cancel: 0 }
+  scrollCount.value = 0
+  touchEventLog.value = []
+  scrollEventLog.value = []
+}
+
+let cleanups: (() => void)[] = []
+
 onMounted(() => {
   rafId = requestAnimationFrame(tick)
 
   // Track visibility changes
-  document.addEventListener('visibilitychange', () => {
+  const onVisChange = () => {
     if (document.visibilityState === 'visible') {
       visibleSince = performance.now()
-      // Reset lastRafTime so we don't count background time as a long frame
       lastRafTime.value = 0
     }
-  })
+  }
+  document.addEventListener('visibilitychange', onVisChange)
+  cleanups.push(() => document.removeEventListener('visibilitychange', onVisChange))
+
+  // Touch event listeners (capture phase to see everything)
+  const onTouchStart = (e: TouchEvent) => {
+    touchCount.value.start++
+    touchState.value = 'touching'
+    lastTouchTime.value = new Date().toLocaleTimeString()
+    logTouch('touchstart', e)
+  }
+  const onTouchMove = (e: TouchEvent) => {
+    touchCount.value.move++
+    touchState.value = 'scrolling'
+  }
+  const onTouchEnd = (e: TouchEvent) => {
+    touchCount.value.end++
+    touchState.value = 'idle'
+    logTouch('touchend', e)
+  }
+  const onTouchCancel = (e: TouchEvent) => {
+    touchCount.value.cancel++
+    touchState.value = 'cancelled'
+    logTouch('touchcancel', e)
+  }
+
+  // Pointer events (iOS sometimes uses these instead)
+  const onPointerDown = (e: PointerEvent) => { pointerEvents.value.down++ }
+  const onPointerMove = (e: PointerEvent) => { pointerEvents.value.move++ }
+  const onPointerUp = (e: PointerEvent) => { pointerEvents.value.up++ }
+  const onPointerCancel = (e: PointerEvent) => {
+    pointerEvents.value.cancel++
+    logTouch('pointercancel', e)
+  }
+
+  // Scroll event (capture phase)
+  const onScroll = (e: Event) => {
+    scrollCount.value++
+    const target = elLabel(e.target)
+    const scrollTop = (e.target as Element)?.scrollTop ?? 0
+    // Only log every 10th scroll event to avoid flooding
+    if (scrollCount.value % 10 === 0) {
+      scrollEventLog.value.unshift({
+        time: new Date().toLocaleTimeString(),
+        target,
+        scrollTop: Math.round(scrollTop)
+      })
+      if (scrollEventLog.value.length > 10) scrollEventLog.value.pop()
+    }
+  }
+
+  document.addEventListener('touchstart', onTouchStart, { capture: true, passive: true })
+  document.addEventListener('touchmove', onTouchMove, { capture: true, passive: true })
+  document.addEventListener('touchend', onTouchEnd, { capture: true, passive: true })
+  document.addEventListener('touchcancel', onTouchCancel, { capture: true, passive: true })
+  document.addEventListener('pointerdown', onPointerDown, { capture: true, passive: true })
+  document.addEventListener('pointermove', onPointerMove, { capture: true, passive: true })
+  document.addEventListener('pointerup', onPointerUp, { capture: true, passive: true })
+  document.addEventListener('pointercancel', onPointerCancel, { capture: true, passive: true })
+  document.addEventListener('scroll', onScroll, { capture: true, passive: true })
+
+  cleanups.push(
+    () => document.removeEventListener('touchstart', onTouchStart, { capture: true } as EventListenerOptions),
+    () => document.removeEventListener('touchmove', onTouchMove, { capture: true } as EventListenerOptions),
+    () => document.removeEventListener('touchend', onTouchEnd, { capture: true } as EventListenerOptions),
+    () => document.removeEventListener('touchcancel', onTouchCancel, { capture: true } as EventListenerOptions),
+    () => document.removeEventListener('pointerdown', onPointerDown, { capture: true } as EventListenerOptions),
+    () => document.removeEventListener('pointermove', onPointerMove, { capture: true } as EventListenerOptions),
+    () => document.removeEventListener('pointerup', onPointerUp, { capture: true } as EventListenerOptions),
+    () => document.removeEventListener('pointercancel', onPointerCancel, { capture: true } as EventListenerOptions),
+    () => document.removeEventListener('scroll', onScroll, { capture: true } as EventListenerOptions),
+  )
 })
 
 onBeforeUnmount(() => {
   if (rafId !== null) {
     cancelAnimationFrame(rafId)
   }
+  cleanups.forEach(fn => fn())
 })
 </script>
 
@@ -213,9 +320,38 @@ onBeforeUnmount(() => {
         </div>
       </div>
 
+      <div style="margin-top: 4px; border-top: 1px solid #333; padding-top: 4px;">
+        <div style="display: flex; justify-content: space-between;">
+          <strong style="color: #ff0;">Touch / Scroll</strong>
+          <button style="color: #888; background: none; border: none; font-size: 9px; cursor: pointer;" @click="resetTouchStats">
+            [reset]
+          </button>
+        </div>
+        <div>
+          State: <span :style="{ color: touchState === 'idle' ? '#888' : touchState === 'scrolling' ? '#0f0' : '#ff0' }">{{ touchState }}</span>
+        </div>
+        <div>Touch: start={{ touchCount.start }} move={{ touchCount.move }} end={{ touchCount.end }} cancel={{ touchCount.cancel }}</div>
+        <div>Pointer: dn={{ pointerEvents.down }} mv={{ pointerEvents.move }} up={{ pointerEvents.up }} cancel={{ pointerEvents.cancel }}</div>
+        <div>Scroll events: <span style="color: #0ff;">{{ scrollCount }}</span></div>
+      </div>
+
+      <div v-if="touchEventLog.length" style="margin-top: 4px; border-top: 1px solid #333; padding-top: 4px;">
+        <strong style="color: #ff0;">Touch event log:</strong>
+        <div v-for="(entry, i) in touchEventLog" :key="'t'+i">
+          <span style="color: #888;">{{ entry.time }}</span> <span style="color: #0ff;">{{ entry.event }}</span> → {{ entry.target }}
+        </div>
+      </div>
+
+      <div v-if="scrollEventLog.length" style="margin-top: 4px; border-top: 1px solid #333; padding-top: 4px;">
+        <strong style="color: #ff0;">Scroll targets:</strong>
+        <div v-for="(entry, i) in scrollEventLog" :key="'s'+i">
+          <span style="color: #888;">{{ entry.time }}</span> {{ entry.target }} (top={{ entry.scrollTop }})
+        </div>
+      </div>
+
       <div v-if="longFrameLog.length" style="margin-top: 4px; border-top: 1px solid #333; padding-top: 4px;">
         <strong style="color: #f00;">Long frames (>100ms):</strong>
-        <div v-for="(entry, i) in longFrameLog" :key="i">
+        <div v-for="(entry, i) in longFrameLog" :key="'f'+i">
           <span style="color: #888;">{{ entry.time }}</span> — <span style="color: #f00;">{{ entry.delta }}ms</span>
         </div>
       </div>
