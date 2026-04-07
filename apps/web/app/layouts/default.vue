@@ -68,9 +68,11 @@ onMounted(() => {
 
 // iOS WebKit bug workaround: after resuming from background, the compositor's
 // hit-test tree can become stale, causing touch events to land on the scroll
-// container div instead of the actual UI elements inside it. Scrolling fixes it
-// because it forces a recomposite. We replicate that by nudging scroll position
-// on visibility change.
+// container div instead of the actual UI elements inside it. Slowly scrolling
+// fixes it because it forces iOS to rebuild the compositing layer.
+//
+// Fix: on resume, briefly toggle overflow to destroy/recreate the scroll
+// compositing layer, which forces iOS to rebuild the hit-test tree.
 const scrollContainer = ref<HTMLElement | null>(null)
 
 onMounted(() => {
@@ -87,11 +89,23 @@ function onVisibilityChange() {
   const el = scrollContainer.value
   if (!el) return
 
-  // Force recomposite by nudging scroll + toggling transform
-  const scrollTop = el.scrollTop
-  el.scrollTop = scrollTop + 1
+  // Strategy: destroy the scroll compositing layer by toggling overflow,
+  // then force a synchronous layout reflow before restoring it.
+  // This is more aggressive than a scroll nudge — it forces iOS to fully
+  // tear down and rebuild the compositing layer + hit-test tree.
+  const savedScrollTop = el.scrollTop
+
+  // Step 1: Kill the scroll layer
+  el.style.overflowY = 'hidden'
+  // Force synchronous reflow so the browser actually processes the change
+  void el.offsetHeight
+
+  // Step 2: Restore on next frame (gives compositor time to tear down)
   requestAnimationFrame(() => {
-    el.scrollTop = scrollTop
+    el.style.overflowY = ''
+    el.scrollTop = savedScrollTop
+    // Force another reflow to rebuild
+    void el.offsetHeight
   })
 }
 
