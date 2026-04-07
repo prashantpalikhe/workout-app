@@ -66,48 +66,6 @@ onMounted(() => {
   }
 })
 
-// iOS WebKit bug workaround: after resuming from background, the compositor's
-// hit-test tree can become stale, causing touch events to land on the scroll
-// container div instead of the actual UI elements inside it. Slowly scrolling
-// fixes it because it forces iOS to rebuild the compositing layer.
-//
-// Fix: on resume, briefly toggle overflow to destroy/recreate the scroll
-// compositing layer, which forces iOS to rebuild the hit-test tree.
-const scrollContainer = ref<HTMLElement | null>(null)
-
-onMounted(() => {
-  document.addEventListener('visibilitychange', onVisibilityChange)
-})
-
-onBeforeUnmount(() => {
-  document.removeEventListener('visibilitychange', onVisibilityChange)
-})
-
-function onVisibilityChange() {
-  if (document.visibilityState !== 'visible') return
-
-  const el = scrollContainer.value
-  if (!el) return
-
-  // Strategy: destroy the scroll compositing layer by toggling overflow,
-  // then force a synchronous layout reflow before restoring it.
-  // This is more aggressive than a scroll nudge — it forces iOS to fully
-  // tear down and rebuild the compositing layer + hit-test tree.
-  const savedScrollTop = el.scrollTop
-
-  // Step 1: Kill the scroll layer
-  el.style.overflowY = 'hidden'
-  // Force synchronous reflow so the browser actually processes the change
-  void el.offsetHeight
-
-  // Step 2: Restore on next frame (gives compositor time to tear down)
-  requestAnimationFrame(() => {
-    el.style.overflowY = ''
-    el.scrollTop = savedScrollTop
-    // Force another reflow to rebuild
-    void el.offsetHeight
-  })
-}
 
 const footerNavItems = computed<NavigationMenuItem[]>(() => [
   {
@@ -246,7 +204,7 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
       <template #footer />
     </UDashboardSidebar>
 
-    <div ref="scrollContainer" class="flex-1 overflow-y-auto min-h-svh overscroll-y-none">
+    <div class="flex-1 overflow-y-auto min-h-svh overscroll-y-none">
       <!-- Mobile header with hamburger -->
       <div
         class="lg:hidden sticky top-0 z-20 bg-default flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default"
