@@ -83,7 +83,11 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
 </script>
 
 <template>
-  <UDashboardGroup>
+  <UDashboardGroup
+    :ui="{
+      root: 'flex min-h-svh lg:fixed lg:inset-0 lg:overflow-hidden'
+    }"
+  >
     <UDashboardSidebar
       v-model:open="sidebarOpen"
       collapsible
@@ -204,7 +208,7 @@ const footerNavItems = computed<NavigationMenuItem[]>(() => [
       <template #footer />
     </UDashboardSidebar>
 
-    <div class="flex-1 overflow-y-auto min-h-svh overscroll-y-none">
+    <div class="flex-1 lg:overflow-y-auto min-h-svh overscroll-y-none">
       <!-- Mobile header with hamburger -->
       <div
         class="lg:hidden sticky top-0 z-20 bg-default flex items-center gap-2 px-4 h-(--ui-header-height) border-b border-default"
