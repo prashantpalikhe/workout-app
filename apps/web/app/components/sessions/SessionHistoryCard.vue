@@ -16,20 +16,33 @@ const duration = computed(() => {
   return remainMins > 0 ? `${hours}h ${remainMins}m` : `${hours}h`
 })
 
-const exerciseCount = computed(() => props.session.sessionExercises.length)
-
 const formattedDate = computed(() => {
-  return new Date(props.session.startedAt).toLocaleDateString(undefined, {
+  const date = new Date(props.session.completedAt ?? props.session.startedAt)
+  const datePart = date.toLocaleDateString(undefined, {
     weekday: 'short',
     month: 'short',
     day: 'numeric',
     year: 'numeric'
   })
+  const timePart = date.toLocaleTimeString(undefined, {
+    hour: 'numeric',
+    minute: '2-digit'
+  })
+  return `${datePart} · ${timePart}`
 })
 
-const totalSets = computed(() =>
-  props.session.sessionExercises.reduce((sum, ex) => sum + ex.sets.length, 0)
-)
+const formattedVolume = computed(() => {
+  let volume = 0
+  for (const ex of props.session.sessionExercises) {
+    for (const set of ex.sets) {
+      if (set.completed && set.weight != null && set.reps != null) {
+        volume += set.weight * set.reps
+      }
+    }
+  }
+  if (volume === 0) return null
+  return `${Math.round(volume).toLocaleString()} kg`
+})
 </script>
 
 <template>
@@ -46,15 +59,12 @@ const totalSets = computed(() =>
             <UIcon name="i-lucide-clock" class="size-3.5" />
             {{ duration }}
           </span>
-          <span class="flex items-center gap-1">
-            <UIcon name="i-lucide-dumbbell" class="size-3.5" />
-            {{ exerciseCount }} exercise{{ exerciseCount !== 1 ? 's' : '' }}
-          </span>
-          <span class="flex items-center gap-1">
-            <UIcon name="i-lucide-layers" class="size-3.5" />
-            {{ totalSets }} set{{ totalSets !== 1 ? 's' : '' }}
+          <span v-if="formattedVolume" class="flex items-center gap-1">
+            <UIcon name="i-lucide-weight" class="size-3.5" />
+            {{ formattedVolume }}
           </span>
           <span v-if="session.overallRpe" class="flex items-center gap-1">
+            <UIcon name="i-lucide-flame" class="size-3.5" />
             RPE {{ session.overallRpe }}
           </span>
         </div>

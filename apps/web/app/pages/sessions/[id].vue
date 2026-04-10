@@ -38,21 +38,35 @@ const formattedDate = computed(() => {
   })
 })
 
-const totalSets = computed(
-  () =>
-    session.value?.sessionExercises.reduce(
-      (sum, ex) => sum + ex.sets.length,
-      0
-    ) ?? 0
-)
+const totalVolume = computed(() => {
+  if (!session.value) return 0
+  let volume = 0
+  for (const ex of session.value.sessionExercises) {
+    for (const set of ex.sets) {
+      if (set.completed && set.weight != null && set.reps != null) {
+        volume += set.weight * set.reps
+      }
+    }
+  }
+  return volume
+})
 
-const completedSets = computed(
-  () =>
-    session.value?.sessionExercises.reduce(
-      (sum, ex) => sum + ex.sets.filter(s => s.completed).length,
-      0
-    ) ?? 0
-)
+const prCount = computed(() => {
+  if (!session.value) return 0
+  let count = 0
+  for (const ex of session.value.sessionExercises) {
+    for (const set of ex.sets) {
+      if (set.personalRecord) count++
+    }
+  }
+  return count
+})
+
+const formattedVolume = computed(() => {
+  const v = totalVolume.value
+  if (v === 0) return '-'
+  return `${Math.round(v).toLocaleString()} kg`
+})
 
 // Determine columns for an exercise's tracking type
 function getColumnLabels(trackingType: string) {
@@ -70,6 +84,53 @@ function getColumnLabels(trackingType: string) {
       return [...base, 'Distance (km)', 'Duration (s)', 'RPE']
     default:
       return [...base, 'Weight (kg)', 'Reps', 'RPE']
+  }
+}
+
+interface PrDetail {
+  label: string
+  description: string
+  value: string
+  icon: string
+}
+
+function getPrDetail(pr: { prType: string, value: number }): PrDetail {
+  switch (pr.prType) {
+    case 'ONE_REP_MAX':
+      return {
+        label: 'One Rep Max',
+        description: 'Estimated max weight for a single rep',
+        value: `${Math.round(pr.value * 10) / 10} kg`,
+        icon: 'i-lucide-zap'
+      }
+    case 'MAX_WEIGHT':
+      return {
+        label: 'Heaviest Weight',
+        description: 'Most weight lifted in a single set',
+        value: `${Math.round(pr.value * 10) / 10} kg`,
+        icon: 'i-lucide-dumbbell'
+      }
+    case 'MAX_REPS':
+      return {
+        label: 'Most Reps',
+        description: 'Most reps performed in a single set',
+        value: `${pr.value} reps`,
+        icon: 'i-lucide-repeat'
+      }
+    case 'MAX_VOLUME':
+      return {
+        label: 'Most Volume',
+        description: 'Highest weight × reps in a single set',
+        value: `${Math.round(pr.value).toLocaleString()} kg`,
+        icon: 'i-lucide-bar-chart-3'
+      }
+    default:
+      return {
+        label: 'Personal Record',
+        description: '',
+        value: '',
+        icon: 'i-lucide-trophy'
+      }
   }
 }
 
@@ -123,43 +184,63 @@ function getSetValues(
       <!-- Summary stats -->
       <div class="grid grid-cols-2 sm:grid-cols-4 gap-3 mb-6">
         <UCard>
-          <div class="text-center">
-            <p class="text-2xl font-bold">
-              {{ session.sessionExercises.length }}
-            </p>
-            <p class="text-xs text-muted">
-              Exercises
-            </p>
+          <div class="flex items-center gap-3">
+            <div class="size-10 rounded-lg bg-info/10 text-info flex items-center justify-center shrink-0">
+              <UIcon name="i-lucide-clock" class="size-5" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-xl font-bold leading-tight">
+                {{ duration ?? '-' }}
+              </p>
+              <p class="text-xs text-muted">
+                Duration
+              </p>
+            </div>
           </div>
         </UCard>
         <UCard>
-          <div class="text-center">
-            <p class="text-2xl font-bold">
-              {{ completedSets }}/{{ totalSets }}
-            </p>
-            <p class="text-xs text-muted">
-              Sets Completed
-            </p>
+          <div class="flex items-center gap-3">
+            <div class="size-10 rounded-lg bg-primary/10 text-primary flex items-center justify-center shrink-0">
+              <UIcon name="i-lucide-weight" class="size-5" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-xl font-bold leading-tight">
+                {{ formattedVolume }}
+              </p>
+              <p class="text-xs text-muted">
+                Volume
+              </p>
+            </div>
           </div>
         </UCard>
         <UCard>
-          <div class="text-center">
-            <p class="text-2xl font-bold">
-              {{ session.overallRpe ?? '-' }}
-            </p>
-            <p class="text-xs text-muted">
-              RPE
-            </p>
+          <div class="flex items-center gap-3">
+            <div class="size-10 rounded-lg bg-warning/10 text-warning flex items-center justify-center shrink-0">
+              <UIcon name="i-lucide-flame" class="size-5" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-xl font-bold leading-tight">
+                {{ session.overallRpe ?? '-' }}
+              </p>
+              <p class="text-xs text-muted">
+                RPE
+              </p>
+            </div>
           </div>
         </UCard>
         <UCard>
-          <div class="text-center">
-            <p class="text-2xl font-bold">
-              {{ duration ?? '-' }}
-            </p>
-            <p class="text-xs text-muted">
-              Duration
-            </p>
+          <div class="flex items-center gap-3">
+            <div class="size-10 rounded-lg bg-success/10 text-success flex items-center justify-center shrink-0">
+              <UIcon name="i-lucide-trophy" class="size-5" />
+            </div>
+            <div class="min-w-0">
+              <p class="text-xl font-bold leading-tight">
+                {{ prCount || '-' }}
+              </p>
+              <p class="text-xs text-muted">
+                PRs
+              </p>
+            </div>
           </div>
         </UCard>
       </div>
@@ -181,14 +262,24 @@ function getSetValues(
         <UCard v-for="exercise in session.sessionExercises" :key="exercise.id">
           <!-- Exercise header -->
           <div class="flex items-center gap-2 mb-3">
-            <span class="font-medium">{{ exercise.exercise.name }}</span>
-            <UBadge
-              v-if="exercise.exercise.equipment"
-              variant="subtle"
-              size="xs"
+            <NuxtLink
+              :to="`/exercises/${exercise.exerciseId}`"
+              class="flex items-center gap-2 min-w-0 group"
             >
-              {{ formatEnum(exercise.exercise.equipment) }}
-            </UBadge>
+              <img
+                v-if="exercise.exercise.imageUrls?.[0]"
+                :src="exercise.exercise.imageUrls[0]"
+                :alt="exercise.exercise.name"
+                class="size-9 rounded-full object-cover shrink-0 bg-elevated"
+              >
+              <div
+                v-else
+                class="size-9 rounded-full bg-elevated flex items-center justify-center shrink-0"
+              >
+                <UIcon name="i-lucide-dumbbell" class="size-4 text-muted" />
+              </div>
+              <span class="font-medium text-primary group-hover:underline truncate">{{ exercise.exercise.name }}</span>
+            </NuxtLink>
             <UBadge
               v-if="exercise.isSubstitution"
               color="warning"
@@ -263,15 +354,38 @@ function getSetValues(
                         class="size-4"
                         :class="set.completed ? 'text-success' : 'text-muted'"
                       />
-                      <UBadge
-                        v-if="set.personalRecord"
-                        color="warning"
-                        variant="subtle"
-                        size="xs"
-                      >
-                        <UIcon name="i-lucide-trophy" class="size-3" />
-                        PR
-                      </UBadge>
+                      <UPopover v-if="set.personalRecord">
+                        <template #default>
+                          <UBadge
+                            color="warning"
+                            variant="subtle"
+                            size="xs"
+                            class="cursor-pointer"
+                          >
+                            <UIcon name="i-lucide-trophy" class="size-3" />
+                            PR
+                          </UBadge>
+                        </template>
+                        <template #content>
+                          <div class="p-3 max-w-64">
+                            <div class="flex items-center gap-2 mb-1">
+                              <UIcon
+                                :name="getPrDetail(set.personalRecord).icon"
+                                class="size-4 text-warning"
+                              />
+                              <p class="text-sm font-semibold">
+                                {{ getPrDetail(set.personalRecord).label }}
+                              </p>
+                            </div>
+                            <p class="text-lg font-bold text-warning mb-1">
+                              {{ getPrDetail(set.personalRecord).value }}
+                            </p>
+                            <p class="text-xs text-muted">
+                              {{ getPrDetail(set.personalRecord).description }}
+                            </p>
+                          </div>
+                        </template>
+                      </UPopover>
                     </td>
                   </tr>
                   <tr
