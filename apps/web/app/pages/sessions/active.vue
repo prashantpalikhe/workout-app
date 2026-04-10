@@ -6,6 +6,7 @@ definePageMeta({ middleware: 'auth' })
 const sessionStore = useSessionStore()
 const router = useRouter()
 const toast = useToast()
+const { formatVolume } = useUnits()
 
 const showExercisePicker = ref(false)
 const showCompleteModal = ref(false)
@@ -214,9 +215,7 @@ const totalVolume = computed(() => {
   )
 })
 
-const formattedVolume = computed(() => {
-  return `${Math.round(totalVolume.value).toLocaleString()} kg`
-})
+const formattedVolume = computed(() => formatVolume(totalVolume.value))
 
 // Can edit program exercises if session is from an own program (not trainer-assigned)
 const canEditProgram = computed(() => {

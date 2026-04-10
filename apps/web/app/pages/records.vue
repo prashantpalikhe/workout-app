@@ -3,6 +3,7 @@ definePageMeta({ middleware: 'auth' })
 
 const recordsStore = useRecordsStore()
 const { formatEnum } = useFormatEnum()
+const { formatWeight, formatVolume } = useUnits()
 
 onMounted(() => {
   recordsStore.fetchRecords()
@@ -34,11 +35,11 @@ function formatValue(prType: string, value: number): string {
   switch (prType) {
     case 'ONE_REP_MAX':
     case 'MAX_WEIGHT':
-      return `${value} kg`
+      return formatWeight(value)
     case 'MAX_REPS':
       return `${value} reps`
     case 'MAX_VOLUME':
-      return `${value.toLocaleString()} kg`
+      return formatVolume(value)
     default:
       return String(value)
   }

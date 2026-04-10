@@ -9,6 +9,7 @@ const props = defineProps<{
 const open = defineModel<boolean>('open', { default: false })
 
 const { api } = useApiClient()
+const { formatWeightValue, weightUnit } = useUnits()
 
 const history = ref<ExerciseHistorySession[]>([])
 const loading = ref(false)
@@ -40,7 +41,7 @@ function formatDate(dateStr: string) {
 
 function formatSetSummary(set: ExerciseHistorySession['sets'][number]) {
   const parts: string[] = []
-  if (set.weight != null) parts.push(`${set.weight}kg`)
+  if (set.weight != null) parts.push(`${formatWeightValue(set.weight)}${weightUnit.value}`)
   if (set.reps != null) parts.push(`×${set.reps}`)
   if (set.durationSec != null) parts.push(`${set.durationSec}s`)
   if (set.distance != null) parts.push(`${set.distance}km`)

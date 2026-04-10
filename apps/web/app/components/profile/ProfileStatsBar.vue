@@ -6,9 +6,11 @@ const props = defineProps<{
   loading: boolean
 }>()
 
+const { formatVolume } = useUnits()
+
 const formattedVolume = computed(() => {
-  if (!props.stats) return '0'
-  return Math.round(props.stats.totalVolume).toLocaleString()
+  if (!props.stats) return '-'
+  return formatVolume(props.stats.totalVolume)
 })
 </script>
 
@@ -28,7 +30,7 @@ const formattedVolume = computed(() => {
         {{ formattedVolume }}
       </div>
       <div class="text-xs text-muted mt-1">
-        Volume (kg)
+        Volume
       </div>
     </div>
 

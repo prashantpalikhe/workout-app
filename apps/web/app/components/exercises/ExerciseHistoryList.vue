@@ -13,6 +13,7 @@ const emit = defineEmits<{
 }>()
 
 const { formatEnum } = useFormatEnum()
+const { formatWeightValue, weightUnit } = useUnits()
 
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString(undefined, {
@@ -25,19 +26,20 @@ function formatDate(dateStr: string) {
 
 function getColumnLabels(trackingType: string) {
   const base = ['Set', 'Type']
+  const weightCol = `Weight (${weightUnit.value})`
   switch (trackingType) {
     case 'WEIGHT_REPS':
-      return [...base, 'Weight (kg)', 'Reps', 'RPE']
+      return [...base, weightCol, 'Reps', 'RPE']
     case 'REPS_ONLY':
       return [...base, 'Reps', 'RPE']
     case 'DURATION':
       return [...base, 'Duration (s)', 'RPE']
     case 'WEIGHT_DURATION':
-      return [...base, 'Weight (kg)', 'Duration (s)', 'RPE']
+      return [...base, weightCol, 'Duration (s)', 'RPE']
     case 'DISTANCE_DURATION':
       return [...base, 'Distance (km)', 'Duration (s)', 'RPE']
     default:
-      return [...base, 'Weight (kg)', 'Reps', 'RPE']
+      return [...base, weightCol, 'Reps', 'RPE']
   }
 }
 
@@ -45,19 +47,20 @@ function getSetValues(
   set: ExerciseHistorySession['sets'][0],
   trackingType: string
 ) {
+  const weight = formatWeightValue(set.weight) ?? '-'
   switch (trackingType) {
     case 'WEIGHT_REPS':
-      return [set.weight ?? '-', set.reps ?? '-', set.rpe ?? '-']
+      return [weight, set.reps ?? '-', set.rpe ?? '-']
     case 'REPS_ONLY':
       return [set.reps ?? '-', set.rpe ?? '-']
     case 'DURATION':
       return [set.durationSec ?? '-', set.rpe ?? '-']
     case 'WEIGHT_DURATION':
-      return [set.weight ?? '-', set.durationSec ?? '-', set.rpe ?? '-']
+      return [weight, set.durationSec ?? '-', set.rpe ?? '-']
     case 'DISTANCE_DURATION':
       return [set.distance ?? '-', set.durationSec ?? '-', set.rpe ?? '-']
     default:
-      return [set.weight ?? '-', set.reps ?? '-', set.rpe ?? '-']
+      return [weight, set.reps ?? '-', set.rpe ?? '-']
   }
 }
 

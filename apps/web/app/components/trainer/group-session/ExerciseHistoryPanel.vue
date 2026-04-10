@@ -13,6 +13,8 @@ const emit = defineEmits<{
   'update:open': [value: boolean]
 }>()
 
+const { formatWeightValue, weightUnit } = useUnits()
+
 function formatDate(dateStr: string) {
   return new Date(dateStr).toLocaleDateString(undefined, {
     month: 'short',
@@ -23,7 +25,7 @@ function formatDate(dateStr: string) {
 
 function formatSetSummary(set: ExerciseHistorySession['sets'][number]) {
   const parts: string[] = []
-  if (set.weight != null) parts.push(`${set.weight}kg`)
+  if (set.weight != null) parts.push(`${formatWeightValue(set.weight)}${weightUnit.value}`)
   if (set.reps != null) parts.push(`×${set.reps}`)
   if (set.durationSec != null) parts.push(`${set.durationSec}s`)
   if (set.distance != null) parts.push(`${set.distance}km`)

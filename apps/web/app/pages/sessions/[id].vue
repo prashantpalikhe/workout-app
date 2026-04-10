@@ -4,6 +4,7 @@ definePageMeta({ middleware: 'auth' })
 const route = useRoute()
 const sessionStore = useSessionStore()
 const { formatEnum } = useFormatEnum()
+const { formatWeight, formatWeightValue, formatVolume, weightUnit } = useUnits()
 
 const sessionId = computed(() => route.params.id as string)
 
@@ -62,28 +63,25 @@ const prCount = computed(() => {
   return count
 })
 
-const formattedVolume = computed(() => {
-  const v = totalVolume.value
-  if (v === 0) return '-'
-  return `${Math.round(v).toLocaleString()} kg`
-})
+const formattedVolume = computed(() => formatVolume(totalVolume.value))
 
 // Determine columns for an exercise's tracking type
 function getColumnLabels(trackingType: string) {
   const base = ['Set', 'Type']
+  const weightCol = `Weight (${weightUnit.value})`
   switch (trackingType) {
     case 'WEIGHT_REPS':
-      return [...base, 'Weight (kg)', 'Reps', 'RPE']
+      return [...base, weightCol, 'Reps', 'RPE']
     case 'REPS_ONLY':
       return [...base, 'Reps', 'RPE']
     case 'DURATION':
       return [...base, 'Duration (s)', 'RPE']
     case 'WEIGHT_DURATION':
-      return [...base, 'Weight (kg)', 'Duration (s)', 'RPE']
+      return [...base, weightCol, 'Duration (s)', 'RPE']
     case 'DISTANCE_DURATION':
       return [...base, 'Distance (km)', 'Duration (s)', 'RPE']
     default:
-      return [...base, 'Weight (kg)', 'Reps', 'RPE']
+      return [...base, weightCol, 'Reps', 'RPE']
   }
 }
 
@@ -100,14 +98,14 @@ function getPrDetail(pr: { prType: string, value: number }): PrDetail {
       return {
         label: 'One Rep Max',
         description: 'Estimated max weight for a single rep',
-        value: `${Math.round(pr.value * 10) / 10} kg`,
+        value: formatWeight(pr.value),
         icon: 'i-lucide-zap'
       }
     case 'MAX_WEIGHT':
       return {
         label: 'Heaviest Weight',
         description: 'Most weight lifted in a single set',
-        value: `${Math.round(pr.value * 10) / 10} kg`,
+        value: formatWeight(pr.value),
         icon: 'i-lucide-dumbbell'
       }
     case 'MAX_REPS':
@@ -121,7 +119,7 @@ function getPrDetail(pr: { prType: string, value: number }): PrDetail {
       return {
         label: 'Most Volume',
         description: 'Highest weight × reps in a single set',
-        value: `${Math.round(pr.value).toLocaleString()} kg`,
+        value: formatVolume(pr.value),
         icon: 'i-lucide-bar-chart-3'
       }
     default:
@@ -140,19 +138,20 @@ function getSetValues(
     : NonNullable<typeof session.value>['sessionExercises'][0]['sets'][0],
   trackingType: string
 ) {
+  const weight = formatWeightValue(set.weight) ?? '-'
   switch (trackingType) {
     case 'WEIGHT_REPS':
-      return [set.weight ?? '-', set.reps ?? '-', set.rpe ?? '-']
+      return [weight, set.reps ?? '-', set.rpe ?? '-']
     case 'REPS_ONLY':
       return [set.reps ?? '-', set.rpe ?? '-']
     case 'DURATION':
       return [set.durationSec ?? '-', set.rpe ?? '-']
     case 'WEIGHT_DURATION':
-      return [set.weight ?? '-', set.durationSec ?? '-', set.rpe ?? '-']
+      return [weight, set.durationSec ?? '-', set.rpe ?? '-']
     case 'DISTANCE_DURATION':
       return [set.distance ?? '-', set.durationSec ?? '-', set.rpe ?? '-']
     default:
-      return [set.weight ?? '-', set.reps ?? '-', set.rpe ?? '-']
+      return [weight, set.reps ?? '-', set.rpe ?? '-']
   }
 }
 </script>

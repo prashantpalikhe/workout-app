@@ -6,6 +6,7 @@ const router = useRouter()
 const { api } = useApiClient()
 const trainerStore = useTrainerStore()
 const toast = useToast()
+const { formatWeight, formatVolume, formatHeight } = useUnits()
 
 const athleteId = route.params.id as string
 const loading = ref(true)
@@ -243,11 +244,11 @@ function formatDuration(startedAt: string, completedAt: string | null) {
 }
 
 function formatPRValue(prType: string, value: number) {
-  if (prType === 'MAX_WEIGHT' || prType === 'ESTIMATED_1RM') return `${value} kg`
+  if (prType === 'MAX_WEIGHT' || prType === 'ESTIMATED_1RM') return formatWeight(value)
   if (prType === 'MAX_REPS') return `${value} reps`
   if (prType === 'MAX_DURATION') return `${value}s`
   if (prType === 'MAX_DISTANCE') return `${value}m`
-  if (prType === 'MAX_VOLUME') return `${value} kg`
+  if (prType === 'MAX_VOLUME') return formatVolume(value)
   return String(value)
 }
 </script>
@@ -337,7 +338,7 @@ function formatPRValue(prType: string, value: number) {
         <UCard
           v-for="stat in [
             { label: 'Workouts', value: stats.totalWorkouts, icon: 'i-lucide-dumbbell' },
-            { label: 'Volume', value: `${Math.round(stats.totalVolume).toLocaleString()} kg`, icon: 'i-lucide-weight' },
+            { label: 'Volume', value: formatVolume(stats.totalVolume), icon: 'i-lucide-weight' },
             { label: 'Streak', value: `${stats.currentStreak}d`, icon: 'i-lucide-flame' },
             { label: 'PRs', value: stats.totalPersonalRecords, icon: 'i-lucide-trophy' }
           ]" :key="stat.label"
@@ -399,7 +400,7 @@ function formatPRValue(prType: string, value: number) {
                   Weight
                 </p>
                 <p class="font-medium">
-                  {{ trainerStore.athleteProfile.profile.weight }} kg
+                  {{ formatWeight(trainerStore.athleteProfile.profile.weight) }}
                 </p>
               </div>
               <div v-if="trainerStore.athleteProfile.profile?.height">
@@ -407,7 +408,7 @@ function formatPRValue(prType: string, value: number) {
                   Height
                 </p>
                 <p class="font-medium">
-                  {{ trainerStore.athleteProfile.profile.height }} cm
+                  {{ formatHeight(trainerStore.athleteProfile.profile.height) }}
                 </p>
               </div>
               <div v-if="trainerStore.athleteProfile.profile?.dateOfBirth">

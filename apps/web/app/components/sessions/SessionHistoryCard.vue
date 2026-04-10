@@ -5,6 +5,8 @@ const props = defineProps<{
   session: WorkoutSession
 }>()
 
+const { formatVolume } = useUnits()
+
 const duration = computed(() => {
   if (!props.session.completedAt) return null
   const start = new Date(props.session.startedAt).getTime()
@@ -41,7 +43,7 @@ const formattedVolume = computed(() => {
     }
   }
   if (volume === 0) return null
-  return `${Math.round(volume).toLocaleString()} kg`
+  return formatVolume(volume)
 })
 </script>
 
