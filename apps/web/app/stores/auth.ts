@@ -1,14 +1,4 @@
-import type { AuthResponse, RegisterInput } from '@workout/shared'
-
-interface AuthUser {
-  id: string
-  email: string
-  firstName: string
-  lastName: string
-  isTrainer: boolean
-  avatarUrl?: string | null
-  hasPassword?: boolean
-}
+import type { AuthResponse, AuthUser, RegisterInput } from '@workout/shared'
 
 export const useAuthStore = defineStore('auth', () => {
   const config = useRuntimeConfig()

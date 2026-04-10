@@ -164,16 +164,15 @@ model RefreshToken {
 }
 
 model AthleteProfile {
-  id             String         @id @default(uuid()) @db.Uuid
-  userId         String         @unique @map("user_id") @db.Uuid
-  weight         Float? // kg
-  height         Float? // cm
-  dateOfBirth    DateTime?      @map("date_of_birth") @db.Date
-  unitPreference UnitPreference @default(METRIC) @map("unit_preference")
-  gender         Gender?
-  bio            String?
-  link           String?
-  updatedAt      DateTime       @updatedAt @map("updated_at")
+  id          String    @id @default(uuid()) @db.Uuid
+  userId      String    @unique @map("user_id") @db.Uuid
+  weight      Float? // kg
+  height      Float? // cm
+  dateOfBirth DateTime? @map("date_of_birth") @db.Date
+  gender      Gender?
+  bio         String?
+  link        String?
+  updatedAt   DateTime  @updatedAt @map("updated_at")
 
   user         User          @relation(fields: [userId], references: [id], onDelete: Cascade)
   measurements Measurement[]
@@ -182,12 +181,13 @@ model AthleteProfile {
 }
 
 model UserSettings {
-  id               String   @id @default(uuid()) @db.Uuid
-  userId           String   @unique @map("user_id") @db.Uuid
-  theme            Theme    @default(SYSTEM)
-  restTimerEnabled Boolean  @default(true) @map("rest_timer_enabled")
-  defaultRestSec   Int      @default(90) @map("default_rest_sec")
-  updatedAt        DateTime @updatedAt @map("updated_at")
+  id               String         @id @default(uuid()) @db.Uuid
+  userId           String         @unique @map("user_id") @db.Uuid
+  theme            Theme          @default(SYSTEM)
+  unitPreference   UnitPreference @default(METRIC) @map("unit_preference")
+  restTimerEnabled Boolean        @default(true) @map("rest_timer_enabled")
+  defaultRestSec   Int            @default(90) @map("default_rest_sec")
+  updatedAt        DateTime       @updatedAt @map("updated_at")
 
   user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 

@@ -14,6 +14,14 @@ describe('AuthController', () => {
       firstName: 'A',
       lastName: 'B',
       isTrainer: false,
+      avatarUrl: null,
+      hasPassword: true,
+      settings: {
+        theme: 'SYSTEM',
+        unitPreference: 'METRIC',
+        restTimerEnabled: true,
+        defaultRestSec: 90,
+      },
     },
     tokens: { accessToken: 'at', refreshToken: 'rt' },
   };

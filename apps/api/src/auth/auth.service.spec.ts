@@ -41,6 +41,7 @@ describe('AuthService', () => {
   let usersService: {
     findByEmail: ReturnType<typeof vi.fn>;
     findById: ReturnType<typeof vi.fn>;
+    findMeById: ReturnType<typeof vi.fn>;
     create: ReturnType<typeof vi.fn>;
     update: ReturnType<typeof vi.fn>;
   };
@@ -77,10 +78,27 @@ describe('AuthService', () => {
     avatarUrl: null,
   };
 
+  const mockMePayload = {
+    id: 'user-uuid',
+    email: 'test@example.com',
+    firstName: 'John',
+    lastName: 'Doe',
+    isTrainer: false,
+    avatarUrl: null,
+    hasPassword: true,
+    settings: {
+      theme: 'SYSTEM',
+      unitPreference: 'METRIC',
+      restTimerEnabled: true,
+      defaultRestSec: 90,
+    },
+  };
+
   beforeEach(async () => {
     usersService = {
       findByEmail: vi.fn(),
       findById: vi.fn(),
+      findMeById: vi.fn().mockResolvedValue(mockMePayload),
       create: vi.fn(),
       update: vi.fn(),
     };
@@ -250,6 +268,10 @@ describe('AuthService', () => {
         avatarUrl: 'https://example.com/photo.jpg',
       };
       usersService.create.mockResolvedValue(newUser);
+      usersService.findMeById.mockResolvedValueOnce({
+        ...mockMePayload,
+        email: 'google@example.com',
+      });
 
       const result = await service.googleLogin(googleDto);
 
@@ -274,6 +296,10 @@ describe('AuthService', () => {
         avatarUrl: 'https://example.com/existing.jpg',
       };
       usersService.findByEmail.mockResolvedValue(existingUser);
+      usersService.findMeById.mockResolvedValueOnce({
+        ...mockMePayload,
+        email: 'google@example.com',
+      });
 
       const result = await service.googleLogin(googleDto);
 
@@ -347,6 +373,10 @@ describe('AuthService', () => {
         lastName: 'Appleseed',
       };
       usersService.create.mockResolvedValue(newUser);
+      usersService.findMeById.mockResolvedValueOnce({
+        ...mockMePayload,
+        email: 'apple@example.com',
+      });
 
       const dto = {
         idToken: 'apple-id-token',
@@ -390,6 +420,10 @@ describe('AuthService', () => {
       mockAppleVerify.mockResolvedValue(applePayload);
       usersService.findByEmail.mockResolvedValue({
         ...mockUser,
+        email: 'apple@example.com',
+      });
+      usersService.findMeById.mockResolvedValueOnce({
+        ...mockMePayload,
         email: 'apple@example.com',
       });
 

@@ -1,5 +1,6 @@
 import { z } from 'zod';
 import { emailSchema } from './common.js';
+import { userSettingsSchema } from './user.js';
 
 export const registerInputSchema = z.object({
   email: emailSchema,
@@ -28,14 +29,20 @@ export const authTokensSchema = z.object({
 });
 export type AuthTokens = z.infer<typeof authTokensSchema>;
 
+export const authUserSchema = z.object({
+  id: z.string().uuid(),
+  email: emailSchema,
+  firstName: z.string(),
+  lastName: z.string(),
+  isTrainer: z.boolean(),
+  avatarUrl: z.string().nullable().optional(),
+  hasPassword: z.boolean().optional(),
+  settings: userSettingsSchema,
+});
+export type AuthUser = z.infer<typeof authUserSchema>;
+
 export const authResponseSchema = z.object({
-  user: z.object({
-    id: z.string().uuid(),
-    email: emailSchema,
-    firstName: z.string(),
-    lastName: z.string(),
-    isTrainer: z.boolean(),
-  }),
+  user: authUserSchema,
   tokens: authTokensSchema,
 });
 export type AuthResponse = z.infer<typeof authResponseSchema>;

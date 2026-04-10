@@ -1,38 +1,24 @@
-interface UserSettings {
-  restTimerEnabled: boolean
-  defaultRestSec: number
-  theme: string
-}
-
-const _settings = ref<UserSettings | null>(null)
-const _fetched = ref(false)
-
 /**
- * Composable to fetch and cache user settings.
- * Fetches once from GET /users/me/settings and caches globally.
+ * Thin reader over the user settings bundled in `useAuthStore.user.settings`.
+ * The preference now lives on the auth payload (single source of truth), so
+ * this composable no longer manages its own fetch or cache.
  */
 export function useUserSettings() {
-  const { api } = useApiClient()
+  const authStore = useAuthStore()
 
-  const settings = computed(() => _settings.value)
-  const restTimerEnabled = computed(() => _settings.value?.restTimerEnabled ?? true)
-  const defaultRestSec = computed(() => _settings.value?.defaultRestSec ?? 90)
+  const settings = computed(() => authStore.user?.settings ?? null)
+  const restTimerEnabled = computed(() => settings.value?.restTimerEnabled ?? true)
+  const defaultRestSec = computed(() => settings.value?.defaultRestSec ?? 90)
 
+  // Kept for API compatibility with existing callers that used to trigger a fetch.
+  // Settings come in on /users/me now, so a refresh just re-hydrates the whole user.
   async function fetch() {
-    if (_fetched.value) return
-    try {
-      _settings.value = await api<UserSettings>('/users/me/settings')
-    } catch {
-      // Use defaults if fetch fails
-    } finally {
-      _fetched.value = true
-    }
+    if (authStore.user) return
+    await authStore.fetchUser()
   }
 
-  /** Force re-fetch (e.g. after settings page saves). */
   async function refresh() {
-    _fetched.value = false
-    await fetch()
+    await authStore.fetchUser()
   }
 
   return {

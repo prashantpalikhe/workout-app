@@ -14,16 +14,19 @@ export const athleteProfileInputSchema = z.object({
   weight: positiveFloat.nullable().optional(),
   height: positiveFloat.nullable().optional(),
   dateOfBirth: dateStringSchema.nullable().optional(),
-  unitPreference: z.enum(UNIT_PREFERENCES as [string, ...string[]]).optional(),
   gender: z.enum(GENDERS as [string, ...string[]]).nullable().optional(),
   bio: z.string().max(500).nullable().optional(),
   link: z.string().url().max(255).nullable().optional(),
 });
 export type AthleteProfileInput = z.infer<typeof athleteProfileInputSchema>;
 
-export const userSettingsInputSchema = z.object({
-  theme: z.enum(THEMES as [string, ...string[]]).optional(),
-  restTimerEnabled: z.boolean().optional(),
-  defaultRestSec: z.number().int().min(0).max(600).optional(),
+export const userSettingsSchema = z.object({
+  theme: z.enum(THEMES as [string, ...string[]]),
+  unitPreference: z.enum(UNIT_PREFERENCES as [string, ...string[]]),
+  restTimerEnabled: z.boolean(),
+  defaultRestSec: z.number().int().min(0).max(600),
 });
+export type UserSettings = z.infer<typeof userSettingsSchema>;
+
+export const userSettingsInputSchema = userSettingsSchema.partial();
 export type UserSettingsInput = z.infer<typeof userSettingsInputSchema>;

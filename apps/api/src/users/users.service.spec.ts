@@ -73,7 +73,7 @@ describe('UsersService', () => {
   });
 
   describe('create', () => {
-    it('should create a user via prisma', async () => {
+    it('should create a user with a default settings row', async () => {
       const data = {
         email: 'new@example.com',
         passwordHash: 'hashed',
@@ -84,8 +84,52 @@ describe('UsersService', () => {
 
       const result = await service.create(data);
 
-      expect(prisma.user.create).toHaveBeenCalledWith({ data });
+      expect(prisma.user.create).toHaveBeenCalledWith({
+        data: { ...data, userSettings: { create: {} } },
+      });
       expect(result.email).toBe('new@example.com');
+    });
+  });
+
+  describe('findMeById', () => {
+    it('should return the user with bundled settings and hasPassword', async () => {
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'uid',
+        email: 'a@b.com',
+        firstName: 'A',
+        lastName: 'B',
+        isTrainer: false,
+        avatarUrl: null,
+        passwordHash: 'hashed',
+        userSettings: {
+          theme: 'SYSTEM',
+          unitPreference: 'METRIC',
+          restTimerEnabled: true,
+          defaultRestSec: 90,
+        },
+      });
+
+      const result = await service.findMeById('uid');
+
+      expect(prisma.user.findUnique).toHaveBeenCalledWith({
+        where: { id: 'uid' },
+        include: { userSettings: true },
+      });
+      expect(result.hasPassword).toBe(true);
+      expect(result).not.toHaveProperty('passwordHash');
+      expect(result.settings).toEqual({
+        theme: 'SYSTEM',
+        unitPreference: 'METRIC',
+        restTimerEnabled: true,
+        defaultRestSec: 90,
+      });
+    });
+
+    it('should throw NotFoundException if user missing', async () => {
+      prisma.user.findUnique.mockResolvedValue(null);
+      await expect(service.findMeById('missing')).rejects.toThrow(
+        NotFoundException,
+      );
     });
   });
 
@@ -186,6 +230,22 @@ describe('UsersService', () => {
         update: { theme: 'DARK' },
       });
       expect(result.theme).toBe('DARK');
+    });
+
+    it('should upsert unit preference', async () => {
+      const settings = { userId: 'uid', unitPreference: 'IMPERIAL' };
+      prisma.userSettings.upsert.mockResolvedValue(settings);
+
+      const result = await service.updateSettings('uid', {
+        unitPreference: 'IMPERIAL',
+      });
+
+      expect(prisma.userSettings.upsert).toHaveBeenCalledWith({
+        where: { userId: 'uid' },
+        create: { userId: 'uid', unitPreference: 'IMPERIAL' },
+        update: { unitPreference: 'IMPERIAL' },
+      });
+      expect(result.unitPreference).toBe('IMPERIAL');
     });
   });
 });

@@ -5,13 +5,6 @@ const { api } = useApiClient()
 const toast = useToast()
 const colorMode = useColorMode()
 const authStore = useAuthStore()
-const { refresh: refreshUserSettings } = useUserSettings()
-
-interface UserSettings {
-  restTimerEnabled: boolean
-  defaultRestSec: number
-  theme: string
-}
 
 const loading = ref(true)
 const savedToastId = ref<string | number | undefined>()
@@ -96,20 +89,20 @@ async function saveTrainerMode(isTrainer: boolean) {
 // ── Fetch settings ──────────────────────────────
 onMounted(async () => {
   try {
-    const [settings, profile] = await Promise.all([
-      api<UserSettings>('/users/me/settings'),
-      api<{ unitPreference: string }>('/users/me/profile'),
-      // Refresh user so `hasPassword` is up to date (login response doesn't include it)
-      authStore.fetchUser()
-    ])
+    // Hydrate the user (and their bundled settings) in case the login response
+    // is stale — `hasPassword` and any server-side settings edits land here.
+    await authStore.fetchUser()
 
-    restTimerEnabled.value = settings.restTimerEnabled
-    const totalSec = settings.defaultRestSec
-    restMinutes.value = Math.floor(totalSec / 60)
-    restSeconds.value = totalSec % 60
-    // theme is initialized from colorMode.preference (client-side truth)
-    // Don't overwrite it from the backend to avoid resetting the user's preference
-    unitPreference.value = profile.unitPreference || 'METRIC'
+    const settings = authStore.user?.settings
+    if (settings) {
+      restTimerEnabled.value = settings.restTimerEnabled
+      const totalSec = settings.defaultRestSec
+      restMinutes.value = Math.floor(totalSec / 60)
+      restSeconds.value = totalSec % 60
+      // theme is initialized from colorMode.preference (client-side truth)
+      // Don't overwrite it from the backend to avoid resetting the user's preference
+      unitPreference.value = settings.unitPreference
+    }
   } catch {
     // Use defaults
   } finally {
@@ -157,9 +150,17 @@ async function saveSettings() {
         theme: theme.value
       }
     })
+    // Mirror the save into the auth store so other consumers (rest timer, etc.)
+    // re-render with the new values without refetching /users/me.
+    if (authStore.user) {
+      authStore.user.settings = {
+        ...authStore.user.settings,
+        restTimerEnabled: restTimerEnabled.value,
+        defaultRestSec,
+        theme: theme.value as typeof authStore.user.settings.theme
+      }
+    }
     showSavedToast()
-    // Refresh the global settings cache so other pages (e.g. active workout) see updated values
-    await refreshUserSettings()
   } catch {
     toast.add({ title: 'Failed to save settings', color: 'error' })
   }
@@ -167,10 +168,18 @@ async function saveSettings() {
 
 async function saveUnitPreference() {
   try {
-    await api('/users/me/profile', {
+    await api('/users/me/settings', {
       method: 'PATCH',
       body: { unitPreference: unitPreference.value }
     })
+    // Push the new preference into the auth store immediately. Every call site
+    // that reads `authStore.user.settings.unitPreference` reacts instantly.
+    if (authStore.user) {
+      authStore.user.settings = {
+        ...authStore.user.settings,
+        unitPreference: unitPreference.value as typeof authStore.user.settings.unitPreference
+      }
+    }
     showSavedToast()
   } catch {
     toast.add({ title: 'Failed to save settings', color: 'error' })

@@ -65,9 +65,7 @@ export class UsersController {
   @ApiOperation({ summary: 'Get current user info' })
   @ApiOkResponse({ description: 'Current user data' })
   async getMe(@CurrentUser('sub') userId: string) {
-    const user = await this.usersService.findByIdOrThrow(userId);
-    const { passwordHash, ...rest } = user;
-    return { ...rest, hasPassword: !!passwordHash };
+    return this.usersService.findMeById(userId);
   }
 
   @Delete()

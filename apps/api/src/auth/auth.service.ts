@@ -63,7 +63,7 @@ export class AuthService {
     );
     this.logger.log(`User registered: ${user.email}`);
 
-    return this.buildAuthResponse(user, tokens);
+    return this.buildAuthResponse(user.id, tokens);
   }
 
   // ── Login ───────────────────────────────────
@@ -85,7 +85,7 @@ export class AuthService {
     );
     this.logger.log(`User logged in: ${user.email}`);
 
-    return this.buildAuthResponse(user, tokens);
+    return this.buildAuthResponse(user.id, tokens);
   }
 
   // ── Google OAuth ──────────────────────────────
@@ -126,7 +126,7 @@ export class AuthService {
     );
     this.logger.log(`User logged in via Google: ${user.email}`);
 
-    return this.buildAuthResponse(user, tokens);
+    return this.buildAuthResponse(user.id, tokens);
   }
 
   // ── Apple OAuth ───────────────────────────────
@@ -165,7 +165,7 @@ export class AuthService {
     );
     this.logger.log(`User logged in via Apple: ${user.email}`);
 
-    return this.buildAuthResponse(user, tokens);
+    return this.buildAuthResponse(user.id, tokens);
   }
 
   // ── Refresh ─────────────────────────────────
@@ -198,7 +198,7 @@ export class AuthService {
       user.isTrainer,
     );
 
-    return this.buildAuthResponse(user, tokens);
+    return this.buildAuthResponse(user.id, tokens);
   }
 
   // ── Logout ──────────────────────────────────
@@ -392,26 +392,12 @@ export class AuthService {
     }
   }
 
-  private buildAuthResponse(
-    user: {
-      id: string;
-      email: string;
-      firstName: string;
-      lastName: string;
-      isTrainer: boolean;
-    },
+  private async buildAuthResponse(
+    userId: string,
     tokens: { accessToken: string; refreshToken: string },
   ) {
-    return {
-      user: {
-        id: user.id,
-        email: user.email,
-        firstName: user.firstName,
-        lastName: user.lastName,
-        isTrainer: user.isTrainer,
-      },
-      tokens,
-    };
+    const user = await this.usersService.findMeById(userId);
+    return { user, tokens };
   }
 
   private async generateTokens(

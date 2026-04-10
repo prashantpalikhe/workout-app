@@ -31,6 +31,33 @@ export class UsersService {
     return user;
   }
 
+  /**
+   * Load the "me" payload used by both `GET /users/me` and the auth response.
+   * Strips `passwordHash`, adds `hasPassword`, and bundles the user's settings
+   * so the frontend has the unit preference (and friends) available on first paint.
+   */
+  async findMeById(id: string) {
+    const user = await this.prisma.user.findUnique({
+      where: { id },
+      include: { userSettings: true },
+    });
+    if (!user || !user.userSettings) {
+      throw new NotFoundException('User not found');
+    }
+
+    const { userSettings, passwordHash, ...rest } = user;
+    return {
+      ...rest,
+      hasPassword: !!passwordHash,
+      settings: {
+        theme: userSettings.theme,
+        unitPreference: userSettings.unitPreference,
+        restTimerEnabled: userSettings.restTimerEnabled,
+        defaultRestSec: userSettings.defaultRestSec,
+      },
+    };
+  }
+
   // ── Create ──────────────────────────────────
 
   async create(data: {
@@ -40,7 +67,12 @@ export class UsersService {
     lastName: string;
     avatarUrl?: string;
   }) {
-    return this.prisma.user.create({ data });
+    return this.prisma.user.create({
+      data: {
+        ...data,
+        userSettings: { create: {} },
+      },
+    });
   }
 
   // ── Update User ─────────────────────────────
@@ -106,14 +138,11 @@ export class UsersService {
   }
 
   async updateProfile(userId: string, dto: AthleteProfileInput) {
-    const { dateOfBirth, unitPreference, gender, ...rest } = dto;
+    const { dateOfBirth, gender, ...rest } = dto;
     const data = {
       ...rest,
       ...(dateOfBirth !== undefined && {
         dateOfBirth: dateOfBirth ? new Date(dateOfBirth) : null,
-      }),
-      ...(unitPreference !== undefined && {
-        unitPreference: unitPreference as UnitPreference,
       }),
       ...(gender !== undefined && {
         gender: gender ? (gender as Gender) : null,
@@ -138,10 +167,13 @@ export class UsersService {
   }
 
   async updateSettings(userId: string, dto: UserSettingsInput) {
-    const { theme, ...rest } = dto;
+    const { theme, unitPreference, ...rest } = dto;
     const data = {
       ...rest,
       ...(theme !== undefined && { theme: theme as Theme }),
+      ...(unitPreference !== undefined && {
+        unitPreference: unitPreference as UnitPreference,
+      }),
     };
 
     return this.prisma.userSettings.upsert({

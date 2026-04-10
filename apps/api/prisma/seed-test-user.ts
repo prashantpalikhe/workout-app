@@ -245,7 +245,6 @@ async function createUser(
       userId: opts.id,
       weight: opts.profile.weight ?? null,
       height: opts.profile.height ?? null,
-      unitPreference: opts.profile.unitPreference ?? 'METRIC',
       gender: opts.profile.gender ?? null,
     },
   });
@@ -254,6 +253,7 @@ async function createUser(
     data: {
       userId: opts.id,
       theme: 'SYSTEM',
+      unitPreference: opts.profile.unitPreference ?? 'METRIC',
       restTimerEnabled: true,
       defaultRestSec: 90,
     },

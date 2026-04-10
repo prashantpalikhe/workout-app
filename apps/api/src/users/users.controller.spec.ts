@@ -28,7 +28,6 @@ describe('UsersController', () => {
     weight: 75,
     height: 180,
     dateOfBirth: null,
-    unitPreference: 'METRIC',
     gender: null,
     bio: null,
     link: null,
@@ -38,14 +37,34 @@ describe('UsersController', () => {
     id: 'sid',
     userId: 'uid',
     theme: 'SYSTEM',
+    unitPreference: 'METRIC',
     restTimerEnabled: true,
     defaultRestSec: 90,
+  };
+
+  const mockMePayload = {
+    id: 'uid',
+    email: 'a@b.com',
+    firstName: 'A',
+    lastName: 'B',
+    avatarUrl: null,
+    isTrainer: false,
+    createdAt: new Date(),
+    updatedAt: new Date(),
+    hasPassword: true,
+    settings: {
+      theme: 'SYSTEM',
+      unitPreference: 'METRIC',
+      restTimerEnabled: true,
+      defaultRestSec: 90,
+    },
   };
 
   beforeEach(async () => {
     usersService = {
       findById: vi.fn().mockResolvedValue(mockUser),
       findByIdOrThrow: vi.fn().mockResolvedValue(mockUser),
+      findMeById: vi.fn().mockResolvedValue(mockMePayload),
       update: vi.fn().mockResolvedValue(mockUser),
       setAvatarUrl: vi.fn().mockResolvedValue(mockUser),
       delete: vi.fn().mockResolvedValue(undefined),
@@ -82,22 +101,27 @@ describe('UsersController', () => {
   });
 
   describe('getMe', () => {
-    it('should return user without passwordHash', async () => {
+    it('should return the me payload via findMeById', async () => {
       const result = await controller.getMe('uid');
-      expect(usersService.findByIdOrThrow).toHaveBeenCalledWith('uid');
+      expect(usersService.findMeById).toHaveBeenCalledWith('uid');
       expect(result).not.toHaveProperty('passwordHash');
       expect(result.email).toBe('a@b.com');
     });
 
-    it('should expose hasPassword=true when passwordHash is set', async () => {
+    it('should bundle settings in the response', async () => {
       const result = await controller.getMe('uid');
-      expect(result.hasPassword).toBe(true);
+      expect(result.settings).toEqual({
+        theme: 'SYSTEM',
+        unitPreference: 'METRIC',
+        restTimerEnabled: true,
+        defaultRestSec: 90,
+      });
     });
 
-    it('should expose hasPassword=false for OAuth-only users', async () => {
-      usersService.findByIdOrThrow.mockResolvedValue({
-        ...mockUser,
-        passwordHash: null,
+    it('should expose hasPassword from the service payload', async () => {
+      usersService.findMeById.mockResolvedValue({
+        ...mockMePayload,
+        hasPassword: false,
       });
       const result = await controller.getMe('uid');
       expect(result.hasPassword).toBe(false);
