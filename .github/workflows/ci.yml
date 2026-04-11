@@ -12,6 +12,27 @@ env:
   DATABASE_URL: postgresql://dummy:dummy@localhost:5432/dummy
 
 jobs:
+  lint:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: pnpm/action-setup@v4
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 22
+          cache: pnpm
+      - run: pnpm install
+      - run: pnpm --filter @workout/shared build
+      # Run eslint directly (not via `pnpm lint`) so `--fix` does NOT run in
+      # CI — we want the check to fail on lint errors, not silently rewrite
+      # files. Same rule patterns as the local `pnpm lint` scripts.
+      - name: Lint @workout/api
+        working-directory: apps/api
+        run: pnpm exec eslint "{src,apps,libs,test}/**/*.ts" --max-warnings=0
+      - name: Lint @workout/web
+        working-directory: apps/web
+        run: pnpm exec eslint "app/**/*.{ts,vue}" "e2e/**/*.ts" --max-warnings=0
+
   api-tests:
     runs-on: ubuntu-latest
     steps:
