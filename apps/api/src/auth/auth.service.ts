@@ -8,7 +8,7 @@ import {
 import { ConfigService } from '@nestjs/config';
 import { JwtService } from '@nestjs/jwt';
 import * as argon2 from 'argon2';
-import { OAuth2Client } from 'google-auth-library';
+import { OAuth2Client, type TokenPayload } from 'google-auth-library';
 import appleSignin from 'apple-signin-auth';
 import { createHash, randomBytes } from 'node:crypto';
 import { PrismaService } from '../prisma';
@@ -97,7 +97,7 @@ export class AuthService {
 
     const client = new OAuth2Client(clientId);
 
-    let payload;
+    let payload: TokenPayload | undefined;
     try {
       const ticket = await client.verifyIdToken({
         idToken: dto.idToken,
@@ -382,9 +382,14 @@ export class AuthService {
         lastName: data.lastName,
         avatarUrl: data.avatarUrl,
       });
-    } catch (error: any) {
-      // Handle race condition: another request created this user concurrently
-      if (error?.code === 'P2002') {
+    } catch (error) {
+      // Handle race condition: another request created this user concurrently.
+      // Prisma wraps unique-constraint violations in a known error with
+      // `code === 'P2002'`.
+      if (
+        error instanceof Error &&
+        (error as { code?: unknown }).code === 'P2002'
+      ) {
         const user = await this.usersService.findByEmail(data.email);
         if (user) return user;
       }

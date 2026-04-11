@@ -97,7 +97,7 @@ export class UsersController {
     @Body(new ZodValidationPipe(updateUserInputSchema)) dto: UpdateUserInput,
   ) {
     const user = await this.usersService.update(userId, dto);
-    const { passwordHash, ...rest } = user;
+    const { passwordHash: _passwordHash, ...rest } = user;
     return rest;
   }
 

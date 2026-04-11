@@ -1,9 +1,9 @@
-import { test, expect } from '@playwright/test'
+import { test, expect, type Page } from '@playwright/test'
 import { loginAsNewUser } from '../../helpers/auth'
 import { apiAs, fetchExercises, addProgramExercise } from '../../helpers/api'
 
 test.describe('Program Auto-Save & Reorder', () => {
-  async function setupProgramWithExercises(page: any) {
+  async function setupProgramWithExercises(page: Page) {
     const user = await loginAsNewUser(page)
     const token = user.tokens.accessToken
 

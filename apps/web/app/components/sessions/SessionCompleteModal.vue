@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import type { CompleteSessionInput } from '@workout/shared'
 import type { WorkoutSession } from '~/stores/sessions'
 
 const props = defineProps<{
@@ -76,7 +77,7 @@ async function completeWorkout() {
   // which would unmount this component via the parent's v-if guard.
   const sessionId = props.session.id
   try {
-    const input: Record<string, unknown> = {
+    const input: CompleteSessionInput = {
       overallRpe: overallRpe.value,
       notes: notes.value.trim() || undefined
     }
@@ -95,7 +96,7 @@ async function completeWorkout() {
       }
       input.completedAt = endDate.toISOString()
     }
-    await sessionStore.completeSession(sessionId, input as any)
+    await sessionStore.completeSession(sessionId, input)
     toast.add({ title: 'Workout completed!', color: 'success' })
     open.value = false
     emit('completed', sessionId)

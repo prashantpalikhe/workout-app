@@ -326,7 +326,7 @@ describe('SessionsService', () => {
         completedAt: expect.any(Date),
       });
 
-      const result = await service.complete('user-1', 'session-1', {
+      await service.complete('user-1', 'session-1', {
         overallRpe: 8,
       });
 

@@ -5,6 +5,8 @@ import {
   ForbiddenException,
   Inject,
 } from '@nestjs/common';
+import type { Request } from 'express';
+import type { JwtPayload } from '../../auth/interfaces/jwt-payload.interface';
 import { PrismaService } from '../../prisma';
 
 /**
@@ -19,9 +21,13 @@ export class TrainerAccessGuard implements CanActivate {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async canActivate(context: ExecutionContext): Promise<boolean> {
-    const request = context.switchToHttp().getRequest();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: JwtPayload }>();
     const trainerId = request.user?.sub;
-    const athleteId = request.params?.athleteId;
+    const rawAthleteId = request.params?.athleteId;
+    const athleteId =
+      typeof rawAthleteId === 'string' ? rawAthleteId : undefined;
 
     if (!trainerId || !athleteId) {
       throw new ForbiddenException('Missing trainer or athlete identifier');

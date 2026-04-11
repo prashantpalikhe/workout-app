@@ -5,6 +5,8 @@ import {
   ForbiddenException,
 } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
+import type { Request } from 'express';
+import type { JwtPayload } from '../../auth/interfaces/jwt-payload.interface';
 import { IS_TRAINER_KEY } from '../decorators/is-trainer.decorator';
 
 /**
@@ -26,7 +28,9 @@ export class TrainerGuard implements CanActivate {
       return true;
     }
 
-    const request = context.switchToHttp().getRequest();
+    const request = context
+      .switchToHttp()
+      .getRequest<Request & { user?: JwtPayload }>();
     const user = request.user;
 
     if (!user?.isTrainer) {

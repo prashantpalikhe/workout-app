@@ -8,6 +8,9 @@ import type { SchemaObject } from '@nestjs/swagger/dist/interfaces/open-api-spec
  * which isn't valid in OpenAPI's inline schema definitions.
  */
 export function zodToOpenApi(schema: ZodSchema): SchemaObject {
-  const { $schema, ...rest } = toJSONSchema(schema) as Record<string, unknown>;
+  const { $schema: _$schema, ...rest } = toJSONSchema(schema) as Record<
+    string,
+    unknown
+  >;
   return rest as SchemaObject;
 }
