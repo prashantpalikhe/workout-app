@@ -78,7 +78,7 @@ async function completeWorkout() {
   try {
     const input: Record<string, unknown> = {
       overallRpe: overallRpe.value,
-      notes: notes.value.trim() || undefined,
+      notes: notes.value.trim() || undefined
     }
     if (showWarning.value && endTimeChanged.value) {
       const endDate = new Date(endTime.value)

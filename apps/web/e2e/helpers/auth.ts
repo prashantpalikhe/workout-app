@@ -19,7 +19,7 @@ export interface TestUser {
 
 /** Register a unique user via the API and return credentials + tokens. */
 export async function createTestUser(
-  overrides?: Partial<{ firstName: string; lastName: string }>
+  overrides?: Partial<{ firstName: string, lastName: string }>
 ): Promise<TestUser> {
   const id = randomUUID().slice(0, 8)
   const email = `test-${id}@example.com`

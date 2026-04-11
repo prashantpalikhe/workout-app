@@ -10,7 +10,7 @@ export async function apiAs<T = unknown>(
     ...options,
     headers: {
       'Content-Type': 'application/json',
-      Authorization: `Bearer ${token}`,
+      'Authorization': `Bearer ${token}`,
       ...options.headers
     }
   })
@@ -69,7 +69,7 @@ export async function addSessionSet(
   token: string,
   sessionId: string,
   exerciseId: string,
-  data: { setNumber: number; weight?: number; reps?: number; completed?: boolean }
+  data: { setNumber: number, weight?: number, reps?: number, completed?: boolean }
 ) {
   return apiAs(
     token,
@@ -91,7 +91,7 @@ export async function completeSession(token: string, sessionId: string) {
 
 /** Fetch exercises from API (for getting IDs). */
 export async function fetchExercises(token: string) {
-  return apiAs<{ data: Array<{ id: string; name: string }> }>(
+  return apiAs<{ data: Array<{ id: string, name: string }> }>(
     token,
     '/exercises?limit=50'
   )

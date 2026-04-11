@@ -95,7 +95,7 @@ export class RecordsService {
         });
 
         const isBaseline = !existingBest;
-        if (isBaseline || candidate.value > existingBest!.value) {
+        if (isBaseline || candidate.value > existingBest.value) {
           newPRs.push({
             exerciseId,
             prType,
@@ -304,10 +304,7 @@ export class RecordsService {
           ? this.computeCandidate(prType, sessionSets)
           : null;
 
-      const bestValue = Math.max(
-        existingBest.value,
-        sessionBest?.value ?? 0,
-      );
+      const bestValue = Math.max(existingBest.value, sessionBest?.value ?? 0);
 
       if (candidate.value > bestValue) {
         const label =

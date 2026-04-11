@@ -1,11 +1,11 @@
 /// <reference lib="webworker" />
-declare const self: ServiceWorkerGlobalScope
-
 import { precacheAndRoute, cleanupOutdatedCaches } from 'workbox-precaching'
 import { registerRoute, NavigationRoute } from 'workbox-routing'
 import { NetworkFirst, StaleWhileRevalidate } from 'workbox-strategies'
 import { CacheableResponsePlugin } from 'workbox-cacheable-response'
 import { ExpirationPlugin } from 'workbox-expiration'
+
+declare const self: ServiceWorkerGlobalScope
 
 // ──────────────────────────────────────────────
 // 1. Precache build assets (JS, CSS, icons, SVGs)

@@ -66,7 +66,6 @@ onMounted(() => {
   }
 })
 
-
 const footerNavItems = computed<NavigationMenuItem[]>(() => [
   {
     label: 'Settings',

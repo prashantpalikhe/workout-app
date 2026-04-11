@@ -37,13 +37,24 @@ const makeSessionWithPR = (isBaseline: boolean) => ({
     {
       id: 'se-1',
       exerciseId: 'ex-1',
-      exercise: { id: 'ex-1', name: 'Bench Press', equipment: 'BARBELL', trackingType: 'WEIGHT_REPS', imageUrls: [] },
+      exercise: {
+        id: 'ex-1',
+        name: 'Bench Press',
+        equipment: 'BARBELL',
+        trackingType: 'WEIGHT_REPS',
+        imageUrls: [],
+      },
       prescribedExercise: null,
       sets: [
         {
           id: 'set-1',
           setNumber: 1,
-          personalRecord: { id: 'pr-1', prType: 'MAX_WEIGHT', value: 100, isBaseline },
+          personalRecord: {
+            id: 'pr-1',
+            prType: 'MAX_WEIGHT',
+            value: 100,
+            isBaseline,
+          },
         },
       ],
     },
@@ -362,8 +373,12 @@ describe('SessionsService', () => {
       const after = new Date();
 
       const args = prisma.workoutSession.update.mock.calls[0][0];
-      expect(args.data.completedAt.getTime()).toBeGreaterThanOrEqual(before.getTime());
-      expect(args.data.completedAt.getTime()).toBeLessThanOrEqual(after.getTime());
+      expect(args.data.completedAt.getTime()).toBeGreaterThanOrEqual(
+        before.getTime(),
+      );
+      expect(args.data.completedAt.getTime()).toBeLessThanOrEqual(
+        after.getTime(),
+      );
     });
 
     it('should reject completedAt before session start', async () => {

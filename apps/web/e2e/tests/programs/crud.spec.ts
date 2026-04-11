@@ -7,7 +7,7 @@ test.describe('Programs', () => {
     const user = await loginAsNewUser(page)
 
     // Create program via API (avoids fragile desktop/mobile button detection)
-    const program = await apiAs<{ id: string; name: string }>(
+    const program = await apiAs<{ id: string, name: string }>(
       user.tokens.accessToken,
       '/programs',
       { method: 'POST', body: JSON.stringify({ name: 'E2E Test Program' }) }

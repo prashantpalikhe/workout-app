@@ -43,7 +43,12 @@ const mockExerciseWithBaselinePR = {
     {
       id: 'set-1',
       setNumber: 1,
-      personalRecord: { id: 'pr-1', prType: 'MAX_WEIGHT', value: 100, isBaseline: true },
+      personalRecord: {
+        id: 'pr-1',
+        prType: 'MAX_WEIGHT',
+        value: 100,
+        isBaseline: true,
+      },
     },
   ],
 };
@@ -54,7 +59,12 @@ const mockExerciseWithGenuinePR = {
     {
       id: 'set-1',
       setNumber: 1,
-      personalRecord: { id: 'pr-1', prType: 'MAX_WEIGHT', value: 100, isBaseline: false },
+      personalRecord: {
+        id: 'pr-1',
+        prType: 'MAX_WEIGHT',
+        value: 100,
+        isBaseline: false,
+      },
     },
   ],
 };
@@ -247,20 +257,32 @@ describe('SessionExercisesService', () => {
   describe('baseline PR normalization', () => {
     it('should strip baseline personalRecord from add response', async () => {
       prisma.workoutSession.findUnique.mockResolvedValue(mockSession);
-      prisma.sessionExercise.aggregate.mockResolvedValue({ _max: { sortOrder: null } });
-      prisma.sessionExercise.create.mockResolvedValue(mockExerciseWithBaselinePR);
+      prisma.sessionExercise.aggregate.mockResolvedValue({
+        _max: { sortOrder: null },
+      });
+      prisma.sessionExercise.create.mockResolvedValue(
+        mockExerciseWithBaselinePR,
+      );
 
-      const result = await service.add('user-1', 'session-1', { exerciseId: 'ex-1' });
+      const result = await service.add('user-1', 'session-1', {
+        exerciseId: 'ex-1',
+      });
 
       expect(result.sets[0].personalRecord).toBeNull();
     });
 
     it('should keep genuine personalRecord in add response', async () => {
       prisma.workoutSession.findUnique.mockResolvedValue(mockSession);
-      prisma.sessionExercise.aggregate.mockResolvedValue({ _max: { sortOrder: null } });
-      prisma.sessionExercise.create.mockResolvedValue(mockExerciseWithGenuinePR);
+      prisma.sessionExercise.aggregate.mockResolvedValue({
+        _max: { sortOrder: null },
+      });
+      prisma.sessionExercise.create.mockResolvedValue(
+        mockExerciseWithGenuinePR,
+      );
 
-      const result = await service.add('user-1', 'session-1', { exerciseId: 'ex-1' });
+      const result = await service.add('user-1', 'session-1', {
+        exerciseId: 'ex-1',
+      });
 
       expect(result.sets[0].personalRecord).not.toBeNull();
       expect(result.sets[0].personalRecord.prType).toBe('MAX_WEIGHT');
@@ -269,9 +291,13 @@ describe('SessionExercisesService', () => {
     it('should strip baseline personalRecord from update response', async () => {
       prisma.workoutSession.findUnique.mockResolvedValue(mockSession);
       prisma.sessionExercise.findUnique.mockResolvedValue(mockSessionExercise);
-      prisma.sessionExercise.update.mockResolvedValue(mockExerciseWithBaselinePR);
+      prisma.sessionExercise.update.mockResolvedValue(
+        mockExerciseWithBaselinePR,
+      );
 
-      const result = await service.update('user-1', 'session-1', 'se-1', { sortOrder: 1 });
+      const result = await service.update('user-1', 'session-1', 'se-1', {
+        sortOrder: 1,
+      });
 
       expect(result.sets[0].personalRecord).toBeNull();
     });

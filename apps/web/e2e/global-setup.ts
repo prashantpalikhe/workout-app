@@ -53,7 +53,7 @@ export default async function globalSetup() {
     const { rows: muscleGroups } = await pool.query(
       `SELECT id, name FROM muscle_groups`
     )
-    const mgMap = new Map(muscleGroups.map((mg: { id: string; name: string }) => [mg.name, mg.id]))
+    const mgMap = new Map(muscleGroups.map((mg: { id: string, name: string }) => [mg.name, mg.id]))
 
     // Insert a few common exercises
     const exercises = [
