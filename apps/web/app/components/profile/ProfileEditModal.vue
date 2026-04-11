@@ -24,9 +24,10 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 const rawSelectedFile = ref<File | null>(null)
 const cropperOpen = ref(false)
 
-// Form state. `weight` is in the user's display unit (kg or lbs).
-// Height is stored in cm internally; in imperial mode we split into
-// ft + in for the two-input UI.
+// Form state. `weightKg` and `heightCm` are metric sources of truth — display
+// conversions happen in the computed bindings below. If the user opens the
+// modal and saves without touching a metric field, its stored value passes
+// through untouched (no round-trip drift like 80 kg → 176.4 lb → 80.01 kg).
 const form = reactive({
   firstName: '',
   lastName: '',
@@ -34,10 +35,53 @@ const form = reactive({
   link: '',
   dateOfBirth: '',
   gender: '',
-  weight: null as number | null,
-  heightCm: null as number | null,
-  heightFt: null as number | null,
-  heightIn: null as number | null
+  weightKg: null as number | null,
+  heightCm: null as number | null
+})
+
+const weightDisplay = computed<number | null>({
+  get: () => {
+    const v = formatWeightValue(form.weightKg)
+    return v ?? null
+  },
+  set: (value) => {
+    if (value == null || Number.isNaN(value)) {
+      form.weightKg = null
+      return
+    }
+    form.weightKg = parseWeightInput(value) ?? null
+  }
+})
+
+/** Current height as feet+inches in imperial mode — derived from form.heightCm. */
+const heightFtDisplay = computed<number | null>({
+  get: () => {
+    if (form.heightCm == null) return null
+    return cmToFtIn(form.heightCm).ft
+  },
+  set: (ft) => {
+    if (ft == null || Number.isNaN(ft)) {
+      form.heightCm = null
+      return
+    }
+    const currentInches = form.heightCm != null ? cmToFtIn(form.heightCm).inches : 0
+    form.heightCm = ftInToCm(ft, currentInches)
+  }
+})
+
+const heightInDisplay = computed<number | null>({
+  get: () => {
+    if (form.heightCm == null) return null
+    return cmToFtIn(form.heightCm).inches
+  },
+  set: (inches) => {
+    if (inches == null || Number.isNaN(inches)) {
+      form.heightCm = null
+      return
+    }
+    const currentFt = form.heightCm != null ? cmToFtIn(form.heightCm).ft : 0
+    form.heightCm = ftInToCm(currentFt, inches)
+  }
 })
 
 const genderOptions = [
@@ -68,25 +112,9 @@ watch(open, (val) => {
     form.link = props.profile?.link ?? ''
     form.dateOfBirth = props.profile?.dateOfBirth?.substring(0, 10) ?? ''
     form.gender = props.profile?.gender ?? ''
-    // Weight: convert stored kg to the display unit.
-    form.weight = formatWeightValue(props.profile?.weight ?? null)
-    // Height: single cm input in metric, ft + in in imperial.
-    const storedHeightCm = props.profile?.height ?? null
-    if (isImperial.value) {
-      if (storedHeightCm != null) {
-        const { ft, inches } = cmToFtIn(storedHeightCm)
-        form.heightFt = ft
-        form.heightIn = inches
-      } else {
-        form.heightFt = null
-        form.heightIn = null
-      }
-      form.heightCm = null
-    } else {
-      form.heightCm = storedHeightCm != null ? Math.round(storedHeightCm) : null
-      form.heightFt = null
-      form.heightIn = null
-    }
+    // Metric source of truth — the computed display bindings handle conversion.
+    form.weightKg = props.profile?.weight ?? null
+    form.heightCm = props.profile?.height ?? null
     // Reset avatar state
     pendingAvatarFile.value = null
     avatarPreviewUrl.value = null
@@ -177,26 +205,16 @@ async function save() {
       }
     }
 
-    // Convert display-unit weight/height back to metric for storage.
-    const weightKg = form.weight != null ? parseWeightInput(form.weight) : null
-    let heightCm: number | null = null
-    if (isImperial.value) {
-      if (form.heightFt != null || form.heightIn != null) {
-        heightCm = ftInToCm(form.heightFt ?? 0, form.heightIn ?? 0)
-      }
-    } else {
-      heightCm = form.heightCm
-    }
-
     // Update profile (bio, link, dob, gender, weight, height)
-    // Send null for cleared fields so the backend can unset them
+    // Send null for cleared fields so the backend can unset them.
+    // `weightKg` and `heightCm` are the metric source of truth — pass through.
     await profileStore.updateProfile({
       bio: form.bio || null,
       link: form.link || null,
       dateOfBirth: form.dateOfBirth || null,
       gender: form.gender || null,
-      weight: weightKg ?? null,
-      height: heightCm
+      weight: form.weightKg,
+      height: form.heightCm
     })
 
     toast.add({ title: 'Profile updated', color: 'success' })
@@ -310,7 +328,7 @@ async function save() {
         <div class="grid grid-cols-2 gap-3">
           <UFormField :label="`Weight (${weightUnit})`">
             <UInput
-              v-model.number="form.weight"
+              v-model.number="weightDisplay"
               type="number"
               :placeholder="isImperial ? '165' : '75'"
             />
@@ -327,7 +345,7 @@ async function save() {
           <UFormField v-else label="Height (ft / in)">
             <div class="flex items-center gap-2">
               <UInput
-                v-model.number="form.heightFt"
+                v-model.number="heightFtDisplay"
                 type="number"
                 placeholder="5"
                 :min="0"
@@ -336,7 +354,7 @@ async function save() {
               />
               <span class="text-xs text-muted">ft</span>
               <UInput
-                v-model.number="form.heightIn"
+                v-model.number="heightInDisplay"
                 type="number"
                 placeholder="9"
                 :min="0"

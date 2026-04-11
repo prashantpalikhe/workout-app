@@ -19,30 +19,7 @@ const emit = defineEmits<{
 const sessionStore = useSessionStore()
 const toast = useToast()
 const { formatEnum } = useFormatEnum()
-const { parseWeightInput, formatWeightValue, weightUnit, unitPreference } = useUnits()
-
-/**
- * Weight drift tolerance. Round-tripping through kg<->lbs has ~0.1 lb drift
- * because both conversions round to 2 decimals. Anything closer than this is
- * considered "the same value" so the prop-sync watcher doesn't flicker.
- */
-const WEIGHT_EPSILON = 0.2
-
-function kgToDisplay(kg: number | null | undefined): number | undefined {
-  const v = formatWeightValue(kg)
-  return v ?? undefined
-}
-
-function displayToKg(value: number | undefined): number | undefined {
-  if (value == null) return undefined
-  return parseWeightInput(value) ?? undefined
-}
-
-function weightsEqual(a: number | undefined, b: number | undefined): boolean {
-  if (a === b) return true
-  if (a == null || b == null) return false
-  return Math.abs(a - b) < WEIGHT_EPSILON
-}
+const { parseWeightInput, formatWeightValue, weightUnit } = useUnits()
 
 // ── Delete confirmation ──
 const showDeleteConfirm = ref(false)
@@ -105,16 +82,33 @@ async function deleteNote() {
 }
 
 // Local form state initialized from prop.
-// NOTE: `weight` is held in the USER'S DISPLAY UNIT (kg or lbs), not kg.
-// The metric source of truth stays in `props.set.weight` and the store; this
-// form value is converted back to kg only at save time.
+// `weightKg` is the metric source of truth — the display conversion happens
+// in the `weightDisplay` computed below, so the stored kg only changes when
+// the user actively types a new value. An unconverted pass-through on save
+// would silently drift the stored value (e.g. 80 kg → 176.4 lb → 80.01 kg).
 const form = reactive({
   setType: props.set.setType,
-  weight: kgToDisplay(props.set.weight),
+  weightKg: props.set.weight ?? (undefined as number | undefined),
   reps: props.set.reps ?? (undefined as number | undefined),
   durationSec: props.set.durationSec ?? (undefined as number | undefined),
   distance: props.set.distance ?? (undefined as number | undefined),
   rpe: props.set.rpe ?? (undefined as number | undefined)
+})
+
+/**
+ * Bi-directional display binding for the weight input. The getter rounds kg
+ * to the display unit for rendering; the setter is only invoked when the
+ * user types, so the underlying kg value stays untouched otherwise.
+ */
+const weightDisplay = computed<number | undefined>({
+  get: () => formatWeightValue(form.weightKg ?? null) ?? undefined,
+  set: (value) => {
+    if (value == null || Number.isNaN(value)) {
+      form.weightKg = undefined
+      return
+    }
+    form.weightKg = parseWeightInput(value) ?? undefined
+  }
 })
 
 // Dirty tracking — prevents the watch from overwriting user edits
@@ -137,14 +131,13 @@ watch(
     if (dirty.value) return
 
     if (form.setType !== s.setType) form.setType = s.setType
-    // `s.weight` is in kg; convert to display unit for comparison with `form.weight`.
-    // Tolerant compare avoids round-trip drift flicker (225 → 102.06 kg → 224.9 lb).
-    const newWeight = kgToDisplay(s.weight)
+    // Both sides are kg — exact equality is safe.
+    const wKg = s.weight ?? undefined
     const r = s.reps ?? undefined
     const d = s.durationSec ?? undefined
     const dist = s.distance ?? undefined
     const rpe = s.rpe ?? undefined
-    if (!weightsEqual(form.weight, newWeight)) form.weight = newWeight
+    if (form.weightKg !== wKg) form.weightKg = wKg
     if (form.reps !== r) form.reps = r
     if (form.durationSec !== d) form.durationSec = d
     if (form.distance !== dist) form.distance = dist
@@ -152,13 +145,6 @@ watch(
   },
   { deep: true }
 )
-
-// When the unit preference flips mid-session, re-derive the display value
-// from the stored kg. Guard against overwriting an in-progress edit.
-watch(unitPreference, () => {
-  if (dirty.value) return
-  form.weight = kgToDisplay(props.set.weight)
-})
 
 // Auto-save on blur
 const {
@@ -172,8 +158,7 @@ const {
 
     const payload: Record<string, unknown> = {}
     payload.setType = form.setType
-    // Convert the display-unit weight back to kg before hitting the API.
-    payload.weight = form.weight ? displayToKg(form.weight) : undefined
+    payload.weight = form.weightKg || undefined
     payload.reps = form.reps || undefined
     payload.durationSec = form.durationSec || undefined
     payload.distance = form.distance || undefined
@@ -217,7 +202,7 @@ async function toggleCompleted() {
       props.set.id,
       {
         setType: form.setType,
-        weight: form.weight ? displayToKg(form.weight) : undefined,
+        weight: form.weightKg || undefined,
         reps: form.reps || undefined,
         durationSec: form.durationSec || undefined,
         distance: form.distance || undefined,
@@ -247,7 +232,7 @@ async function checkForPR() {
     const result = await sessionStore.checkPR(props.realExerciseId, {
       sessionId: props.sessionId,
       excludeSetId: props.set.id,
-      weight: displayToKg(form.weight),
+      weight: form.weightKg,
       reps: form.reps,
       durationSec: form.durationSec,
       distance: form.distance
@@ -389,7 +374,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
         <!-- Data inputs -->
         <UInput
           v-if="showWeight"
-          v-model.number="form.weight"
+          v-model.number="weightDisplay"
           type="text"
           inputmode="decimal"
           :placeholder="weightUnit"
@@ -506,7 +491,7 @@ const showDistance = computed(() => props.trackingType === 'DISTANCE_DURATION')
       <!-- Data inputs -->
       <UInput
         v-if="showWeight"
-        v-model.number="form.weight"
+        v-model.number="weightDisplay"
         type="text"
         inputmode="decimal"
         :placeholder="weightUnit"

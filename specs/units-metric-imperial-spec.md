@@ -148,17 +148,34 @@ When a user is in imperial mode and logs a set at `225 lbs × 5`, the system mus
 
 1. Accept the number `225` as-is in the input field.
 2. Display `225` until the user edits it.
-3. Convert to kg (`lbToKg(225) → 102.06`) **at save time only**.
-4. Store `102.06` kg on the server.
+3. Convert to kg (`lbToKg(225) → 102.06`) and store it as the form's metric source of truth.
+4. Send that metric value to the server on save.
 5. On reload, fetch `102.06` kg and render it as `225 lbs` (via `kgToLb(102.06) = 225.0`).
 
-The round-trip **must** produce the same user-facing value. Any drift is a bug.
+The round-trip **must** produce the same user-facing value, and — critically — the stored metric value **must not drift** when the user doesn't edit the weight field.
 
-### Round-Trip Drift Prevention
+### Form State Rule
 
-`kgToLb` and `lbToKg` in `@workout/shared` round to 2 decimal places. This is precise enough that a display-layer round to 1 decimal (for imperial) always produces the same user-facing integer for any value a user would actually type.
+> **Form components hold the metric source of truth, not the display value.**
 
-**Invariant:** `formatWeight(parseWeightInput(x, imperial), imperial) === formatWeight(x, imperial)` for all user-typed `x`.
+Every input that edits a unit-bearing value (`SessionSetRow.vue`, `CompactSetInput.vue`, `ProfileEditModal.vue`) stores the metric number in form state (`form.weightKg`, `form.heightCm`). The input is bound via a **computed** with a getter that converts metric → display and a setter that converts user input display → metric.
+
+The setter only fires when the user actively types. If they never touch the input, the stored metric value passes through unchanged on save.
+
+This design avoids two classes of bug:
+
+1. **Invisible drift when saving unrelated fields.** Previously, `form.weight` was held in display units, and `save()` unconditionally did `parseWeightInput(form.weight)`. Every save of any field rounded the stored kg value — e.g. `80 kg → 176.4 lbs display → lbToKg(176.4) = 80.01 kg`. That silently mutates workout history.
+2. **Rounding on toggle-complete.** Marking a set complete (or editing a different field on the same set) flushes the full payload back to the server. If that payload recomputes weight from the display value, the stored kg drifts.
+
+### Round-Trip Stability
+
+`kgToLb` and `lbToKg` in `@workout/shared` round to 2 decimal places. Not every clean metric value round-trips cleanly — `80 kg → 176.4 lb → 80.01 kg` drifts, and `170 cm → 5'7" → 170.18 cm` drifts. **The form-state rule above makes this moot**: the stored value is the source and is never regenerated from display output.
+
+**Invariants:**
+
+- If the user never types in the weight field, `payload.weight === props.set.weight` exactly (pass-through).
+- If the user types `x` in the current display unit, `payload.weight === parseWeightInput(x)` (single conversion).
+- Display after reload: `formatWeightValue(payload.weight)` — may differ from the literal input value by a small amount when the helpers round, but the underlying storage is stable.
 
 ### Body Metrics
 

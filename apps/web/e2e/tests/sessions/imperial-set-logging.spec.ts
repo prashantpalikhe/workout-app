@@ -102,4 +102,53 @@ test.describe('Imperial set logging', () => {
     const weightInput = page.getByRole('textbox', { name: 'kg' })
     await expect(weightInput).toHaveValue('100')
   })
+
+  /**
+   * Regression: completing a set in imperial mode without editing the weight
+   * must NOT round-trip the stored kg value. Not every clean kg rounds cleanly
+   * to the display unit (e.g. 80 kg → 176.4 lb → 80.01 kg if parsed back).
+   * The form must hold the kg source of truth, not the display value.
+   */
+  test('toggling complete in imperial mode does not drift the stored weight', async ({ page }) => {
+    const user = await loginAsNewUser(page)
+
+    // Seed with a clean metric value (80 kg) logged while the preference was metric.
+    const exercises = await fetchExercises(user.tokens.accessToken)
+    const benchPress = exercises.data.find(e => e.name === 'Barbell Bench Press')!
+    const session = (await startSession(user.tokens.accessToken, 'No-Drift Bench')) as { id: string }
+    const se = (await addSessionExercise(user.tokens.accessToken, session.id, benchPress.id)) as { id: string }
+    const set = (await addSessionSet(
+      user.tokens.accessToken,
+      session.id,
+      se.id,
+      { setNumber: 1, weight: 80, reps: 5 }
+    )) as { id: string }
+
+    // Now the user switches to imperial and opens the workout.
+    await apiAs(user.tokens.accessToken, '/users/me/settings', {
+      method: 'PATCH',
+      body: JSON.stringify({ unitPreference: 'IMPERIAL' })
+    })
+
+    await page.goto('/sessions/active')
+    await expect(page.getByText('Barbell Bench Press')).toBeVisible()
+
+    // Display should be the converted value. Do NOT touch the weight input.
+    const weightInput = page.getByRole('textbox', { name: 'lbs' })
+    await expect(weightInput).toHaveValue('176.4')
+
+    // Mark the set complete without editing weight. This fires an immediate
+    // save that would previously parse `176.4` lbs back to `80.01` kg.
+    await page.getByRole('button', { name: /mark complete/i }).first().click()
+    await page.waitForTimeout(700)
+
+    // The stored weight must still be EXACTLY 80, not 80.01.
+    const storedSession = (await apiAs(
+      user.tokens.accessToken,
+      `/sessions/${session.id}`
+    )) as { sessionExercises: Array<{ sets: Array<{ id: string, weight: number | null, completed: boolean }> }> }
+    const storedSet = storedSession.sessionExercises[0].sets.find(s => s.id === set.id)!
+    expect(storedSet.completed).toBe(true)
+    expect(storedSet.weight).toBe(80)
+  })
 })
