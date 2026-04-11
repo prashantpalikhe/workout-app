@@ -4,6 +4,7 @@ import { resolve } from 'node:path'
 export default defineNuxtConfig({
   modules: [
     '@nuxt/eslint',
+    '@nuxt/fonts',
     '@nuxt/ui',
     '@nuxt/a11y',
     '@nuxt/hints',
@@ -13,6 +14,30 @@ export default defineNuxtConfig({
     '@nuxt/scripts',
     '@vite-pwa/nuxt'
   ],
+
+  // Variable Lexend served from our own origin. @nuxt/fonts scans CSS for
+  // font-family: 'Lexend', fetches the font from Google Fonts at build time
+  // (no runtime request to fonts.googleapis.com), emits @font-face with
+  // font-display: swap, generates fontaine fallback metrics to eliminate CLS
+  // on the font swap, and preloads the file on first paint.
+  //
+  // Listing the full 100-900 weight range makes @nuxt/fonts prefer the
+  // variable font file — one ~60KB download covers every weight used in
+  // the app instead of 4-5 separate static weight files.
+  fonts: {
+    families: [
+      {
+        name: 'Lexend',
+        provider: 'google',
+        weights: [100, 200, 300, 400, 500, 600, 700, 800, 900],
+        styles: ['normal'],
+        subsets: ['latin']
+      }
+    ],
+    defaults: {
+      preload: true
+    }
+  },
 
   pwa: {
     strategies: 'injectManifest',
