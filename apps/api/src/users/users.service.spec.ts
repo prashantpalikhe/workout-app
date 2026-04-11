@@ -14,7 +14,10 @@ describe('UsersService', () => {
       delete: ReturnType<typeof vi.fn>;
     };
     athleteProfile: { upsert: ReturnType<typeof vi.fn> };
-    userSettings: { upsert: ReturnType<typeof vi.fn> };
+    userSettings: {
+      upsert: ReturnType<typeof vi.fn>;
+      create: ReturnType<typeof vi.fn>;
+    };
   };
 
   beforeEach(async () => {
@@ -26,7 +29,7 @@ describe('UsersService', () => {
         delete: vi.fn(),
       },
       athleteProfile: { upsert: vi.fn() },
-      userSettings: { upsert: vi.fn() },
+      userSettings: { upsert: vi.fn(), create: vi.fn() },
     };
 
     const module: TestingModule = await Test.createTestingModule({
@@ -130,6 +133,37 @@ describe('UsersService', () => {
       await expect(service.findMeById('missing')).rejects.toThrow(
         NotFoundException,
       );
+    });
+
+    it('should create a settings row on the fly if one is missing', async () => {
+      // Older account (pre-migration / manual delete / partial restore) with
+      // no user_settings row. findMeById must not throw 404 — it should upsert
+      // a default row and return the payload as if settings had always existed.
+      prisma.user.findUnique.mockResolvedValue({
+        id: 'uid',
+        email: 'legacy@example.com',
+        firstName: 'L',
+        lastName: 'E',
+        isTrainer: false,
+        avatarUrl: null,
+        passwordHash: 'hashed',
+        userSettings: null,
+      });
+      prisma.userSettings.create.mockResolvedValue({
+        theme: 'SYSTEM',
+        unitPreference: 'METRIC',
+        restTimerEnabled: true,
+        defaultRestSec: 90,
+      });
+
+      const result = await service.findMeById('uid');
+
+      expect(prisma.userSettings.create).toHaveBeenCalledWith({
+        data: { userId: 'uid' },
+      });
+      expect(result.settings.unitPreference).toBe('METRIC');
+      expect(result.hasPassword).toBe(true);
+      expect(result.email).toBe('legacy@example.com');
     });
   });
 

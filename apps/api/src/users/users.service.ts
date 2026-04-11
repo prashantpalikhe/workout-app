@@ -35,17 +35,28 @@ export class UsersService {
    * Load the "me" payload used by both `GET /users/me` and the auth response.
    * Strips `passwordHash`, adds `hasPassword`, and bundles the user's settings
    * so the frontend has the unit preference (and friends) available on first paint.
+   *
+   * New users always get a `UserSettings` row created alongside them in `create()`,
+   * and the migration that moved `unitPreference` also backfilled a row for every
+   * existing user. Still, `User.userSettings` is a nullable relation at the schema
+   * level, so a missing row is a possible (if pathological) runtime state — e.g.
+   * a manual delete, a partial restore, or a user created by a code path that
+   * bypasses `create()`. Rather than throw 404 on login/refresh/me and break the
+   * whole app, we upsert on miss so the invariant "every user has settings" is
+   * enforced by this read path too.
    */
   async findMeById(id: string) {
     const user = await this.prisma.user.findUnique({
       where: { id },
       include: { userSettings: true },
     });
-    if (!user || !user.userSettings) {
-      throw new NotFoundException('User not found');
-    }
+    if (!user) throw new NotFoundException('User not found');
 
-    const { userSettings, passwordHash, ...rest } = user;
+    const userSettings =
+      user.userSettings ??
+      (await this.prisma.userSettings.create({ data: { userId: id } }));
+
+    const { userSettings: _us, passwordHash, ...rest } = user;
     return {
       ...rest,
       hasPassword: !!passwordHash,
