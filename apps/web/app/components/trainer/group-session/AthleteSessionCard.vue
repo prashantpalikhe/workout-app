@@ -26,6 +26,7 @@ const emit = defineEmits<{
 }>()
 
 const { formatEnum } = useFormatEnum()
+const { weightUnit } = useUnits()
 
 // Notes
 const showNotes = ref(!!props.currentExercise?.notes)
@@ -235,7 +236,7 @@ const isReady = computed(() => restTimer.value.isCompleted.value)
             v-if="['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(currentExercise.exercise.trackingType)"
             class="flex-1"
           >
-            kg
+            {{ weightUnit }}
           </span>
           <span
             v-if="['WEIGHT_REPS', 'REPS_ONLY'].includes(currentExercise.exercise.trackingType)"

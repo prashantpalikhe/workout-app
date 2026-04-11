@@ -17,6 +17,7 @@ const emit = defineEmits<{
 
 const sessionStore = useSessionStore()
 const toast = useToast()
+const { weightUnit } = useUnits()
 
 const addingSet = ref(false)
 const showProgramEdit = ref(false)
@@ -247,7 +248,7 @@ const dropdownItems = computed(() => {
       class="flex md:hidden items-center gap-1 px-1 pb-1.5 text-[10px] uppercase tracking-wider text-muted font-medium mb-0.5"
     >
       <span class="w-7 shrink-0 text-center">Set</span>
-      <span v-if="showWeight" class="flex-1 min-w-0 text-center">kg</span>
+      <span v-if="showWeight" class="flex-1 min-w-0 text-center">{{ weightUnit }}</span>
       <span v-if="showReps" class="flex-1 min-w-0 text-center">Reps</span>
       <span v-if="showDuration" class="flex-1 min-w-0 text-center">Sec</span>
       <span v-if="showDistance" class="flex-1 min-w-0 text-center">km</span>
@@ -260,7 +261,7 @@ const dropdownItems = computed(() => {
       class="hidden md:flex items-center gap-1.5 px-1.5 pb-1.5 text-[10px] uppercase tracking-wider text-muted font-medium mb-0.5"
     >
       <span class="w-7 shrink-0 text-center">Set</span>
-      <span v-if="showWeight" class="flex-1 min-w-0 text-center">kg</span>
+      <span v-if="showWeight" class="flex-1 min-w-0 text-center">{{ weightUnit }}</span>
       <span v-if="showReps" class="flex-1 min-w-0 text-center">Reps</span>
       <span v-if="showDuration" class="flex-1 min-w-0 text-center">Sec</span>
       <span v-if="showDistance" class="flex-1 min-w-0 text-center">km</span>
