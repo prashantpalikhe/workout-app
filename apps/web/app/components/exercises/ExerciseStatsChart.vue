@@ -12,6 +12,16 @@ const emit = defineEmits<{
   'update:range': [range: string]
 }>()
 
+const { formatWeightValue, weightUnit } = useUnits()
+
+// Keys that carry kg values from the server and need unit conversion at the
+// display boundary. `maxReps` is unit-agnostic and stays as-is.
+const WEIGHT_KEYS = new Set<keyof ExerciseStatsDataPoint>([
+  'maxWeight',
+  'estimated1RM',
+  'totalVolume'
+])
+
 const range = ref('12w')
 const rangeOptions = [
   { label: 'Last 12 weeks', value: '12w' },
@@ -27,13 +37,14 @@ function onRangeChange(val: string) {
 // Which charts to show based on tracking type
 const charts = computed(() => {
   const list: { title: string, key: keyof ExerciseStatsDataPoint, unit: string, color: string }[] = []
+  const w = weightUnit.value
 
   if (['WEIGHT_REPS', 'WEIGHT_DURATION'].includes(props.trackingType)) {
-    list.push({ title: 'Weight', key: 'maxWeight', unit: 'kg', color: 'rgb(59, 130, 246)' })
+    list.push({ title: 'Weight', key: 'maxWeight', unit: w, color: 'rgb(59, 130, 246)' })
   }
   if (props.trackingType === 'WEIGHT_REPS') {
-    list.push({ title: 'Estimated One Rep Max', key: 'estimated1RM', unit: 'kg', color: 'rgb(234, 179, 8)' })
-    list.push({ title: 'Set Volume', key: 'totalVolume', unit: 'kg', color: 'rgb(34, 197, 94)' })
+    list.push({ title: 'Estimated One Rep Max', key: 'estimated1RM', unit: w, color: 'rgb(234, 179, 8)' })
+    list.push({ title: 'Set Volume', key: 'totalVolume', unit: w, color: 'rgb(34, 197, 94)' })
   }
   if (['WEIGHT_REPS', 'REPS_ONLY'].includes(props.trackingType)) {
     list.push({ title: 'Max Reps', key: 'maxReps', unit: 'reps', color: 'rgb(168, 85, 247)' })
@@ -51,11 +62,14 @@ const labels = computed(() => {
 })
 
 function buildChartData(key: keyof ExerciseStatsDataPoint, color: string) {
+  const convert = WEIGHT_KEYS.has(key)
+    ? (v: number | null) => formatWeightValue(v)
+    : (v: number | null) => v
   return {
     labels: labels.value,
     datasets: [
       {
-        data: props.data?.dataPoints?.map(dp => dp[key]) ?? [],
+        data: props.data?.dataPoints?.map(dp => convert(dp[key])) ?? [],
         borderColor: color,
         backgroundColor: color.replace('rgb', 'rgba').replace(')', ', 0.1)'),
         tension: 0.3,

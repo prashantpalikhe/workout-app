@@ -1,4 +1,5 @@
 <script setup lang="ts">
+import { cmToFtIn, ftInToCm } from '@workout/shared'
 import type { AthleteProfile } from '~/stores/profile'
 
 const props = defineProps<{
@@ -10,6 +11,7 @@ const open = defineModel<boolean>('open', { default: false })
 const authStore = useAuthStore()
 const profileStore = useProfileStore()
 const toast = useToast()
+const { isImperial, weightUnit, formatWeightValue, parseWeightInput } = useUnits()
 
 const saving = ref(false)
 const avatarUploading = ref(false)
@@ -22,6 +24,9 @@ const fileInputRef = ref<HTMLInputElement | null>(null)
 const rawSelectedFile = ref<File | null>(null)
 const cropperOpen = ref(false)
 
+// Form state. `weight` is in the user's display unit (kg or lbs).
+// Height is stored in cm internally; in imperial mode we split into
+// ft + in for the two-input UI.
 const form = reactive({
   firstName: '',
   lastName: '',
@@ -30,7 +35,9 @@ const form = reactive({
   dateOfBirth: '',
   gender: '',
   weight: null as number | null,
-  height: null as number | null
+  heightCm: null as number | null,
+  heightFt: null as number | null,
+  heightIn: null as number | null
 })
 
 const genderOptions = [
@@ -61,8 +68,25 @@ watch(open, (val) => {
     form.link = props.profile?.link ?? ''
     form.dateOfBirth = props.profile?.dateOfBirth?.substring(0, 10) ?? ''
     form.gender = props.profile?.gender ?? ''
-    form.weight = props.profile?.weight ?? null
-    form.height = props.profile?.height ?? null
+    // Weight: convert stored kg to the display unit.
+    form.weight = formatWeightValue(props.profile?.weight ?? null)
+    // Height: single cm input in metric, ft + in in imperial.
+    const storedHeightCm = props.profile?.height ?? null
+    if (isImperial.value) {
+      if (storedHeightCm != null) {
+        const { ft, inches } = cmToFtIn(storedHeightCm)
+        form.heightFt = ft
+        form.heightIn = inches
+      } else {
+        form.heightFt = null
+        form.heightIn = null
+      }
+      form.heightCm = null
+    } else {
+      form.heightCm = storedHeightCm != null ? Math.round(storedHeightCm) : null
+      form.heightFt = null
+      form.heightIn = null
+    }
     // Reset avatar state
     pendingAvatarFile.value = null
     avatarPreviewUrl.value = null
@@ -153,6 +177,17 @@ async function save() {
       }
     }
 
+    // Convert display-unit weight/height back to metric for storage.
+    const weightKg = form.weight != null ? parseWeightInput(form.weight) : null
+    let heightCm: number | null = null
+    if (isImperial.value) {
+      if (form.heightFt != null || form.heightIn != null) {
+        heightCm = ftInToCm(form.heightFt ?? 0, form.heightIn ?? 0)
+      }
+    } else {
+      heightCm = form.heightCm
+    }
+
     // Update profile (bio, link, dob, gender, weight, height)
     // Send null for cleared fields so the backend can unset them
     await profileStore.updateProfile({
@@ -160,8 +195,8 @@ async function save() {
       link: form.link || null,
       dateOfBirth: form.dateOfBirth || null,
       gender: form.gender || null,
-      weight: form.weight ?? null,
-      height: form.height ?? null
+      weight: weightKg ?? null,
+      height: heightCm
     })
 
     toast.add({ title: 'Profile updated', color: 'success' })
@@ -273,23 +308,43 @@ async function save() {
         </div>
 
         <div class="grid grid-cols-2 gap-3">
-          <UFormField label="Weight (kg)">
+          <UFormField :label="`Weight (${weightUnit})`">
             <UInput
               v-model.number="form.weight"
               type="number"
-              placeholder="75"
-              :min="20"
-              :max="300"
+              :placeholder="isImperial ? '165' : '75'"
             />
           </UFormField>
-          <UFormField label="Height (cm)">
+          <UFormField v-if="!isImperial" label="Height (cm)">
             <UInput
-              v-model.number="form.height"
+              v-model.number="form.heightCm"
               type="number"
               placeholder="175"
               :min="100"
               :max="250"
             />
+          </UFormField>
+          <UFormField v-else label="Height (ft / in)">
+            <div class="flex items-center gap-2">
+              <UInput
+                v-model.number="form.heightFt"
+                type="number"
+                placeholder="5"
+                :min="0"
+                :max="8"
+                class="flex-1 min-w-0"
+              />
+              <span class="text-xs text-muted">ft</span>
+              <UInput
+                v-model.number="form.heightIn"
+                type="number"
+                placeholder="9"
+                :min="0"
+                :max="11"
+                class="flex-1 min-w-0"
+              />
+              <span class="text-xs text-muted">in</span>
+            </div>
           </UFormField>
         </div>
       </div>
